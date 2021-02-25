@@ -12,7 +12,7 @@ import javafx.scene.control.Button;
 import java.util.UUID;
 import javafx.scene.control.Separator;
 
-public class PostViewExample extends Application {
+public final class PostViewExample extends Application {
     private static VBox createPostBox(String username, String content, Scene scene) {
         Label usernameLabel;
         Text contentText;
