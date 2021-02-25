@@ -8,6 +8,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import java.time.temporal.ChronoField;
 import javafx.stage.Stage;
+import com.butterfly.social.PostView;
 import javafx.scene.control.Button;
 import java.util.UUID;
 import javafx.scene.control.Separator;
