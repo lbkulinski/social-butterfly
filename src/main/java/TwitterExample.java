@@ -19,6 +19,8 @@ import java.time.temporal.ChronoField;
 import javafx.stage.Stage;
 import com.butterfly.social.PostView;
 import javafx.scene.control.Button;
+import java.util.Set;
+import java.util.HashSet;
 import twitter4j.RateLimitStatus;
 import java.util.List;
 import javafx.scene.Node;
@@ -151,7 +153,9 @@ public final class TwitterExample extends Application {
         Scene scene;
         Button refreshButton;
         VBox twitterBox;
+        Set<Long> ids;
         User user;
+
         String title = "Social Butterfly";
 
         postView = PostView.createPostView(primaryStage);
@@ -161,6 +165,8 @@ public final class TwitterExample extends Application {
         refreshButton = postView.getRefreshButton();
 
         twitterBox = postView.getTwitterBox();
+
+        ids = new HashSet<>();
 
         user = this.getUser();
 
@@ -174,6 +180,7 @@ public final class TwitterExample extends Application {
             int remaining;
             List<Status> statuses;
             List<Node> nodes;
+            long id;
             VBox vBox;
 
             try {
@@ -223,18 +230,21 @@ public final class TwitterExample extends Application {
             nodes = new ArrayList<>();
 
             for (Status status : statuses) {
-                vBox = this.createPostBox(status, scene);
+                id = status.getId();
 
-                nodes.add(vBox);
+                if (!ids.contains(id)) {
+                    ids.add(id);
 
-                nodes.add(new Separator());
+                    vBox = this.createPostBox(status, scene);
+
+                    nodes.add(vBox);
+
+                    nodes.add(new Separator());
+                } //end if
             } //end for
 
             twitterBox.getChildren()
-                      .clear();
-
-            twitterBox.getChildren()
-                      .addAll(nodes);
+                      .addAll(0, nodes);
         });
 
         primaryStage.setOnCloseRequest((windowEvent -> {
