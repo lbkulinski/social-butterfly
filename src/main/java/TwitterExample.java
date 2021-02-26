@@ -1,4 +1,8 @@
 import javafx.application.Application;
+import java.io.File;
+import java.io.ObjectInputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
 import com.butterfly.social.User;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -15,17 +19,32 @@ import java.time.temporal.ChronoField;
 import javafx.stage.Stage;
 import com.butterfly.social.PostView;
 import javafx.scene.control.Button;
+import twitter4j.RateLimitStatus;
 import java.util.List;
 import javafx.scene.Node;
+import javafx.scene.control.Alert;
 import java.util.ArrayList;
 import javafx.scene.control.Separator;
+import java.io.ObjectOutputStream;
+import java.io.FileOutputStream;
 
 public final class TwitterExample extends Application {
     private User getUser() throws TwitterException {
+        File file;
         User user;
         String url;
         TextInputDialog inputDialog;
         String pin;
+
+        file = new File("user.ser");
+
+        if (file.exists()) {
+            try (ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(file))) {
+                return ((User) inputStream.readObject());
+            } catch (IOException | ClassNotFoundException e) {
+                e.printStackTrace();
+            } //end try catch
+        } //end if
 
         user = new User();
 
@@ -150,15 +169,54 @@ public final class TwitterExample extends Application {
         } //end if
 
         refreshButton.setOnAction((actionEvent) -> {
+            RateLimitStatus rateLimitStatus = null;
+            String key = "/statuses/home_timeline";
+            int remaining;
             List<Status> statuses;
             List<Node> nodes;
             VBox vBox;
 
             try {
+                rateLimitStatus = user.requests.twitter.getRateLimitStatus()
+                                                       .get(key);
+            } catch (TwitterException e) {
+                e.printStackTrace();
+            } //end try catch
+
+            if (rateLimitStatus == null) {
+                String errorMessage;
+                Alert alert;
+
+                errorMessage = "Error: Unable to refresh! Please wait!";
+
+                alert = new Alert(Alert.AlertType.ERROR, errorMessage);
+
+                alert.showAndWait();
+
+                return;
+            } //end if
+
+            remaining = rateLimitStatus.getRemaining();
+
+            if (remaining == 0) {
+                int seconds;
+                String errorMessage;
+                Alert alert;
+
+                seconds = rateLimitStatus.getSecondsUntilReset();
+
+                errorMessage = String.format("Error: Unable to refresh! Please wait %s seconds!", seconds);
+
+                alert = new Alert(Alert.AlertType.ERROR, errorMessage);
+
+                alert.showAndWait();
+
+                return;
+            } //end if
+
+            try {
                 statuses = user.requests.getTimeline(20);
             } catch (Exception e) {
-                e.printStackTrace();
-
                 return;
             } //end try catch
 
@@ -178,6 +236,14 @@ public final class TwitterExample extends Application {
             twitterBox.getChildren()
                       .addAll(nodes);
         });
+
+        primaryStage.setOnCloseRequest((windowEvent -> {
+            try (ObjectOutputStream outputStream = new ObjectOutputStream(new FileOutputStream("user.ser"))) {
+                outputStream.writeObject(user);
+            } catch (IOException e) {
+                e.printStackTrace();
+            } //end try catch
+        }));
 
         primaryStage.setTitle(title);
 
