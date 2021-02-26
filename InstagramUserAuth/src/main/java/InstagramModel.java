@@ -2,6 +2,7 @@ import com.github.instagram4j.instagram4j.IGClient;
 import com.github.instagram4j.instagram4j.actions.feed.FeedIterable;
 import com.github.instagram4j.instagram4j.exceptions.IGLoginException;
 import com.github.instagram4j.instagram4j.models.media.timeline.TimelineMedia;
+import com.github.instagram4j.instagram4j.models.user.Profile;
 import com.github.instagram4j.instagram4j.requests.feed.FeedTimelineRequest;
 import com.github.instagram4j.instagram4j.responses.feed.FeedTimelineResponse;
 
@@ -16,10 +17,15 @@ public class InstagramModel {
 
         IGClient client = instagramModel.login("SocialButterflyCS407", "socialbutterfly");
 
+        System.out.println(instagramModel.getFullname(client));
+        System.out.println(instagramModel.getUsername(client));
+        System.out.println(instagramModel.getProfilePic(client));
+        /*
         for (TimelineMedia timelineMedia : instagramModel.getPostFeed(client, 4)) {
             System.out.println(timelineMedia.toString());
             System.out.println("\n\n\n");
         }
+        */
     }
 
     public IGClient login(String username, String password) {
@@ -30,6 +36,22 @@ public class InstagramModel {
             System.out.println("Failed to login\n");
             return null;
         }
+    }
+
+    public Profile getProfile(IGClient client) {
+        return client.getSelfProfile();
+    }
+
+    public String getUsername(IGClient client) {
+        return client.getSelfProfile().getUsername();
+    }
+
+    public String getFullname(IGClient client) {
+        return client.getSelfProfile().getFull_name();
+    }
+
+    public String getProfilePic(IGClient client) {
+        return client.getSelfProfile().getProfile_pic_url();
     }
 
     public List<TimelineMedia> getPostFeed(IGClient client, int numPosts) {
