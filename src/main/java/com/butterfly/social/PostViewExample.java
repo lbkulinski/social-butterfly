@@ -1,3 +1,5 @@
+package com.butterfly.social;
+
 import javafx.application.Application;
 import javafx.scene.layout.VBox;
 import javafx.scene.Scene;
@@ -107,36 +109,41 @@ public final class PostViewExample extends Application {
             username = UUID.randomUUID()
                            .toString();
 
-            content = """
-                      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur sed scelerisque nisi. Donec \
-                      in mauris quis nibh ornare rutrum. Vivamus dapibus nisi velit, eget vehicula felis ultricies \
-                      eget. Sed sed vestibulum metus. Sed ex nibh, rhoncus in finibus id, suscipit ut arcu. Quisque \
-                      ac dapibus ipsum, eu lobortis elit. Donec nec eros a mi iaculis varius auctor eget leo. Fusce \
-                      euismod enim nec nulla porta accumsan. Vestibulum tempus sem eget nisl venenatis, id posuere \
-                      nunc porta.""";
+            content = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur sed scelerisque nisi. " +
+                      "Donec in mauris quis nibh ornare rutrum. Vivamus dapibus nisi velit, eget vehicula felis " +
+                      "ultricies eget. Sed sed vestibulum metus. Sed ex nibh, rhoncus in finibus id, suscipit ut " +
+                      "arcu. Quisque ac dapibus ipsum, eu lobortis elit. Donec nec eros a mi iaculis varius auctor " +
+                      "eget leo. Fusce euismod enim nec nulla porta accumsan. Vestibulum tempus sem eget nisl " +
+                      "venenatis, id posuere nunc porta.";
 
             postBox0 = createPostBox(username, content, scene);
 
             postType = (int) (Math.random() * 3);
 
             switch (postType) {
-                case 0 -> {
+                case 0: {
                     redditBox.getChildren()
                              .addAll(postBox0, new Separator());
 
                     username += " -- Reddit";
+
+                    break;
                 } //case 0
-                case 1 -> {
+                case 1: {
                     twitterBox.getChildren()
                               .addAll(postBox0, new Separator());
 
                     username += " -- Twitter";
+                    
+                    break;
                 } //case 1
-                case 2 -> {
+                case 2: {
                     instagramBox.getChildren()
                                 .addAll(postBox0, new Separator());
 
                     username += " -- Instagram";
+
+                    break;
                 } //case 2
             } //end switch
 

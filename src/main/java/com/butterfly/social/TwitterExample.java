@@ -1,5 +1,5 @@
-import com.butterfly.social.PostView;
-import com.butterfly.social.User;
+package com.butterfly.social;
+
 import javafx.application.Application;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -14,10 +14,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
-import twitter4j.MediaEntity;
-import twitter4j.RateLimitStatus;
-import twitter4j.Status;
-import twitter4j.TwitterException;
+import twitter4j.*;
 import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -25,8 +22,16 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoField;
 import java.util.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public final class TwitterExample extends Application {
+    private static final Lock lock;
+
+    static {
+        lock = new ReentrantLock();
+    } //static
+
     private User getUser() throws TwitterException {
         File file;
         User user;
@@ -141,8 +146,16 @@ public final class TwitterExample extends Application {
                     status = mediaPlayer.getStatus();
 
                     switch (status) {
-                        case PLAYING -> mediaPlayer.pause();
-                        case READY, PAUSED, STOPPED -> mediaPlayer.play();
+                        case PLAYING: {
+                            mediaPlayer.pause();
+
+                            break;
+                        } //case PLAYING
+                        case READY:
+                        case PAUSED:
+                        case STOPPED: {
+                            mediaPlayer.play();
+                        } //case STOPPED
                     } //end switch
                 });
 
@@ -290,6 +303,11 @@ public final class TwitterExample extends Application {
         VBox twitterBox;
         Set<Long> ids;
         User user;
+        Map<Long, Status> idsToStatuses;
+        TwitterListener twitterListener;
+        AsyncTwitterFactory factory;
+        AsyncTwitter asyncTwitter;
+        Thread backgroundThread;
 
         String title = "Social Butterfly";
 
@@ -309,74 +327,91 @@ public final class TwitterExample extends Application {
             return;
         } //end if
 
+        idsToStatuses = new LinkedHashMap<>();
+
+        twitterListener = new TwitterAdapter() {
+            @Override
+            public void gotHomeTimeline(ResponseList<Status> statuses) {
+                long id;
+
+                lock.lock();
+
+                try {
+                    for (Status status : statuses) {
+                        id = status.getId();
+
+                        idsToStatuses.put(id, status);
+                    } //end for
+
+                    System.out.printf("idsToStatuses.size(): %d%n", idsToStatuses.size());
+                } finally {
+                    lock.unlock();
+                } //end try finally
+            } //gotHomeTimeline
+        };
+
+        factory = new AsyncTwitterFactory();
+
+        asyncTwitter = factory.getInstance(user.requests.twitter);
+
+        asyncTwitter.addListener(twitterListener);
+
+        backgroundThread = new Thread(() -> {
+            Paging paging;
+            int count = 200;
+            int amount = 60_000;
+
+            paging = new Paging();
+
+            paging.setCount(count);
+
+            while (true) {
+                asyncTwitter.getHomeTimeline(paging);
+
+                try {
+                    Thread.sleep(amount);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } //end try catch
+            } //end while
+        });
+
+        backgroundThread.start();
+
         refreshButton.setOnAction((actionEvent) -> {
-            RateLimitStatus rateLimitStatus = null;
-            String key = "/statuses/home_timeline";
-            int remaining;
+            Collection<Status> values;
             List<Status> statuses;
             List<Node> nodes;
             long id;
             VBox vBox;
 
-            try {
-                rateLimitStatus = user.requests.twitter.getRateLimitStatus()
-                                                       .get(key);
-            } catch (TwitterException e) {
-                e.printStackTrace();
-            } //end try catch
-
-            if (rateLimitStatus == null) {
-                String errorMessage;
-                Alert alert;
-
-                errorMessage = "Error: Unable to refresh! Please wait!";
-
-                alert = new Alert(Alert.AlertType.ERROR, errorMessage);
-
-                alert.showAndWait();
-
-                return;
-            } //end if
-
-            remaining = rateLimitStatus.getRemaining();
-
-            if (remaining == 0) {
-                int seconds;
-                String errorMessage;
-                Alert alert;
-
-                seconds = rateLimitStatus.getSecondsUntilReset();
-
-                errorMessage = String.format("Error: Unable to refresh! Please wait %s seconds!", seconds);
-
-                alert = new Alert(Alert.AlertType.ERROR, errorMessage);
-
-                alert.showAndWait();
-
-                return;
-            } //end if
+            lock.lock();
 
             try {
-                statuses = user.requests.getTimeline(20);
-            } catch (Exception e) {
-                return;
-            } //end try catch
+                values = idsToStatuses.values();
 
-            nodes = new ArrayList<>();
+                statuses = new ArrayList<>(values);
 
-            for (Status status : statuses) {
-                id = status.getId();
+                nodes = new ArrayList<>();
 
-                if (!ids.contains(id)) {
-                    ids.add(id);
+                for (Status status : statuses) {
+                    id = status.getId();
 
-                    vBox = this.createPostBox(status, scene);
+                    if (!ids.contains(id)) {
+                        ids.add(id);
 
-                    nodes.add(vBox);
+                        vBox = this.createPostBox(status, scene);
 
-                    nodes.add(new Separator());
-                } //end if
-            } //end for
+                        nodes.add(vBox);
+
+                        nodes.add(new Separator());
+                    } //end if
+                } //end for
+
+                idsToStatuses.clear();
+            } finally {
+                lock.unlock();
+            } //end try finally
 
             twitterBox.getChildren()
                       .addAll(0, nodes);
