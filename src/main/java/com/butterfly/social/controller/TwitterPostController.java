@@ -39,19 +39,19 @@ import twitter4j.Twitter;
 import twitter4j.AsyncTwitterFactory;
 import twitter4j.AsyncTwitter;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import twitter4j.TwitterAdapter;
 import twitter4j.ResponseList;
 import twitter4j.Paging;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.TreeSet;
 import javafx.scene.control.Separator;
 
 /**
  * A controller for Twitter posts of the Social Butterfly application.
  *
  * @author Logan Kulinski, lbk@purdue.edu
- * February 28, 2021
+ * @version March 1, 2021
  */
 public final class TwitterPostController {
     /**
@@ -357,7 +357,7 @@ public final class TwitterPostController {
 
         ids = new HashSet<>();
 
-        idsToStatuses = new LinkedHashMap<>();
+        idsToStatuses = new HashMap<>();
 
         twitterListener = new TwitterAdapter() {
             @Override
@@ -409,20 +409,24 @@ public final class TwitterPostController {
         controller.backgroundThread.start();
 
         refreshButton.setOnAction((actionEvent) -> {
+            Comparator<Status> comparator;
             Collection<Status> values;
-            List<Status> statuses;
+            Set<Status> statuses;
             List<Node> nodes;
             long id;
             VBox vBox;
+
+            comparator = Comparator.comparing(Status::getCreatedAt)
+                                   .reversed();
 
             lock.lock();
 
             try {
                 values = idsToStatuses.values();
 
-                statuses = new ArrayList<>(values);
+                statuses = new TreeSet<>(comparator);
 
-                //Collections.reverse(statuses);
+                statuses.addAll(values);
 
                 nodes = new ArrayList<>();
 

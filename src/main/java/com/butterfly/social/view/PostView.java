@@ -13,7 +13,7 @@ import java.util.Objects;
  * A view for posts of the Social Butterfly application.
  *
  * @author Logan Kulinski, lbk@purdue.edu
- * February 28, 2021
+ * @version February 28, 2021
  */
 public final class PostView {
     /**
