@@ -118,14 +118,10 @@ public final class TwitterExample extends Application {
 
                 urlString = variants[lastIndex].getUrl();
 
-                System.out.printf("Video urlString: %s%n", urlString);
-
                 try {
                     uri = new URI(urlString);
 
                     uriString = uri.toString();
-
-                    System.out.printf("Video uriString: %s%n", uriString);
                 } catch (URISyntaxException e) {
                     e.printStackTrace();
 
@@ -166,14 +162,10 @@ public final class TwitterExample extends Application {
 
                 urlString = mediaEntity.getMediaURLHttps();
 
-                System.out.printf("Image urlString: %s%n", urlString);
-
                 try {
                     uri = new URI(urlString);
 
                     uriString = uri.toString();
-
-                    System.out.printf("Image uriString: %s%n", uriString);
                 } catch (URISyntaxException e) {
                     e.printStackTrace();
 
@@ -342,8 +334,6 @@ public final class TwitterExample extends Application {
 
                         idsToStatuses.put(id, status);
                     } //end for
-
-                    System.out.printf("idsToStatuses.size(): %d%n", idsToStatuses.size());
                 } finally {
                     lock.unlock();
                 } //end try finally
@@ -371,7 +361,7 @@ public final class TwitterExample extends Application {
                 try {
                     Thread.sleep(amount);
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    return;
                 } //end try catch
             } //end while
         });
@@ -420,6 +410,8 @@ public final class TwitterExample extends Application {
         primaryStage.setOnCloseRequest((windowEvent -> {
             try (ObjectOutputStream outputStream = new ObjectOutputStream(new FileOutputStream("user.ser"))) {
                 outputStream.writeObject(user);
+
+                backgroundThread.interrupt();
             } catch (IOException e) {
                 e.printStackTrace();
             } //end try catch
