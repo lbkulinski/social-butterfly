@@ -1,11 +1,12 @@
 package com.butterfly.social.model;
 
+import java.io.Serializable;
 import twitter4j.Twitter;
 import java.util.List;
 import twitter4j.Status;
 import twitter4j.TwitterException;
 
-public final class TwitterUserRequests {
+public final class TwitterUserRequests implements Serializable {
     private Twitter twitter;
 
     public TwitterUserRequests() {

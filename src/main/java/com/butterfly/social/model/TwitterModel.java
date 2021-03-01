@@ -1,8 +1,9 @@
 package com.butterfly.social.model;
 
+import java.io.Serializable;
 import twitter4j.Twitter;
 
-public final class TwitterModel {
+public final class TwitterModel implements Serializable {
     private final TwitterUserAuthentication auth;
     private final TwitterUserRequests requests;
 

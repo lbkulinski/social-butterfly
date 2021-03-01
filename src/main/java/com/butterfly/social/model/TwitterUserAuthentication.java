@@ -1,12 +1,13 @@
 package com.butterfly.social.model;
 
+import java.io.Serializable;
 import twitter4j.Twitter;
 import twitter4j.auth.RequestToken;
 import twitter4j.auth.AccessToken;
 import twitter4j.TwitterFactory;
 import twitter4j.TwitterException;
 
-public final class TwitterUserAuthentication {
+public final class TwitterUserAuthentication implements Serializable {
     private static final String consumerKey = "c3Ku51cVby3ITwZ6vaGgnqCzV";
     private static final String consumerSecret = "JK5CMek6mbUvFZpWtsww5RjdaMc74o9ifJxijT32cKB0cAwA60";
     private final Twitter twitter;
