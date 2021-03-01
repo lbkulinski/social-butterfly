@@ -2,6 +2,10 @@ package socialbutterfly;
 
 import java.util.*;
 
+import twitter4j.StatusUpdate;
+import twitter4j.Status;
+
+
 /**
  * Hello world!
  *
@@ -24,5 +28,13 @@ public class App {
         String timeline = user.requests.timelineToString(user.requests.getTimeline(10));
         System.out.println(timeline);
         /** The TweetFactory object (twitter) will be the one used to complete requests */
+
+        StatusUpdate statusUpdate = new StatusUpdate("test tweet");
+        Status status = user.requests.postTweet(statusUpdate);
+        user.requests.favoriteTweet(status.getId());
+        StatusUpdate statusUpdateReply = new StatusUpdate("test reply");
+        statusUpdateReply.setInReplyToStatusId(status.getId());
+        user.requests.postTweet(statusUpdateReply);
+        
     }
 }
