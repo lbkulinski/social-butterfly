@@ -1,51 +1,29 @@
 package com.butterfly.social.controller;
 
-import java.util.concurrent.locks.Lock;
 import com.butterfly.social.model.TwitterModel;
 import com.butterfly.social.view.PostView;
-import java.util.concurrent.locks.ReentrantLock;
-import java.util.Objects;
-import javafx.scene.control.Accordion;
-import twitter4j.MediaEntity;
-import java.util.List;
-import javafx.scene.control.TitledPane;
-import java.net.URI;
 import javafx.scene.Node;
-import javafx.scene.control.ScrollPane;
-import java.util.ArrayList;
-import javafx.scene.media.Media;
-import javafx.scene.media.MediaPlayer;
-import javafx.scene.media.MediaView;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.net.URISyntaxException;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
-import twitter4j.Status;
-import java.time.LocalDateTime;
-import javafx.scene.control.Label;
-import javafx.scene.Scene;
-import javafx.scene.text.Text;
-import java.time.ZoneId;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
+import javafx.scene.media.MediaView;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.scene.text.Text;
+import javafx.util.Duration;
+import twitter4j.*;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.temporal.ChronoField;
-import javafx.scene.control.Button;
-import java.util.Set;
-import java.util.Map;
-import twitter4j.TwitterListener;
-import twitter4j.Twitter;
-import twitter4j.AsyncTwitterFactory;
-import twitter4j.AsyncTwitter;
-import java.util.HashSet;
-import java.util.HashMap;
-import twitter4j.TwitterAdapter;
-import twitter4j.ResponseList;
-import twitter4j.Paging;
-import java.util.Collection;
-import java.util.TreeSet;
-import javafx.scene.control.Separator;
+import java.util.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * A controller for Twitter posts of the Social Butterfly application.
@@ -108,6 +86,149 @@ public final class TwitterPostController {
     } //getBackgroundThread
 
     /**
+     * Returns the video node for the specified media entity.
+     *
+     * @param mediaEntity the media entity to be used in the operation
+     * @return the video node for the specified media entity
+     */
+    private Node getVideoNode(MediaEntity mediaEntity) {
+        MediaEntity.Variant[] variants;
+        int lastIndex;
+        String urlString;
+        URI uri;
+        String uriString;
+        Media media;
+        MediaPlayer mediaPlayer;
+        MediaView mediaView;
+
+        Objects.requireNonNull(mediaEntity, "the specified media entity is null");
+
+        variants = mediaEntity.getVideoVariants();
+
+        Arrays.sort(variants, Comparator.comparing(MediaEntity.Variant::getBitrate));
+
+        lastIndex = variants.length - 1;
+
+        urlString = variants[lastIndex].getUrl();
+
+        try {
+            uri = new URI(urlString);
+
+            uriString = uri.toString();
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+
+            return null;
+        } //end try catch
+
+        media = new Media(uriString);
+
+        mediaPlayer = new MediaPlayer(media);
+
+        mediaView = new MediaView(mediaPlayer);
+
+        mediaPlayer.setOnEndOfMedia(mediaPlayer::stop);
+
+        mediaView.setOnMouseClicked((mouseEvent) -> {
+            MediaPlayer.Status status;
+
+            status = mediaPlayer.getStatus();
+
+            switch (status) {
+                case PLAYING -> mediaPlayer.pause();
+                case READY, PAUSED, STOPPED -> mediaPlayer.play();
+            } //end switch
+        });
+
+        return mediaView;
+    } //getVideoNode
+
+    /**
+     * Returns the photo node for the specified media entity.
+     *
+     * @param mediaEntity the media entity to be used in the operation
+     * @return the photo node for the specified media entity
+     */
+    private Node getPhotoNode(MediaEntity mediaEntity) {
+        String urlString;
+        URI uri;
+        String uriString;
+        Image image;
+        ImageView imageView;
+
+        urlString = mediaEntity.getMediaURLHttps();
+
+        try {
+            uri = new URI(urlString);
+
+            uriString = uri.toString();
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+
+            return null;
+        } //end try catch
+
+        image = new Image(uriString);
+
+        imageView = new ImageView(image);
+
+        return imageView;
+    } //getPhotoNode
+
+    /**
+     * Returns the GIF node for the specified media entity.
+     *
+     * @param mediaEntity the media entity to be used in the operation
+     * @return the GIF node for the specified media entity
+     */
+    private Node getGifNode(MediaEntity mediaEntity) {
+        MediaEntity.Variant[] variants;
+        int lastIndex;
+        String urlString;
+        URI uri;
+        String uriString;
+        Media media;
+        MediaPlayer mediaPlayer;
+        MediaView mediaView;
+
+        Objects.requireNonNull(mediaEntity, "the specified media entity is null");
+
+        variants = mediaEntity.getVideoVariants();
+
+        Arrays.sort(variants, Comparator.comparing(MediaEntity.Variant::getBitrate));
+
+        lastIndex = variants.length - 1;
+
+        urlString = variants[lastIndex].getUrl();
+
+        try {
+            uri = new URI(urlString);
+
+            uriString = uri.toString();
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+
+            return null;
+        } //end try catch
+
+        media = new Media(uriString);
+
+        mediaPlayer = new MediaPlayer(media);
+
+        mediaView = new MediaView(mediaPlayer);
+
+        mediaPlayer.setOnEndOfMedia(() -> {
+            mediaPlayer.seek(Duration.ZERO);
+
+            mediaPlayer.play();
+        });
+
+        mediaPlayer.setAutoPlay(true);
+
+        return mediaView;
+    } //getGifNode
+
+    /**
      * Returns an accordion of the specified media entities.
      *
      * @param mediaEntities the media entities to be used in the operation
@@ -116,13 +237,9 @@ public final class TwitterPostController {
     private Accordion getMediaAccordion(MediaEntity[] mediaEntities) {
         List<TitledPane> titledPanes;
         String type;
-        String videoType = "video";
-        String urlString;
-        URI uri;
-        String uriString;
         Node node;
         String mediaName;
-        int mediaCount = 0;
+        int mediaCount = 1;
         ScrollPane scrollPane;
         TitledPane titledPane;
         TitledPane[] array;
@@ -139,91 +256,32 @@ public final class TwitterPostController {
         for (MediaEntity mediaEntity : mediaEntities) {
             type = mediaEntity.getType();
 
-            if (Objects.equals(type, videoType)) {
-                MediaEntity.Variant[] variants;
-                int lastIndex;
-                Media media;
-                MediaPlayer mediaPlayer;
-                MediaView mediaView;
+            node = switch (type) {
+                case "video" -> this.getVideoNode(mediaEntity);
+                case "photo" -> this.getPhotoNode(mediaEntity);
+                case "animated_gif" -> this.getGifNode(mediaEntity);
+                default -> {
+                    String message;
 
-                variants = mediaEntity.getVideoVariants();
+                    message = String.format("Invalid type: %s", type);
 
-                Arrays.sort(variants, Comparator.comparing(MediaEntity.Variant::getBitrate));
+                    throw new IllegalStateException(message);
+                } //default
+            };
 
-                lastIndex = variants.length - 1;
+            if (node != null) {
+                mediaName = String.format("Attachment %d", mediaCount);
 
-                urlString = variants[lastIndex].getUrl();
+                mediaCount++;
 
-                try {
-                    uri = new URI(urlString);
+                scrollPane = new ScrollPane(node);
 
-                    uriString = uri.toString();
-                } catch (URISyntaxException e) {
-                    e.printStackTrace();
+                titledPane = new TitledPane(mediaName, scrollPane);
 
-                    continue;
-                } //end try catch
+                titledPane.setFont(Font.font("Arial", 14));
 
-                media = new Media(uriString);
-
-                mediaPlayer = new MediaPlayer(media);
-
-                mediaView = new MediaView(mediaPlayer);
-
-                mediaPlayer.setOnEndOfMedia(mediaPlayer::stop);
-
-                mediaView.setOnMouseClicked((mouseEvent) -> {
-                    MediaPlayer.Status status;
-
-                    status = mediaPlayer.getStatus();
-
-                    switch (status) {
-                        case PLAYING: {
-                            mediaPlayer.pause();
-
-                            break;
-                        } //case PLAYING
-                        case READY:
-                        case PAUSED:
-                        case STOPPED: {
-                            mediaPlayer.play();
-                        } //case STOPPED
-                    } //end switch
-                });
-
-                node = mediaView;
-            } else {
-                Image image;
-                ImageView imageView;
-
-                urlString = mediaEntity.getMediaURLHttps();
-
-                try {
-                    uri = new URI(urlString);
-
-                    uriString = uri.toString();
-                } catch (URISyntaxException e) {
-                    e.printStackTrace();
-
-                    continue;
-                } //end try catch
-
-                image = new Image(uriString);
-
-                imageView = new ImageView(image);
-
-                node = imageView;
+                titledPanes.add(titledPane);
             } //end if
-
-            mediaName = String.valueOf(mediaCount);
-
-            mediaCount++;
-
-            scrollPane = new ScrollPane(node);
-
-            titledPane = new TitledPane(mediaName, scrollPane);
-
-            titledPanes.add(titledPane);
         } //end for
 
         array = new TitledPane[titledPanes.size()];
