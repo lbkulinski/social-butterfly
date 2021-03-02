@@ -2,6 +2,7 @@ package com.butterfly.social.model;
 
 import java.io.Serializable;
 import twitter4j.Twitter;
+import twitter4j.TwitterException;
 
 public final class TwitterModel implements Serializable {
     private final TwitterUserAuthentication auth;
@@ -12,7 +13,7 @@ public final class TwitterModel implements Serializable {
         this.requests = new TwitterUserRequests();
     } //TwitterModel
 
-    public void initializeRequests() {
+    public void initializeRequests() throws TwitterException{
         Twitter twitter;
 
         twitter = this.auth.getTwitter();

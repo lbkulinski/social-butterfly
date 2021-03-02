@@ -85,7 +85,11 @@ public final class SocialButterflyApplication extends Application {
 
             authentication.handlePIN(pin);
 
-            twitterModel.initializeRequests();
+            try {
+                twitterModel.initializeRequests();
+            } catch (TwitterException e) {
+                e.printStackTrace();
+            }
         } //end if
 
         return twitterModel;
@@ -135,4 +139,7 @@ public final class SocialButterflyApplication extends Application {
 
         primaryStage.show();
     } //start
+    public static void main(String[] args) {
+        launch();
+    }
 }
