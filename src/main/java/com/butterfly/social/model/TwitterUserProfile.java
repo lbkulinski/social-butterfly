@@ -37,6 +37,48 @@ public class TwitterUserProfile implements Serializable{
         this.joined = this.profile.getCreatedAt();
     }
 
+    public ImageView getProfilePicture() {
+        return this.profilePicture;
+    }
+
+    public ImageView getBannerImage() {
+        return this.bannerImage;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public String getBio() {
+        return this.bio;
+    }
+
+    public int getFollowerCount() {
+        return this.followerCount;
+    } 
+
+    public int getFollowingCount() {
+        return this.followingCount;
+    }
+
+    public boolean isVerified() {
+        return this.isVerified;
+    }
+
+    public String getHandle() {
+        return this.handle;
+    }
+
+    public String getLocation() {
+        return this.location;
+    }
+
+    public Date getDateCreated() {
+        return this.joined;
+    }
+
+
+
     public ImageView getImage(String urlString) {
         URI uri;
         String uriString;
@@ -59,5 +101,7 @@ public class TwitterUserProfile implements Serializable{
 
         return imageView;
     }
+
+
 
 }
