@@ -2,11 +2,11 @@ package com.butterfly.social;
 
 import javafx.application.Application;
 import java.io.File;
-import com.butterfly.social.model.TwitterModel;
+import com.butterfly.social.model.twitter.TwitterModel;
 import java.io.ObjectInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
-import com.butterfly.social.model.TwitterUserAuthentication;
+import com.butterfly.social.model.twitter.TwitterUserAuthentication;
 import javafx.scene.control.TextInputDialog;
 import twitter4j.TwitterException;
 import javafx.scene.control.Alert;

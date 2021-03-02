@@ -1,6 +1,6 @@
 package com.butterfly.social.controller;
 
-import com.butterfly.social.model.TwitterModel;
+import com.butterfly.social.model.twitter.TwitterModel;
 import com.butterfly.social.view.PostView;
 import javafx.scene.Node;
 import javafx.scene.Scene;
