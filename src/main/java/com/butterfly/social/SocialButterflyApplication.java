@@ -1,27 +1,29 @@
 package com.butterfly.social;
 
-import javafx.application.Application;
-import java.io.File;
+import com.butterfly.social.controller.instagram.InstagramPostController;
+import com.butterfly.social.controller.twitter.TwitterPostController;
+import com.butterfly.social.model.instagram.InstagramModel;
 import com.butterfly.social.model.twitter.TwitterModel;
-import java.io.ObjectInputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
 import com.butterfly.social.model.twitter.TwitterUserAuthentication;
-import javafx.scene.control.TextInputDialog;
-import twitter4j.TwitterException;
-import javafx.scene.control.Alert;
-import javafx.stage.Stage;
 import com.butterfly.social.view.PostView;
-import com.butterfly.social.controller.TwitterPostController;
+import com.github.instagram4j.instagram4j.IGClient;
+import com.github.instagram4j.instagram4j.exceptions.IGLoginException;
+import com.github.instagram4j.instagram4j.utils.IGChallengeUtils;
+import javafx.application.Application;
 import javafx.scene.Scene;
-import java.io.ObjectOutputStream;
-import java.io.FileOutputStream;
+import javafx.scene.control.Alert;
+import javafx.scene.control.TextInputDialog;
+import javafx.stage.Stage;
+import twitter4j.TwitterException;
+import java.io.*;
+import java.util.Scanner;
+import java.util.concurrent.Callable;
 
 /**
  * A runner for the Social Butterfly application.
  *
  * @author Logan Kulinski, lbk@purdue.edu
- * @version February 28, 2021
+ * @version March 2, 2021
  */
 public final class SocialButterflyApplication extends Application {
     /**
@@ -92,35 +94,118 @@ public final class SocialButterflyApplication extends Application {
     } //getTwitterModel
 
     /**
+     * Returns the instagram model of this application.
+     *
+     * @return the instagram model of this application
+     */
+    private InstagramModel getInstagramModel() {
+        InstagramModel instagramModel;
+        String username;
+        String password;
+        Callable<String> inputCode;
+        IGClient.Builder.LoginHandler twoFactorHandler;
+        IGClient.Builder.LoginHandler challengeHandler;
+        IGClient igClient = null;
+
+        instagramModel = new InstagramModel();
+
+        username = System.getProperty("username");
+
+        password = System.getProperty("password");
+
+        if ((username == null) || (password == null)) {
+            return null;
+        } //end if
+
+        inputCode = () -> {
+            Scanner scanner;
+            String pin;
+
+            scanner = new Scanner(System.in);
+
+            System.out.print("Please enter the pin: ");
+
+            pin = scanner.nextLine();
+
+            scanner.close();
+
+            return pin;
+        };
+
+        twoFactorHandler = (client, response) -> IGChallengeUtils.resolveTwoFactor(client, response, inputCode);
+
+        challengeHandler = (client, response) -> IGChallengeUtils.resolveChallenge(client, response, inputCode);
+
+        try {
+            igClient = IGClient.builder()
+                               .username(username)
+                               .password(password)
+                               .onTwoFactor(twoFactorHandler)
+                               .onChallenge(challengeHandler)
+                               .login();
+        } catch (IGLoginException e) {
+            e.printStackTrace();
+
+            return null;
+        } //end try catch
+
+        instagramModel.getAuth()
+                      .setClient(igClient);
+
+        instagramModel.getRequests()
+                      .setClient(igClient);
+
+        return instagramModel;
+    } //getInstagramModel
+
+    /**
      * Starts this application.
      *
      * @param primaryStage the primary stage to be used in the operation
      */
     @Override
     public void start(Stage primaryStage) {
-        TwitterModel twitterModel;
         PostView postView;
+        TwitterModel twitterModel;
+        InstagramModel instagramModel;
         TwitterPostController twitterPostController;
-        Thread backgroundThread;
+        InstagramPostController instagramPostController;
+        Thread twitterThread;
+        Thread instagramThread = null;
+        Thread tempThread;
         String title = "Social Butterfly";
         Scene scene;
 
+        postView = PostView.createPostView(primaryStage);
+
         twitterModel = this.getTwitterModel();
 
-        postView = PostView.createPostView(primaryStage);
+        instagramModel = this.getInstagramModel();
 
         twitterPostController = TwitterPostController.createTwitterPostController(twitterModel, postView);
 
-        backgroundThread = twitterPostController.getBackgroundThread();
+        twitterThread = twitterPostController.getBackgroundThread();
+
+        if (instagramModel != null) {
+            instagramPostController = InstagramPostController.createInstagramPostController(instagramModel, postView);
+
+            instagramThread = instagramPostController.getBackgroundThread();
+        } //end if
+
+        tempThread = instagramThread;
 
         primaryStage.setOnCloseRequest((windowEvent) -> {
-            try (ObjectOutputStream outputStream = new ObjectOutputStream(new FileOutputStream("twitter-model.ser"))) {
+            try (var outputStream = new ObjectOutputStream(new FileOutputStream("twitter-model.ser"))) {
                 outputStream.writeObject(twitterModel);
             } catch (IOException e) {
                 e.printStackTrace();
             } //end try catch
 
-            backgroundThread.interrupt();
+            twitterThread.interrupt();
+
+            if (tempThread != null) {
+                tempThread.interrupt();
+            } //end if
         });
 
         scene = postView.getScene();
@@ -135,4 +220,19 @@ public final class SocialButterflyApplication extends Application {
 
         primaryStage.show();
     } //start
+
+    /**
+     * Runs an instance of {@code SocialButterflyApplication}.
+     *
+     * @param args the command line arguments
+     */
+    public static void main(String[] args) {
+        if (args.length == 2) {
+            System.setProperty("username", args[0]);
+
+            System.setProperty("password", args[1]);
+        } //end if
+
+        SocialButterflyApplication.launch(args);
+    } //main
 }

@@ -1,7 +1,8 @@
-package com.butterfly.social.controller;
+package com.butterfly.social.controller.twitter;
 
 import com.butterfly.social.model.twitter.TwitterModel;
 import com.butterfly.social.view.PostView;
+import javafx.event.ActionEvent;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -466,7 +467,7 @@ public final class TwitterPostController {
 
         controller.backgroundThread.start();
 
-        refreshButton.setOnAction((actionEvent) -> {
+        refreshButton.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
             Comparator<Status> comparator;
             Collection<Status> values;
             Set<Status> statuses;

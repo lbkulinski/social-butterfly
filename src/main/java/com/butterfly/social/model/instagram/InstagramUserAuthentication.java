@@ -30,4 +30,8 @@ public final class InstagramUserAuthentication implements Serializable {
     public IGClient getClient() {
         return this.client;
     } //getClient
+
+    public void setClient(IGClient client) {
+        this.client = client;
+    } //setClient
 }
