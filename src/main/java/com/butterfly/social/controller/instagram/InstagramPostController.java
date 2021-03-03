@@ -10,6 +10,7 @@ import com.github.instagram4j.instagram4j.models.media.timeline.*;
 import com.github.instagram4j.instagram4j.requests.feed.FeedTimelineRequest;
 import com.github.instagram4j.instagram4j.responses.feed.FeedTimelineResponse;
 import javafx.event.ActionEvent;
+import javafx.scene.CacheHint;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -37,7 +38,7 @@ import java.util.stream.Collectors;
  * A controller for Instagram posts of the Social Butterfly application.
  *
  * @author Logan Kulinski, lbk@purdue.edu
- * @version March 2, 2021
+ * @version March 3, 2021
  */
 public final class InstagramPostController {
     /**
@@ -100,6 +101,8 @@ public final class InstagramPostController {
      * @return the photo node for the specified image media
      */
     private Node getPhotoNode(TimelineImageMedia imageMedia) {
+        List<ImageVersionsMeta> metaList;
+        int lastIndex;
         ImageVersionsMeta meta;
         String urlString;
         URI uri;
@@ -109,9 +112,12 @@ public final class InstagramPostController {
 
         Objects.requireNonNull(imageMedia, "the specified image media is null");
 
-        meta = imageMedia.getImage_versions2()
-                    .getCandidates()
-                    .get(0);
+        metaList = imageMedia.getImage_versions2()
+                             .getCandidates();
+
+        lastIndex = metaList.size() - 1;
+
+        meta = metaList.get(lastIndex);
 
         urlString = meta.getUrl();
 
@@ -125,9 +131,13 @@ public final class InstagramPostController {
             return null;
         } //end try catch
 
-        image = new Image(uriString);
+        image = new Image(uriString, true);
 
         imageView = new ImageView(image);
+
+        imageView.setCache(true);
+
+        imageView.setCacheHint(CacheHint.SPEED);
 
         return imageView;
     } //getPhotoNode
@@ -139,6 +149,8 @@ public final class InstagramPostController {
      * @return the photo node for the specified image carousel item
      */
     private Node getPhotoNode(ImageCaraouselItem imageCarouselItem) {
+        List<ImageVersionsMeta> metaList;
+        int lastIndex;
         ImageVersionsMeta meta;
         String urlString;
         URI uri;
@@ -148,9 +160,12 @@ public final class InstagramPostController {
 
         Objects.requireNonNull(imageCarouselItem, "the specified image carousel item is null");
 
-        meta = imageCarouselItem.getImage_versions2()
-                                .getCandidates()
-                                .get(0);
+        metaList = imageCarouselItem.getImage_versions2()
+                                    .getCandidates();
+
+        lastIndex = metaList.size() - 1;
+
+        meta = metaList.get(lastIndex);
 
         urlString = meta.getUrl();
 
@@ -164,9 +179,13 @@ public final class InstagramPostController {
             return null;
         } //end try catch
 
-        image = new Image(uriString);
+        image = new Image(uriString, true);
 
         imageView = new ImageView(image);
+
+        imageView.setCache(true);
+
+        imageView.setCacheHint(CacheHint.SPEED);
 
         return imageView;
     } //getPhotoNode
@@ -178,6 +197,8 @@ public final class InstagramPostController {
      * @return the video node for the specified video media
      */
     private Node getVideoNode(TimelineVideoMedia videoMedia) {
+        List<VideoVersionsMeta> metaList;
+        int lastIndex;
         VideoVersionsMeta meta;
         String urlString;
         URI uri;
@@ -188,8 +209,11 @@ public final class InstagramPostController {
 
         Objects.requireNonNull(videoMedia, "the specified video media is null");
 
-        meta = videoMedia.getVideo_versions()
-                         .get(0);
+        metaList = videoMedia.getVideo_versions();
+
+        lastIndex = metaList.size() - 1;
+
+        meta = metaList.get(lastIndex);
 
         urlString = meta.getUrl();
 
@@ -221,6 +245,10 @@ public final class InstagramPostController {
                 case READY, PAUSED, STOPPED -> mediaPlayer.play();
             } //end switch
         });
+
+        mediaView.setCache(true);
+
+        mediaView.setCacheHint(CacheHint.SPEED);
 
         return mediaView;
     } //getVideoNode
@@ -232,6 +260,8 @@ public final class InstagramPostController {
      * @return the photo node for the specified video carousel item
      */
     private Node getVideoNode(VideoCaraouselItem videoCarouselItem) {
+        List<VideoVersionsMeta> metaList;
+        int lastIndex;
         VideoVersionsMeta meta;
         String urlString;
         URI uri;
@@ -242,8 +272,11 @@ public final class InstagramPostController {
 
         Objects.requireNonNull(videoCarouselItem, "the specified video carousel item is null");
 
-        meta = videoCarouselItem.getVideo_versions()
-                                .get(0);
+        metaList = videoCarouselItem.getVideo_versions();
+
+        lastIndex = metaList.size() - 1;
+
+        meta = metaList.get(lastIndex);
 
         urlString = meta.getUrl();
 
@@ -275,6 +308,10 @@ public final class InstagramPostController {
                 case READY, PAUSED, STOPPED -> mediaPlayer.play();
             } //end switch
         });
+
+        mediaView.setCache(true);
+
+        mediaView.setCacheHint(CacheHint.SPEED);
 
         return mediaView;
     } //getVideoNode
@@ -440,6 +477,10 @@ public final class InstagramPostController {
 
             vBox = new VBox(nameLabel, text, accordion, dateTimeLabel);
         } //end if
+
+        vBox.setCache(true);
+
+        vBox.setCacheHint(CacheHint.SPEED);
 
         return vBox;
     } //createPostBox

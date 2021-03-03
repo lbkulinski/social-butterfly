@@ -12,6 +12,7 @@ import com.github.instagram4j.instagram4j.utils.IGChallengeUtils;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.TextInputDialog;
 import javafx.stage.Stage;
 import twitter4j.TwitterException;
@@ -23,7 +24,7 @@ import java.util.concurrent.Callable;
  * A runner for the Social Butterfly application.
  *
  * @author Logan Kulinski, lbk@purdue.edu
- * @version March 2, 2021
+ * @version March 3, 2021
  */
 public final class SocialButterflyApplication extends Application {
     /**
@@ -32,63 +33,42 @@ public final class SocialButterflyApplication extends Application {
      * @return the twitter model of this application
      */
     private TwitterModel getTwitterModel() {
-        File file;
-        TwitterModel twitterModel = null;
+        TwitterModel twitterModel;
+        TwitterUserAuthentication authentication;
+        String url;
+        TextInputDialog inputDialog;
+        String pin;
 
-        file = new File("twitter-model.ser");
+        twitterModel = new TwitterModel();
 
-        if (file.exists()) {
-            try (ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(file))) {
-                twitterModel = (TwitterModel) inputStream.readObject();
-            } catch (IOException | ClassNotFoundException e) {
-                e.printStackTrace();
-            } //end try catch
+        authentication = twitterModel.getAuth();
+
+        try {
+            url = authentication.getURL();
+        } catch (TwitterException e) {
+            e.printStackTrace();
+
+            return null;
+        } //end try catch
+
+        this.getHostServices()
+            .showDocument(url);
+
+        inputDialog = new TextInputDialog();
+
+        inputDialog.setHeaderText("Please enter the pin:");
+
+        inputDialog.showAndWait();
+
+        pin = inputDialog.getResult();
+
+        if (pin == null) {
+            return null;
         } //end if
 
-        if (twitterModel == null) {
-            TwitterUserAuthentication authentication;
-            String url;
-            TextInputDialog inputDialog;
-            String pin;
+        authentication.handlePIN(pin);
 
-            twitterModel = new TwitterModel();
-
-            authentication = twitterModel.getAuth();
-
-            try {
-                url = authentication.getURL();
-            } catch (TwitterException e) {
-                e.printStackTrace();
-
-                return null;
-            } //end try catch
-
-            this.getHostServices()
-                .showDocument(url);
-
-            inputDialog = new TextInputDialog();
-
-            inputDialog.setHeaderText("Please enter the pin:");
-
-            inputDialog.showAndWait();
-
-            pin = inputDialog.getResult();
-
-            if (pin == null) {
-                Alert alert;
-                String message = "Error: pin is null! Goodbye!";
-
-                alert = new Alert(Alert.AlertType.ERROR, message);
-
-                alert.show();
-
-                return null;
-            } //end if
-
-            authentication.handlePIN(pin);
-
-            twitterModel.initializeRequests();
-        } //end if
+        twitterModel.initializeRequests();
 
         return twitterModel;
     } //getTwitterModel
@@ -100,18 +80,39 @@ public final class SocialButterflyApplication extends Application {
      */
     private InstagramModel getInstagramModel() {
         InstagramModel instagramModel;
+        TextInputDialog usernameInputDialog;
+        String title = "Social Butterfly";
+        String usernameQuestion = "What is your username?";
         String username;
+        TextInputDialog passwordInputDialog;
+        String passwordQuestion = "What is your password?";
         String password;
         Callable<String> inputCode;
         IGClient.Builder.LoginHandler twoFactorHandler;
         IGClient.Builder.LoginHandler challengeHandler;
-        IGClient igClient = null;
+        IGClient igClient;
 
         instagramModel = new InstagramModel();
 
-        username = System.getProperty("username");
+        usernameInputDialog = new TextInputDialog();
 
-        password = System.getProperty("password");
+        usernameInputDialog.setTitle(title);
+
+        usernameInputDialog.setHeaderText(usernameQuestion);
+
+        usernameInputDialog.showAndWait();
+
+        username = usernameInputDialog.getResult();
+
+        passwordInputDialog = new TextInputDialog();
+
+        passwordInputDialog.setTitle(title);
+
+        passwordInputDialog.setHeaderText(passwordQuestion);
+
+        passwordInputDialog.showAndWait();
+
+        password = passwordInputDialog.getResult();
 
         if ((username == null) || (password == null)) {
             return null;
@@ -166,45 +167,101 @@ public final class SocialButterflyApplication extends Application {
     @Override
     public void start(Stage primaryStage) {
         PostView postView;
-        TwitterModel twitterModel;
-        InstagramModel instagramModel;
-        TwitterPostController twitterPostController;
-        InstagramPostController instagramPostController;
-        Thread twitterThread;
-        Thread instagramThread = null;
-        Thread tempThread;
+        File file;
+        String twitterFileName = "twitter-model.ser";
+        TwitterModel readTwitterModel = null;
         String title = "Social Butterfly";
+        TwitterModel twitterModel;
+        TwitterPostController twitterPostController;
+        Thread twitterThread;
+        Alert instagramAlert;
+        String instagramMessage = "Would you like to log into Instagram?";
+        ButtonType instagramResult;
+        InstagramModel instagramModel;
+        InstagramPostController instagramPostController;
+        Thread instagramThread;
         Scene scene;
 
         postView = PostView.createPostView(primaryStage);
 
-        twitterModel = this.getTwitterModel();
+        file = new File(twitterFileName);
 
-        instagramModel = this.getInstagramModel();
-
-        twitterPostController = TwitterPostController.createTwitterPostController(twitterModel, postView);
-
-        twitterThread = twitterPostController.getBackgroundThread();
-
-        if (instagramModel != null) {
-            instagramPostController = InstagramPostController.createInstagramPostController(instagramModel, postView);
-
-            instagramThread = instagramPostController.getBackgroundThread();
-        } //end if
-
-        tempThread = instagramThread;
-
-        primaryStage.setOnCloseRequest((windowEvent) -> {
-            try (var outputStream = new ObjectOutputStream(new FileOutputStream("twitter-model.ser"))) {
-                outputStream.writeObject(twitterModel);
-            } catch (IOException e) {
+        if (file.exists()) {
+            try (ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(file))) {
+                readTwitterModel = (TwitterModel) inputStream.readObject();
+            } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
             } //end try catch
+        } //end if
 
-            twitterThread.interrupt();
+        if (readTwitterModel == null) {
+            Alert twitterAlert;
+            String twitterMessage = "Would you like to log into Twitter?";
+            ButtonType twitterResult;
 
-            if (tempThread != null) {
-                tempThread.interrupt();
+            twitterAlert = new Alert(Alert.AlertType.CONFIRMATION, twitterMessage, ButtonType.YES, ButtonType.NO);
+
+            twitterAlert.setTitle(title);
+
+            twitterAlert.showAndWait();
+
+            twitterResult = twitterAlert.getResult();
+
+            if (twitterResult == ButtonType.YES) {
+                twitterModel = this.getTwitterModel();
+            } else {
+                twitterModel = null;
+            } //end if
+        } else {
+            twitterModel = readTwitterModel;
+        } //end if
+
+        if (twitterModel != null) {
+            twitterPostController = TwitterPostController.createTwitterPostController(twitterModel, postView);
+
+            twitterThread = twitterPostController.getBackgroundThread();
+        } else {
+            twitterThread = null;
+        } //end if
+
+        instagramAlert = new Alert(Alert.AlertType.CONFIRMATION, instagramMessage, ButtonType.YES, ButtonType.NO);
+
+        instagramAlert.setTitle(title);
+
+        instagramAlert.showAndWait();
+
+        instagramResult = instagramAlert.getResult();
+
+        if (instagramResult == ButtonType.YES) {
+            instagramModel = this.getInstagramModel();
+
+            if (instagramModel == null) {
+                instagramThread = null;
+            } else {
+                instagramPostController = InstagramPostController.createInstagramPostController(instagramModel,
+                                                                                                postView);
+
+                instagramThread = instagramPostController.getBackgroundThread();
+            } //end if
+        } else {
+            instagramThread = null;
+        } //end if
+
+        primaryStage.setOnCloseRequest((windowEvent) -> {
+            if (twitterModel != null) {
+                try (var outputStream = new ObjectOutputStream(new FileOutputStream("twitter-model.ser"))) {
+                    outputStream.writeObject(twitterModel);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } //end try catch
+            } //end if
+
+            if (twitterThread != null) {
+                twitterThread.interrupt();
+            } //end if
+
+            if (instagramThread != null) {
+                instagramThread.interrupt();
             } //end if
         });
 
@@ -227,12 +284,6 @@ public final class SocialButterflyApplication extends Application {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        if (args.length == 2) {
-            System.setProperty("username", args[0]);
-
-            System.setProperty("password", args[1]);
-        } //end if
-
         SocialButterflyApplication.launch(args);
     } //main
 }

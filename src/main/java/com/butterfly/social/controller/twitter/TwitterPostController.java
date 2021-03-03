@@ -3,6 +3,7 @@ package com.butterfly.social.controller.twitter;
 import com.butterfly.social.model.twitter.TwitterModel;
 import com.butterfly.social.view.PostView;
 import javafx.event.ActionEvent;
+import javafx.scene.CacheHint;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -30,7 +31,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * A controller for Twitter posts of the Social Butterfly application.
  *
  * @author Logan Kulinski, lbk@purdue.edu
- * @version March 1, 2021
+ * @version March 3, 2021
  */
 public final class TwitterPostController {
     /**
@@ -94,7 +95,7 @@ public final class TwitterPostController {
      */
     private Node getVideoNode(MediaEntity mediaEntity) {
         MediaEntity.Variant[] variants;
-        int lastIndex;
+        int index;
         String urlString;
         URI uri;
         String uriString;
@@ -108,9 +109,9 @@ public final class TwitterPostController {
 
         Arrays.sort(variants, Comparator.comparing(MediaEntity.Variant::getBitrate));
 
-        lastIndex = variants.length - 1;
+        index = variants.length / 2;
 
-        urlString = variants[lastIndex].getUrl();
+        urlString = variants[index].getUrl();
 
         try {
             uri = new URI(urlString);
@@ -141,6 +142,10 @@ public final class TwitterPostController {
             } //end switch
         });
 
+        mediaView.setCache(true);
+
+        mediaView.setCacheHint(CacheHint.SPEED);
+
         return mediaView;
     } //getVideoNode
 
@@ -169,9 +174,13 @@ public final class TwitterPostController {
             return null;
         } //end try catch
 
-        image = new Image(uriString);
+        image = new Image(uriString, true);
 
         imageView = new ImageView(image);
+
+        imageView.setCache(true);
+
+        imageView.setCacheHint(CacheHint.SPEED);
 
         return imageView;
     } //getPhotoNode
@@ -184,7 +193,7 @@ public final class TwitterPostController {
      */
     private Node getGifNode(MediaEntity mediaEntity) {
         MediaEntity.Variant[] variants;
-        int lastIndex;
+        int index;
         String urlString;
         URI uri;
         String uriString;
@@ -198,9 +207,9 @@ public final class TwitterPostController {
 
         Arrays.sort(variants, Comparator.comparing(MediaEntity.Variant::getBitrate));
 
-        lastIndex = variants.length - 1;
+        index = variants.length / 2;
 
-        urlString = variants[lastIndex].getUrl();
+        urlString = variants[index].getUrl();
 
         try {
             uri = new URI(urlString);
@@ -225,6 +234,10 @@ public final class TwitterPostController {
         });
 
         mediaPlayer.setAutoPlay(true);
+
+        mediaView.setCache(true);
+
+        mediaView.setCacheHint(CacheHint.SPEED);
 
         return mediaView;
     } //getGifNode
