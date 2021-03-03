@@ -478,10 +478,6 @@ public final class InstagramPostController {
             vBox = new VBox(nameLabel, text, accordion, dateTimeLabel);
         } //end if
 
-        vBox.setCache(true);
-
-        vBox.setCacheHint(CacheHint.SPEED);
-
         return vBox;
     } //createPostBox
 
