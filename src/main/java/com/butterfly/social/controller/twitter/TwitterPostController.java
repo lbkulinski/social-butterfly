@@ -1,12 +1,14 @@
 package com.butterfly.social.controller.twitter;
 
 import com.butterfly.social.model.twitter.TwitterModel;
+import com.butterfly.social.model.twitter.TwitterUserProfile;
 import com.butterfly.social.view.PostView;
 import javafx.event.ActionEvent;
 import javafx.scene.CacheHint;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
@@ -431,6 +433,7 @@ public final class TwitterPostController {
                                                                     Lock allBoxLock) {
         TwitterPostController controller;
         Button refreshButton;
+        Button profileButton;
         VBox twitterBox;
         VBox allBox;
         Set<Long> ids;
@@ -445,6 +448,8 @@ public final class TwitterPostController {
         controller = new TwitterPostController(twitterModel, postView);
 
         refreshButton = controller.postView.getRefreshButton();
+
+        profileButton = controller.postView.getProfileButton();
 
         twitterBox = controller.postView.getTwitterBox();
 
@@ -565,6 +570,21 @@ public final class TwitterPostController {
             } finally {
                 allBoxLock.unlock();
             } //end try finally
+        });
+
+        profileButton.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
+            Alert a = new Alert(AlertType.INFORMATION);
+            String profileText = "";
+            TwitterUserProfile tp = twitterModel.getRequests().getProfile();
+            profileText+="Name: " + tp.getName() + "\n";
+            profileText+="Twitter Handle: " + tp.getHandle() + "\n";
+            profileText+="Bio: " + tp.getBio() + "\n";
+            profileText+="Followers: " + tp.getFollowerCount() + "\n";
+            profileText+="Following: " + tp.getFollowingCount() + "\n";
+            profileText+="Verified: " + tp.isVerified() + "\n";
+            profileText+="Location: " + tp.getLocation() + "\n";
+            a.setContentText(profileText);
+            a.show();
         });
 
         return controller;

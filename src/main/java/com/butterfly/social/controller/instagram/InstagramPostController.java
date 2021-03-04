@@ -14,6 +14,7 @@ import javafx.scene.CacheHint;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
@@ -509,6 +510,7 @@ public final class InstagramPostController {
                                                                         PostView postView, Lock allBoxLock) {
         InstagramPostController controller;
         Button refreshButton;
+        Button profileButton;
         VBox instagramBox;
         VBox allBox;
         IGClient client;
@@ -520,6 +522,8 @@ public final class InstagramPostController {
         controller = new InstagramPostController(instagramModel, postView);
 
         refreshButton = controller.postView.getRefreshButton();
+
+        profileButton = controller.postView.getProfileButton();
 
         instagramBox = controller.postView.getInstagramBox();
 
@@ -641,6 +645,17 @@ public final class InstagramPostController {
             } finally {
                 allBoxLock.unlock();
             } //end try finally
+        });
+
+        profileButton.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
+            Alert a = new Alert(AlertType.INFORMATION);
+            String profileText = "";
+            profileText+="Name: " + instagramModel.getFullName() + "\n";
+            profileText+="Handle: " + instagramModel.getUsername() + "\n";
+            profileText+="Verified: " + instagramModel.isVerified() + "\n";
+            profileText+="Private: " + instagramModel.isPrivate() + "\n";
+            a.setContentText(profileText);
+            a.show();
         });
 
         return controller;

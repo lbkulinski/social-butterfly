@@ -23,6 +23,31 @@ public final class InstagramModel implements Serializable {
         this.client = client;
     } //setClient
 
+    public String getUsername() {
+        return this.client.getSelfProfile().getUsername();
+    }
+
+    public String getFullName() {
+        return this.client.getSelfProfile().getFull_name();
+    }
+
+    public String getProfilePic() {
+        return this.client.getSelfProfile().getProfile_pic_url();
+    }
+
+    public boolean hasAnonymousProfilePicture() {
+        return this.client.getSelfProfile().isHas_anonymous_profile_picture();
+    }
+
+    public boolean isPrivate() {
+        return this.client.getSelfProfile().is_private();
+    }
+
+    public boolean isVerified() {
+        return this.client.getSelfProfile().is_verified();
+    }
+
+
     public static InstagramModel createInstagramModel(String username, String password) {
         InstagramModel instagramModel;
         Callable<String> inputCode;

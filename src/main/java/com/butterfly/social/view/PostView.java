@@ -22,6 +22,11 @@ public final class PostView {
     private final Button refreshButton;
 
     /**
+     * The profile button of this post view.
+     */
+    private final Button profileButton;
+
+    /**
      * The tab pane of this post view.
      */
     private final TabPane tabPane;
@@ -62,7 +67,11 @@ public final class PostView {
     private PostView() {
         String refreshText = "Refresh";
 
+        String profileText = "Profile";
+
         this.refreshButton = new Button(refreshText);
+
+        this.profileButton = new Button(profileText);
 
         this.tabPane = new TabPane();
 
@@ -74,7 +83,7 @@ public final class PostView {
 
         this.allBox = new VBox();
 
-        this.mainBox = new VBox(this.refreshButton, this.tabPane);
+        this.mainBox = new VBox(this.refreshButton, this.tabPane, this.profileButton);
 
         this.scene = new Scene(this.mainBox);
     } //PostView
@@ -87,6 +96,15 @@ public final class PostView {
     public Button getRefreshButton() {
         return this.refreshButton;
     } //getRefreshButton
+
+    /**
+     * Returns the profile button of this post view.
+     *
+     * @return the profile button of this post view
+     */
+    public Button getProfileButton() {
+        return this.profileButton;
+    } //getProfileButton
 
     /**
      * Returns the tab pane of this post view.
@@ -179,6 +197,9 @@ public final class PostView {
 
         postView.refreshButton.prefWidthProperty()
                               .bind(primaryStage.widthProperty());
+        
+        postView.profileButton.prefWidthProperty()
+                                .bind(primaryStage.widthProperty());
 
         redditScrollPane = new ScrollPane(postView.redditBox);
 
