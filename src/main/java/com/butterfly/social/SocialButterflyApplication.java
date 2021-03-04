@@ -131,6 +131,12 @@ public final class SocialButterflyApplication extends Application {
         TextInputDialog passwordInputDialog;
         String passwordQuestion = "What is your password?";
         String password;
+        TextInputDialog clientIdInputDialog;
+        String clientIdQuestion = "What is your client ID?";
+        String clientId;
+        TextInputDialog clientSecretInputDialog;
+        String clientSecretQuestion = "What is your client secret?";
+        String clientSecret;
         RedditModel redditModel = null;
 
         usernameInputDialog = new TextInputDialog();
@@ -153,12 +159,32 @@ public final class SocialButterflyApplication extends Application {
 
         password = passwordInputDialog.getResult();
 
-        if ((username == null) || (password == null)) {
+        clientIdInputDialog = new TextInputDialog();
+
+        clientIdInputDialog.setTitle(title);
+
+        clientIdInputDialog.setHeaderText(clientIdQuestion);
+
+        clientIdInputDialog.showAndWait();
+
+        clientId = clientIdInputDialog.getResult();
+
+        clientSecretInputDialog = new TextInputDialog();
+
+        clientSecretInputDialog.setTitle(title);
+
+        clientSecretInputDialog.setHeaderText(clientSecretQuestion);
+
+        clientSecretInputDialog.showAndWait();
+
+        clientSecret = clientSecretInputDialog.getResult();
+
+        if ((username == null) || (password == null) || (clientId == null) || (clientSecret == null)) {
             return null;
         } //end if
 
         try {
-            redditModel = RedditModel.createRedditModel(username, password);
+            redditModel = RedditModel.createRedditModel(username, password, clientId, clientSecret);
         } catch (Exception e) {
             e.printStackTrace();
         } //end try catch

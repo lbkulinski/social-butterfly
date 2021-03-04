@@ -23,7 +23,8 @@ public final class RedditModel {
         this.client = client;
     } //setClient
 
-    public static RedditModel createRedditModel(String username, String password) {
+    public static RedditModel createRedditModel(String username, String password, String clientId,
+                                                String clientSecret) {
         RedditModel redditModel;
         UserAgent userAgent;
         String platform = "Social Butterfly";
@@ -31,13 +32,15 @@ public final class RedditModel {
         String version = "v1.0";
         NetworkAdapter networkAdapter;
         Credentials credentials;
-        String clientId = "GaoCzV0A1aEvMA";
-        String clientSecret = "14CAWMVrhheFVi0n5XDgpAAxnZV5Fw";
         RedditClient client;
 
         Objects.requireNonNull(username, "the specified username is null");
 
         Objects.requireNonNull(password, "the specified password is null");
+
+        Objects.requireNonNull(clientId, "the specified client ID is null");
+
+        Objects.requireNonNull(clientSecret, "the specified client secret is null");
 
         redditModel = new RedditModel();
 
