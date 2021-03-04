@@ -4,6 +4,7 @@ import com.github.instagram4j.instagram4j.IGClient;
 import com.github.instagram4j.instagram4j.exceptions.IGLoginException;
 import com.github.instagram4j.instagram4j.utils.IGChallengeUtils;
 import java.io.Serializable;
+import java.util.Objects;
 import java.util.Scanner;
 import java.util.concurrent.Callable;
 
@@ -27,6 +28,10 @@ public final class InstagramModel implements Serializable {
         Callable<String> inputCode;
         IGClient.Builder.LoginHandler twoFactorHandler;
         IGClient.Builder.LoginHandler challengeHandler;
+
+        Objects.requireNonNull(username, "the specified username is null");
+
+        Objects.requireNonNull(password, "the specified password is null");
 
         instagramModel = new InstagramModel();
 
