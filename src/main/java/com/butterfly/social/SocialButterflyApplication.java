@@ -16,6 +16,8 @@ import javafx.scene.control.TextInputDialog;
 import javafx.stage.Stage;
 import twitter4j.TwitterException;
 import java.io.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * A runner for the Social Butterfly application.
@@ -200,6 +202,7 @@ public final class SocialButterflyApplication extends Application {
     @Override
     public void start(Stage primaryStage) {
         PostView postView;
+        Lock allBoxLock;
         File file;
         String twitterFileName = "twitter-model.ser";
         TwitterModel readTwitterModel = null;
@@ -224,6 +227,8 @@ public final class SocialButterflyApplication extends Application {
         Scene scene;
 
         postView = PostView.createPostView(primaryStage);
+
+        allBoxLock = new ReentrantLock();
 
         file = new File(twitterFileName);
 
@@ -257,7 +262,8 @@ public final class SocialButterflyApplication extends Application {
         } //end if
 
         if (twitterModel != null) {
-            twitterPostController = TwitterPostController.createTwitterPostController(twitterModel, postView);
+            twitterPostController = TwitterPostController.createTwitterPostController(twitterModel, postView,
+                                                                                      allBoxLock);
 
             twitterThread = twitterPostController.getBackgroundThread();
         } else {
@@ -299,7 +305,7 @@ public final class SocialButterflyApplication extends Application {
                 instagramThread = null;
             } else {
                 instagramPostController = InstagramPostController.createInstagramPostController(instagramModel,
-                                                                                                postView);
+                                                                                                postView, allBoxLock);
 
                 instagramThread = instagramPostController.getBackgroundThread();
             } //end if
@@ -330,7 +336,8 @@ public final class SocialButterflyApplication extends Application {
 
                 redditThread = null;
             } else {
-                redditPostController = RedditPostController.createRedditPostController(redditModel, postView);
+                redditPostController = RedditPostController.createRedditPostController(redditModel, postView,
+                                                                                       allBoxLock);
 
                 redditThread = redditPostController.getBackgroundThread();
             } //end if
@@ -358,6 +365,8 @@ public final class SocialButterflyApplication extends Application {
             if (redditThread != null) {
                 redditThread.interrupt();
             } //end if
+
+            System.exit(0);
         });
 
         scene = postView.getScene();

@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
  * A controller for Instagram posts of the Social Butterfly application.
  *
  * @author Logan Kulinski, lbk@purdue.edu
- * @version March 3, 2021
+ * @version March 4, 2021
  */
 public final class InstagramPostController {
     /**
@@ -99,6 +99,7 @@ public final class InstagramPostController {
      *
      * @param imageMedia the image media to be used in the operation
      * @return the photo node for the specified image media
+     * @throws NullPointerException if the specified image media is {@code null}
      */
     private Node getPhotoNode(TimelineImageMedia imageMedia) {
         List<ImageVersionsMeta> metaList;
@@ -147,6 +148,7 @@ public final class InstagramPostController {
      *
      * @param imageCarouselItem the image carousel item to be used in the operation
      * @return the photo node for the specified image carousel item
+     * @throws NullPointerException if the specified image carousel item is {@code null}
      */
     private Node getPhotoNode(ImageCaraouselItem imageCarouselItem) {
         List<ImageVersionsMeta> metaList;
@@ -195,6 +197,7 @@ public final class InstagramPostController {
      *
      * @param videoMedia the video media to be used in the operation
      * @return the video node for the specified video media
+     * @throws NullPointerException if the specified video media is {@code null}
      */
     private Node getVideoNode(TimelineVideoMedia videoMedia) {
         List<VideoVersionsMeta> metaList;
@@ -258,6 +261,7 @@ public final class InstagramPostController {
      *
      * @param videoCarouselItem the video carousel item to be used in the operation
      * @return the photo node for the specified video carousel item
+     * @throws NullPointerException if the specified video carousel item is {@code null}
      */
     private Node getVideoNode(VideoCaraouselItem videoCarouselItem) {
         List<VideoVersionsMeta> metaList;
@@ -321,6 +325,7 @@ public final class InstagramPostController {
      *
      * @param media the media to be used in the operation
      * @return an accordion of the specified media
+     * @throws NullPointerException if the specified media is {@code null}
      */
     private Accordion getMediaAccordion(TimelineMedia media) {
         List<TitledPane> titledPanes;
@@ -398,9 +403,11 @@ public final class InstagramPostController {
      * Returns a box for the specified media.
      *
      * @param media the media to be used in the operation
+     * @param displayInstagram whether or not to display "on Instagram" in the box
      * @return a box for the specified media
+     * @throws NullPointerException if the specified media is {@code null}
      */
-    private VBox createBox(TimelineMedia media) {
+    private VBox createBox(TimelineMedia media, boolean displayInstagram) {
         String username;
         String textString;
         long creationTime;
@@ -415,6 +422,7 @@ public final class InstagramPostController {
         int hour;
         int minute;
         String amPm;
+        String format;
         String dateTimeString;
         Label dateTimeLabel;
         VBox vBox;
@@ -463,7 +471,13 @@ public final class InstagramPostController {
 
         amPm = (dateTime.get(ChronoField.AMPM_OF_DAY) == 0) ? "AM" : "PM";
 
-        dateTimeString = String.format("%s, %d %d at %02d:%02d %s", month, day, year, hour, minute, amPm);
+        if (displayInstagram) {
+            format = "%s, %d %d at %02d:%02d %s on Instagram";
+        } else {
+            format = "%s, %d %d at %02d:%02d %s";
+        } //end if
+
+        dateTimeString = String.format(format, month, day, year, hour, minute, amPm);
 
         dateTimeLabel = new Label(dateTimeString);
 
@@ -482,28 +496,34 @@ public final class InstagramPostController {
     } //createPostBox
 
     /**
-     * Creates, and returns, a {@code InstagramPostController} object using the specified instagram model and post
-     * view.
+     * Creates, and returns, an {@code InstagramPostController} object using the specified instagram model, post view,
+     * and all box lock.
      *
      * @param instagramModel the instagram model to be used in the operation
      * @param postView the post view to be used in the operation
-     * @return a {@code InstagramPostController} object using the specified instagram model and post view
-     * @throws NullPointerException if the specified instagram model or post view is {@code null}
+     * @param allBoxLock the all box lock to be used in the operation
+     * @return an {@code InstagramPostController} object using the specified instagram model and post view
+     * @throws NullPointerException if the specified instagram model, post view, or all box lock is {@code null}
      */
     public static InstagramPostController createInstagramPostController(InstagramModel instagramModel,
-                                                                        PostView postView) {
+                                                                        PostView postView, Lock allBoxLock) {
         InstagramPostController controller;
         Button refreshButton;
         VBox instagramBox;
+        VBox allBox;
         IGClient client;
         Set<String> ids;
         Map<String, TimelineMedia> idsToMedia;
+
+        Objects.requireNonNull(allBoxLock, "the specified all box lock is null");
 
         controller = new InstagramPostController(instagramModel, postView);
 
         refreshButton = controller.postView.getRefreshButton();
 
         instagramBox = controller.postView.getInstagramBox();
+
+        allBox = controller.postView.getAllBox();
 
         client = controller.instagramModel.getClient();
 
@@ -559,8 +579,10 @@ public final class InstagramPostController {
             Collection<TimelineMedia> values;
             Set<TimelineMedia> mediaSet;
             List<Node> nodes;
+            List<Node> nodeCopies;
             String id;
             VBox vBox;
+            VBox vBoxCopy;
 
             comparator = Comparator.<TimelineMedia>comparingLong((media -> media.getCaption()
                                                                                 .getCreated_at_utc()))
@@ -581,17 +603,25 @@ public final class InstagramPostController {
 
                 nodes = new ArrayList<>();
 
+                nodeCopies = new ArrayList<>();
+
                 for (TimelineMedia media : mediaSet) {
                     id = media.getId();
 
                     if (!ids.contains(id)) {
                         ids.add(id);
 
-                        vBox = controller.createBox(media);
+                        vBox = controller.createBox(media, false);
+
+                        vBoxCopy = controller.createBox(media, true);
 
                         nodes.add(vBox);
 
                         nodes.add(new Separator());
+
+                        nodeCopies.add(vBoxCopy);
+
+                        nodeCopies.add(new Separator());
                     } //end if
                 } //end for
 
@@ -602,8 +632,17 @@ public final class InstagramPostController {
 
             instagramBox.getChildren()
                         .addAll(0, nodes);
+
+            allBoxLock.lock();
+
+            try {
+                allBox.getChildren()
+                      .addAll(0, nodeCopies);
+            } finally {
+                allBoxLock.unlock();
+            } //end try finally
         });
 
         return controller;
-    } //createTwitterPostController
+    } //createInstagramPostController
 }

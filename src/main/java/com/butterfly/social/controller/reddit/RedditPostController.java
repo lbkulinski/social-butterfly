@@ -95,6 +95,7 @@ public final class RedditPostController {
      *
      * @param submission the submission to be used in the operation
      * @return a media accordion for the specified submission
+     * @throws NullPointerException if the specified submission is {@code null}
      */
     private Accordion getMediaAccordion(Submission submission) {
         String urlString;
@@ -206,9 +207,11 @@ public final class RedditPostController {
      * Returns a box for the specified submission.
      *
      * @param submission the submission to be used in the operation
+     * @param displayReddit whether or not to display "on Reddit" in the box
      * @return a box for the specified submission
+     * @throws NullPointerException if the specified submission is {@code null}
      */
-    private VBox createBox(Submission submission) {
+    private VBox createBox(Submission submission, boolean displayReddit) {
         String title;
         String author;
         String subreddit;
@@ -219,7 +222,6 @@ public final class RedditPostController {
         Text titleText;
         Label nameLabel;
         Text text;
-        EmbeddedMedia embeddedMedia;
         Accordion accordion;
         String month;
         int day;
@@ -227,6 +229,7 @@ public final class RedditPostController {
         int hour;
         int minute;
         String amPm;
+        String format;
         String dateTimeString;
         Label dateTimeLabel;
         VBox vBox;
@@ -268,8 +271,6 @@ public final class RedditPostController {
         text.wrappingWidthProperty()
             .bind(scene.widthProperty());
 
-        embeddedMedia = submission.getEmbeddedMedia();
-
         accordion = getMediaAccordion(submission);
 
         month = dateTime.getMonth()
@@ -288,7 +289,13 @@ public final class RedditPostController {
 
         amPm = (dateTime.get(ChronoField.AMPM_OF_DAY) == 0) ? "AM" : "PM";
 
-        dateTimeString = String.format("%s, %02d %d at %02d:%02d %s", month, day, year, hour, minute, amPm);
+        if (displayReddit) {
+            format = "%s, %02d %d at %02d:%02d %s on Reddit";
+        } else {
+            format = "%s, %02d %d at %02d:%02d %s";
+        } //end if
+
+        dateTimeString = String.format(format, month, day, year, hour, minute, amPm);
 
         dateTimeLabel = new Label(dateTimeString);
 
@@ -307,17 +314,21 @@ public final class RedditPostController {
     } //createPostBox
 
     /**
-     * Creates, and returns, a {@code RedditPostController} object using the specified reddit model and post view.
+     * Creates, and returns, a {@code RedditPostController} object using the specified reddit model, post view, and all
+     * box lock.
      *
      * @param redditModel the reddit model to be used in the operation
      * @param postView the post view to be used in the operation
-     * @return a {@code RedditPostController} object using the specified reddit model and post view
-     * @throws NullPointerException if the specified reddit model or post view is {@code null}
+     * @param allBoxLock the all box lock to be used in the operation
+     * @return a {@code RedditPostController} object using the specified reddit model, post view, and all box lock
+     * @throws NullPointerException if the specified reddit model, post view, or all box lock is {@code null}
      */
-    public static RedditPostController createRedditPostController(RedditModel redditModel, PostView postView) {
+    public static RedditPostController createRedditPostController(RedditModel redditModel, PostView postView,
+                                                                  Lock allBoxLock) {
         RedditPostController controller;
         Button refreshButton;
         VBox redditBox;
+        VBox allBox;
         RedditClient client;
         Map<String, Submission> idsToSubmissions;
         Set<String> ids;
@@ -327,6 +338,8 @@ public final class RedditPostController {
         refreshButton = controller.postView.getRefreshButton();
 
         redditBox = controller.postView.getRedditBox();
+
+        allBox = controller.postView.getAllBox();
 
         client = controller.redditModel.getClient();
 
@@ -381,8 +394,10 @@ public final class RedditPostController {
             Collection<Submission> values;
             Set<Submission> submissions;
             List<Node> nodes;
+            List<Node> nodeCopies;
             String id;
             VBox vBox;
+            VBox vBoxCopy;
 
             comparator = Comparator.comparing(Submission::getCreated)
                                    .reversed();
@@ -398,17 +413,25 @@ public final class RedditPostController {
 
                 nodes = new ArrayList<>();
 
+                nodeCopies = new ArrayList<>();
+
                 for (Submission submission : submissions) {
                     id = submission.getId();
 
                     if (!ids.contains(id)) {
                         ids.add(id);
 
-                        vBox = controller.createBox(submission);
+                        vBox = controller.createBox(submission, false);
+
+                        vBoxCopy = controller.createBox(submission, true);
 
                         nodes.add(vBox);
 
                         nodes.add(new Separator());
+
+                        nodeCopies.add(vBoxCopy);
+
+                        nodeCopies.add(new Separator());
                     } //end if
                 } //end for
 
@@ -419,6 +442,15 @@ public final class RedditPostController {
 
             redditBox.getChildren()
                      .addAll(0, nodes);
+
+            allBoxLock.lock();
+
+            try {
+                allBox.getChildren()
+                      .addAll(0, nodeCopies);
+            } finally {
+                allBoxLock.unlock();
+            } //end try finally
         });
 
         return controller;
