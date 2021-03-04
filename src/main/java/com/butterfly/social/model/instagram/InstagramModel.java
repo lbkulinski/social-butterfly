@@ -1,34 +1,69 @@
 package com.butterfly.social.model.instagram;
 
-import java.io.Serializable;
 import com.github.instagram4j.instagram4j.IGClient;
+import com.github.instagram4j.instagram4j.exceptions.IGLoginException;
+import com.github.instagram4j.instagram4j.utils.IGChallengeUtils;
+import java.io.Serializable;
+import java.util.Scanner;
+import java.util.concurrent.Callable;
 
 public final class InstagramModel implements Serializable {
-    private final InstagramUserAuthentication auth;
-    private final InstagramUserRequests requests;
+    private IGClient client;
 
-    public InstagramModel() {
-        this.auth = new InstagramUserAuthentication();
-        this.requests = new InstagramUserRequests();
-    } //TwitterModel
-
-    public void initializeRequests() {
-        IGClient client;
-
-        client = this.auth.getClient();
-
-        this.requests.setClient(client);
-    } //initializeRequests
+    private InstagramModel() {
+        this.client = null;
+    } //InstagramModel
 
     public IGClient getClient() {
-        return this.auth.getClient();
+        return this.client;
     } //getClient
 
-    public InstagramUserAuthentication getAuth() {
-        return this.auth;
-    } //getAuth
+    public void setClient(IGClient client) {
+        this.client = client;
+    } //setClient
 
-    public InstagramUserRequests getRequests() {
-        return this.requests;
-    } //getRequests
+    public static InstagramModel createInstagramModel(String username, String password) {
+        InstagramModel instagramModel;
+        Callable<String> inputCode;
+        IGClient.Builder.LoginHandler twoFactorHandler;
+        IGClient.Builder.LoginHandler challengeHandler;
+
+        instagramModel = new InstagramModel();
+
+        inputCode = () -> {
+            Scanner scanner;
+            String pin;
+
+            scanner = new Scanner(System.in);
+
+            System.out.print("Please enter the pin: ");
+
+            pin = scanner.nextLine();
+
+            scanner.close();
+
+            return pin;
+        };
+
+        twoFactorHandler = (client, response) -> IGChallengeUtils.resolveTwoFactor(client, response, inputCode);
+
+        challengeHandler = (client, response) -> IGChallengeUtils.resolveChallenge(client, response, inputCode);
+
+        try {
+            instagramModel.client = IGClient.builder()
+                                            .username(username)
+                                            .password(password)
+                                            .onTwoFactor(twoFactorHandler)
+                                            .onChallenge(challengeHandler)
+                                            .login();
+        } catch (IGLoginException e) {
+            String message;
+
+            message = e.getMessage();
+
+            throw new IllegalStateException(message);
+        } //end try catch
+
+        return instagramModel;
+    } //createInstagramModel
 }

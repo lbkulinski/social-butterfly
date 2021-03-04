@@ -6,9 +6,6 @@ import com.butterfly.social.model.instagram.InstagramModel;
 import com.butterfly.social.model.twitter.TwitterModel;
 import com.butterfly.social.model.twitter.TwitterUserAuthentication;
 import com.butterfly.social.view.PostView;
-import com.github.instagram4j.instagram4j.IGClient;
-import com.github.instagram4j.instagram4j.exceptions.IGLoginException;
-import com.github.instagram4j.instagram4j.utils.IGChallengeUtils;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -17,8 +14,6 @@ import javafx.scene.control.TextInputDialog;
 import javafx.stage.Stage;
 import twitter4j.TwitterException;
 import java.io.*;
-import java.util.Scanner;
-import java.util.concurrent.Callable;
 
 /**
  * A runner for the Social Butterfly application.
@@ -79,7 +74,6 @@ public final class SocialButterflyApplication extends Application {
      * @return the instagram model of this application
      */
     private InstagramModel getInstagramModel() {
-        InstagramModel instagramModel;
         TextInputDialog usernameInputDialog;
         String title = "Social Butterfly";
         String usernameQuestion = "What is your username?";
@@ -87,12 +81,7 @@ public final class SocialButterflyApplication extends Application {
         TextInputDialog passwordInputDialog;
         String passwordQuestion = "What is your password?";
         String password;
-        Callable<String> inputCode;
-        IGClient.Builder.LoginHandler twoFactorHandler;
-        IGClient.Builder.LoginHandler challengeHandler;
-        IGClient igClient;
-
-        instagramModel = new InstagramModel();
+        InstagramModel instagramModel = null;
 
         usernameInputDialog = new TextInputDialog();
 
@@ -118,43 +107,11 @@ public final class SocialButterflyApplication extends Application {
             return null;
         } //end if
 
-        inputCode = () -> {
-            Scanner scanner;
-            String pin;
-
-            scanner = new Scanner(System.in);
-
-            System.out.print("Please enter the pin: ");
-
-            pin = scanner.nextLine();
-
-            scanner.close();
-
-            return pin;
-        };
-
-        twoFactorHandler = (client, response) -> IGChallengeUtils.resolveTwoFactor(client, response, inputCode);
-
-        challengeHandler = (client, response) -> IGChallengeUtils.resolveChallenge(client, response, inputCode);
-
         try {
-            igClient = IGClient.builder()
-                               .username(username)
-                               .password(password)
-                               .onTwoFactor(twoFactorHandler)
-                               .onChallenge(challengeHandler)
-                               .login();
-        } catch (IGLoginException e) {
+            instagramModel = InstagramModel.createInstagramModel(username, password);
+        } catch (IllegalStateException e) {
             e.printStackTrace();
-
-            return null;
         } //end try catch
-
-        instagramModel.getAuth()
-                      .setClient(igClient);
-
-        instagramModel.getRequests()
-                      .setClient(igClient);
 
         return instagramModel;
     } //getInstagramModel
