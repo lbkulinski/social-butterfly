@@ -1,4 +1,4 @@
-package com.butterfly.social.model;
+package com.butterfly.social.model.twitter;
 
 import java.io.Serializable;
 import twitter4j.Twitter;

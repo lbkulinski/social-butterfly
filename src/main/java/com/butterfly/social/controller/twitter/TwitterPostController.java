@@ -1,7 +1,9 @@
-package com.butterfly.social.controller;
+package com.butterfly.social.controller.twitter;
 
-import com.butterfly.social.model.TwitterModel;
+import com.butterfly.social.model.twitter.TwitterModel;
 import com.butterfly.social.view.PostView;
+import javafx.event.ActionEvent;
+import javafx.scene.CacheHint;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -29,7 +31,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * A controller for Twitter posts of the Social Butterfly application.
  *
  * @author Logan Kulinski, lbk@purdue.edu
- * @version March 1, 2021
+ * @version March 4, 2021
  */
 public final class TwitterPostController {
     /**
@@ -90,10 +92,11 @@ public final class TwitterPostController {
      *
      * @param mediaEntity the media entity to be used in the operation
      * @return the video node for the specified media entity
+     * @throws NullPointerException if the specified media entity is {@code null}
      */
     private Node getVideoNode(MediaEntity mediaEntity) {
         MediaEntity.Variant[] variants;
-        int lastIndex;
+        int index;
         String urlString;
         URI uri;
         String uriString;
@@ -107,9 +110,9 @@ public final class TwitterPostController {
 
         Arrays.sort(variants, Comparator.comparing(MediaEntity.Variant::getBitrate));
 
-        lastIndex = variants.length - 1;
+        index = variants.length / 2;
 
-        urlString = variants[lastIndex].getUrl();
+        urlString = variants[index].getUrl();
 
         try {
             uri = new URI(urlString);
@@ -140,6 +143,10 @@ public final class TwitterPostController {
             } //end switch
         });
 
+        mediaView.setCache(true);
+
+        mediaView.setCacheHint(CacheHint.SPEED);
+
         return mediaView;
     } //getVideoNode
 
@@ -148,6 +155,7 @@ public final class TwitterPostController {
      *
      * @param mediaEntity the media entity to be used in the operation
      * @return the photo node for the specified media entity
+     * @throws NullPointerException if the specified media entity is {@code null}
      */
     private Node getPhotoNode(MediaEntity mediaEntity) {
         String urlString;
@@ -155,6 +163,8 @@ public final class TwitterPostController {
         String uriString;
         Image image;
         ImageView imageView;
+
+        Objects.requireNonNull(mediaEntity, "the specified media entity is null");
 
         urlString = mediaEntity.getMediaURLHttps();
 
@@ -168,9 +178,13 @@ public final class TwitterPostController {
             return null;
         } //end try catch
 
-        image = new Image(uriString);
+        image = new Image(uriString, true);
 
         imageView = new ImageView(image);
+
+        imageView.setCache(true);
+
+        imageView.setCacheHint(CacheHint.SPEED);
 
         return imageView;
     } //getPhotoNode
@@ -180,10 +194,11 @@ public final class TwitterPostController {
      *
      * @param mediaEntity the media entity to be used in the operation
      * @return the GIF node for the specified media entity
+     * @throws NullPointerException if the specified media entity is {@code null}
      */
     private Node getGifNode(MediaEntity mediaEntity) {
         MediaEntity.Variant[] variants;
-        int lastIndex;
+        int index;
         String urlString;
         URI uri;
         String uriString;
@@ -197,9 +212,9 @@ public final class TwitterPostController {
 
         Arrays.sort(variants, Comparator.comparing(MediaEntity.Variant::getBitrate));
 
-        lastIndex = variants.length - 1;
+        index = variants.length / 2;
 
-        urlString = variants[lastIndex].getUrl();
+        urlString = variants[index].getUrl();
 
         try {
             uri = new URI(urlString);
@@ -225,6 +240,10 @@ public final class TwitterPostController {
 
         mediaPlayer.setAutoPlay(true);
 
+        mediaView.setCache(true);
+
+        mediaView.setCacheHint(CacheHint.SPEED);
+
         return mediaView;
     } //getGifNode
 
@@ -233,6 +252,7 @@ public final class TwitterPostController {
      *
      * @param mediaEntities the media entities to be used in the operation
      * @return an accordion of the specified media entities
+     * @throws NullPointerException if the specified array of media entities is {@code null}
      */
     private Accordion getMediaAccordion(MediaEntity[] mediaEntities) {
         List<TitledPane> titledPanes;
@@ -297,9 +317,11 @@ public final class TwitterPostController {
      * Returns a box for the specified status.
      *
      * @param status the status to be used in the operation
+     * @param displayTwitter whether or not to display "on Twitter" in the box
      * @return a box for the specified status
+     * @throws NullPointerException if the specified status is {@code null}
      */
-    private VBox createBox(Status status) {
+    private VBox createBox(Status status, boolean displayTwitter) {
         String name;
         String screenName;
         String textString;
@@ -316,6 +338,7 @@ public final class TwitterPostController {
         int hour;
         int minute;
         String amPm;
+        String format;
         String dateTimeString;
         Label dateTimeLabel;
         VBox vBox;
@@ -370,7 +393,13 @@ public final class TwitterPostController {
 
         amPm = (dateTime.get(ChronoField.AMPM_OF_DAY) == 0) ? "AM" : "PM";
 
-        dateTimeString = String.format("%s, %02d %d at %02d:%02d %s", month, day, year, hour, minute, amPm);
+        if (displayTwitter) {
+            format = "%s, %02d %d at %02d:%02d %s on Twitter";
+        } else {
+            format = "%s, %02d %d at %02d:%02d %s";
+        } //end if
+
+        dateTimeString = String.format(format, month, day, year, hour, minute, amPm);
 
         dateTimeLabel = new Label(dateTimeString);
 
@@ -389,17 +418,21 @@ public final class TwitterPostController {
     } //createPostBox
 
     /**
-     * Creates, and returns, a {@code TwitterPostController} object using the specified twitter model and post view.
+     * Creates, and returns, a {@code TwitterPostController} object using the specified twitter model, post view, and
+     * all box lock.
      *
      * @param twitterModel the twitter model to be used in the operation
      * @param postView the post view to be used in the operation
-     * @return a {@code TwitterPostController} object using the specified twitter model and post view
-     * @throws NullPointerException if the specified twitter model or post view is {@code null}
+     * @param allBoxLock the all box lock to be used in the operation
+     * @return a {@code TwitterPostController} object using the specified twitter model, post view, and all box lock
+     * @throws NullPointerException if the specified twitter model, post view, or all box lock is {@code null}
      */
-    public static TwitterPostController createTwitterPostController(TwitterModel twitterModel, PostView postView) {
+    public static TwitterPostController createTwitterPostController(TwitterModel twitterModel, PostView postView,
+                                                                    Lock allBoxLock) {
         TwitterPostController controller;
         Button refreshButton;
         VBox twitterBox;
+        VBox allBox;
         Set<Long> ids;
         Map<Long, Status> idsToStatuses;
         TwitterListener twitterListener;
@@ -407,11 +440,15 @@ public final class TwitterPostController {
         AsyncTwitterFactory factory;
         AsyncTwitter asyncTwitter;
 
+        Objects.requireNonNull(allBoxLock, "the specified all box lock is null");
+
         controller = new TwitterPostController(twitterModel, postView);
 
         refreshButton = controller.postView.getRefreshButton();
 
-        twitterBox = postView.getTwitterBox();
+        twitterBox = controller.postView.getTwitterBox();
+
+        allBox = controller.postView.getAllBox();
 
         ids = new HashSet<>();
 
@@ -466,13 +503,15 @@ public final class TwitterPostController {
 
         controller.backgroundThread.start();
 
-        refreshButton.setOnAction((actionEvent) -> {
+        refreshButton.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
             Comparator<Status> comparator;
             Collection<Status> values;
             Set<Status> statuses;
             List<Node> nodes;
+            List<Node> nodeCopies;
             long id;
             VBox vBox;
+            VBox vBoxCopy;
 
             comparator = Comparator.comparing(Status::getCreatedAt)
                                    .reversed();
@@ -488,17 +527,25 @@ public final class TwitterPostController {
 
                 nodes = new ArrayList<>();
 
+                nodeCopies = new ArrayList<>();
+
                 for (Status status : statuses) {
                     id = status.getId();
 
                     if (!ids.contains(id)) {
                         ids.add(id);
 
-                        vBox = controller.createBox(status);
+                        vBox = controller.createBox(status, false);
+
+                        vBoxCopy = controller.createBox(status, true);
 
                         nodes.add(vBox);
 
                         nodes.add(new Separator());
+
+                        nodeCopies.add(vBoxCopy);
+
+                        nodeCopies.add(new Separator());
                     } //end if
                 } //end for
 
@@ -509,6 +556,15 @@ public final class TwitterPostController {
 
             twitterBox.getChildren()
                       .addAll(0, nodes);
+
+            allBoxLock.lock();
+
+            try {
+                allBox.getChildren()
+                      .addAll(0, nodeCopies);
+            } finally {
+                allBoxLock.unlock();
+            } //end try finally
         });
 
         return controller;
