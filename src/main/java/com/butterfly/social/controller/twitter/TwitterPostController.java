@@ -31,7 +31,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * A controller for Twitter posts of the Social Butterfly application.
  *
  * @author Logan Kulinski, lbk@purdue.edu
- * @version March 3, 2021
+ * @version March 4, 2021
  */
 public final class TwitterPostController {
     /**
@@ -425,7 +425,7 @@ public final class TwitterPostController {
 
         refreshButton = controller.postView.getRefreshButton();
 
-        twitterBox = postView.getTwitterBox();
+        twitterBox = controller.postView.getTwitterBox();
 
         ids = new HashSet<>();
 

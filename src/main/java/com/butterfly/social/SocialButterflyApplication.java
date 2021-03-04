@@ -1,8 +1,10 @@
 package com.butterfly.social;
 
 import com.butterfly.social.controller.instagram.InstagramPostController;
+import com.butterfly.social.controller.reddit.RedditPostController;
 import com.butterfly.social.controller.twitter.TwitterPostController;
 import com.butterfly.social.model.instagram.InstagramModel;
+import com.butterfly.social.model.reddit.RedditModel;
 import com.butterfly.social.model.twitter.TwitterModel;
 import com.butterfly.social.model.twitter.TwitterUserAuthentication;
 import com.butterfly.social.view.PostView;
@@ -19,7 +21,7 @@ import java.io.*;
  * A runner for the Social Butterfly application.
  *
  * @author Logan Kulinski, lbk@purdue.edu
- * @version March 3, 2021
+ * @version March 4, 2021
  */
 public final class SocialButterflyApplication extends Application {
     /**
@@ -117,6 +119,54 @@ public final class SocialButterflyApplication extends Application {
     } //getInstagramModel
 
     /**
+     * Returns the reddit model of this application.
+     *
+     * @return the reddit model of this application
+     */
+    private RedditModel getRedditModel() {
+        TextInputDialog usernameInputDialog;
+        String title = "Social Butterfly";
+        String usernameQuestion = "What is your username?";
+        String username;
+        TextInputDialog passwordInputDialog;
+        String passwordQuestion = "What is your password?";
+        String password;
+        RedditModel redditModel = null;
+
+        usernameInputDialog = new TextInputDialog();
+
+        usernameInputDialog.setTitle(title);
+
+        usernameInputDialog.setHeaderText(usernameQuestion);
+
+        usernameInputDialog.showAndWait();
+
+        username = usernameInputDialog.getResult();
+
+        passwordInputDialog = new TextInputDialog();
+
+        passwordInputDialog.setTitle(title);
+
+        passwordInputDialog.setHeaderText(passwordQuestion);
+
+        passwordInputDialog.showAndWait();
+
+        password = passwordInputDialog.getResult();
+
+        if ((username == null) || (password == null)) {
+            return null;
+        } //end if
+
+        try {
+            redditModel = RedditModel.createRedditModel(username, password);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } //end try catch
+
+        return redditModel;
+    } //getRedditModel
+
+    /**
      * Starts this application.
      *
      * @param primaryStage the primary stage to be used in the operation
@@ -128,6 +178,7 @@ public final class SocialButterflyApplication extends Application {
         String twitterFileName = "twitter-model.ser";
         TwitterModel readTwitterModel = null;
         String title = "Social Butterfly";
+        ButtonType twitterResult = null;
         TwitterModel twitterModel;
         TwitterPostController twitterPostController;
         Thread twitterThread;
@@ -137,6 +188,13 @@ public final class SocialButterflyApplication extends Application {
         InstagramModel instagramModel;
         InstagramPostController instagramPostController;
         Thread instagramThread;
+        Alert redditAlert;
+        String redditMessage = "Would you like to log into Reddit?";
+        ButtonType redditResult;
+        RedditModel redditModel;
+        RedditPostController redditPostController;
+        Thread redditThread;
+
         Scene scene;
 
         postView = PostView.createPostView(primaryStage);
@@ -154,7 +212,6 @@ public final class SocialButterflyApplication extends Application {
         if (readTwitterModel == null) {
             Alert twitterAlert;
             String twitterMessage = "Would you like to log into Twitter?";
-            ButtonType twitterResult;
 
             twitterAlert = new Alert(Alert.AlertType.CONFIRMATION, twitterMessage, ButtonType.YES, ButtonType.NO);
 
@@ -179,6 +236,17 @@ public final class SocialButterflyApplication extends Application {
             twitterThread = twitterPostController.getBackgroundThread();
         } else {
             twitterThread = null;
+
+            if (twitterResult == ButtonType.YES) {
+                String message;
+                Alert errorAlert;
+
+                message = "Error: Could not sign into Twitter! Please try again later.";
+
+                errorAlert = new Alert(Alert.AlertType.ERROR, message);
+
+                errorAlert.showAndWait();
+            } //end if
         } //end if
 
         instagramAlert = new Alert(Alert.AlertType.CONFIRMATION, instagramMessage, ButtonType.YES, ButtonType.NO);
@@ -193,6 +261,15 @@ public final class SocialButterflyApplication extends Application {
             instagramModel = this.getInstagramModel();
 
             if (instagramModel == null) {
+                String message;
+                Alert errorAlert;
+
+                message = "Error: Could not sign into Instagram! Please try again later.";
+
+                errorAlert = new Alert(Alert.AlertType.ERROR, message);
+
+                errorAlert.showAndWait();
+
                 instagramThread = null;
             } else {
                 instagramPostController = InstagramPostController.createInstagramPostController(instagramModel,
@@ -202,6 +279,37 @@ public final class SocialButterflyApplication extends Application {
             } //end if
         } else {
             instagramThread = null;
+        } //end if
+
+        redditAlert = new Alert(Alert.AlertType.CONFIRMATION, redditMessage, ButtonType.YES, ButtonType.NO);
+
+        redditAlert.setTitle(title);
+
+        redditAlert.showAndWait();
+
+        redditResult = redditAlert.getResult();
+
+        if (redditResult == ButtonType.YES) {
+            redditModel = this.getRedditModel();
+
+            if (redditModel == null) {
+                String message;
+                Alert errorAlert;
+
+                message = "Error: Could not sign into Reddit! Please try again later.";
+
+                errorAlert = new Alert(Alert.AlertType.ERROR, message);
+
+                errorAlert.showAndWait();
+
+                redditThread = null;
+            } else {
+                redditPostController = RedditPostController.createRedditPostController(redditModel, postView);
+
+                redditThread = redditPostController.getBackgroundThread();
+            } //end if
+        } else {
+            redditThread = null;
         } //end if
 
         primaryStage.setOnCloseRequest((windowEvent) -> {
@@ -219,6 +327,10 @@ public final class SocialButterflyApplication extends Application {
 
             if (instagramThread != null) {
                 instagramThread.interrupt();
+            } //end if
+
+            if (redditThread != null) {
+                redditThread.interrupt();
             } //end if
         });
 

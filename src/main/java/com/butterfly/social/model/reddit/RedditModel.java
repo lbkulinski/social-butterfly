@@ -6,7 +6,6 @@ import net.dean.jraw.http.OkHttpNetworkAdapter;
 import net.dean.jraw.http.UserAgent;
 import net.dean.jraw.oauth.Credentials;
 import net.dean.jraw.oauth.OAuthHelper;
-
 import java.util.Objects;
 
 public final class RedditModel {
@@ -24,7 +23,7 @@ public final class RedditModel {
         this.client = client;
     } //setClient
 
-    public RedditModel createRedditModel(String username, String password) {
+    public static RedditModel createRedditModel(String username, String password) {
         RedditModel redditModel;
         UserAgent userAgent;
         String platform = "Social Butterfly";
