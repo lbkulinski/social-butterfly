@@ -176,10 +176,6 @@ public final class SocialButterflyApplication extends Application {
         return redditModel;
     } //getRedditModel
 
-
-    private void redditLogin() {
-
-    }
     /**
      * Starts this application.
      *
@@ -360,15 +356,12 @@ public final class SocialButterflyApplication extends Application {
                 System.out.println("Reddit account successfully connected!");
                 Button redditProfileButton = new Button("Reddit Profile");
                 postView.getMainBox().getChildren().add(redditProfileButton);
-                redditProfileButton.setOnAction(new EventHandler<ActionEvent>() {
-                    @Override
-                    public void handle(ActionEvent event) {
-                        RedditProfileView.createRedditProfileView(redditModel);
-                    }
-                });
+                redditProfileButton.prefWidthProperty().bind(primaryStage.widthProperty());
+                redditProfileButton.setOnAction(event -> RedditProfileView.createRedditProfileView(redditModel));
             } //end if
         } else {
             postView.getRedditBox().getChildren().add(redditLoginButton);
+
             redditThread = null;
         } //end if
 
