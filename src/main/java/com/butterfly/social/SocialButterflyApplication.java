@@ -8,9 +8,13 @@ import com.butterfly.social.model.reddit.RedditModel;
 import com.butterfly.social.model.twitter.TwitterModel;
 import com.butterfly.social.model.twitter.TwitterUserAuthentication;
 import com.butterfly.social.view.PostView;
+import com.butterfly.social.view.RedditProfileView;
 import javafx.application.Application;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.TextInputDialog;
 import javafx.stage.Stage;
@@ -194,6 +198,10 @@ public final class SocialButterflyApplication extends Application {
         return redditModel;
     } //getRedditModel
 
+
+    private void redditLogin() {
+
+    }
     /**
      * Starts this application.
      *
@@ -239,6 +247,33 @@ public final class SocialButterflyApplication extends Application {
                 e.printStackTrace();
             } //end try catch
         } //end if
+
+        Button redditLoginButton = new Button("Login");
+        redditLoginButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                RedditModel newRedditModel = getRedditModel();
+                if (newRedditModel != null) {
+                    RedditPostController newRedditPostController = RedditPostController.createRedditPostController(newRedditModel, postView,
+                            allBoxLock);
+                    Thread newRedditThread = newRedditPostController.getBackgroundThread();
+                    if (newRedditThread != null) {
+                        primaryStage.setOnCloseRequest((windowEvent) -> {
+                            newRedditThread.interrupt();
+                            System.exit(0);
+                        });
+                        Button redditProfileButtonTwo = new Button("Reddit Profile");
+                        postView.getMainBox().getChildren().add(redditProfileButtonTwo);
+                        redditProfileButtonTwo.setOnAction(new EventHandler<ActionEvent>() {
+                            @Override
+                            public void handle(ActionEvent event) {
+                                RedditProfileView.createRedditProfileView(newRedditModel);
+                            }
+                        });
+                    }
+                }
+            }
+        });
 
         if (readTwitterModel == null) {
             Alert twitterAlert;
@@ -334,14 +369,26 @@ public final class SocialButterflyApplication extends Application {
 
                 errorAlert.showAndWait();
 
+                postView.getRedditBox().getChildren().add(redditLoginButton);
+
                 redditThread = null;
             } else {
                 redditPostController = RedditPostController.createRedditPostController(redditModel, postView,
                                                                                        allBoxLock);
 
                 redditThread = redditPostController.getBackgroundThread();
+                System.out.println("Reddit account successfully connected!");
+                Button redditProfileButton = new Button("Reddit Profile");
+                postView.getMainBox().getChildren().add(redditProfileButton);
+                redditProfileButton.setOnAction(new EventHandler<ActionEvent>() {
+                    @Override
+                    public void handle(ActionEvent event) {
+                        RedditProfileView.createRedditProfileView(redditModel);
+                    }
+                });
             } //end if
         } else {
+            postView.getRedditBox().getChildren().add(redditLoginButton);
             redditThread = null;
         } //end if
 
