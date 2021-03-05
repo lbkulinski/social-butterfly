@@ -22,9 +22,14 @@ public final class PostView {
     private final Button refreshButton;
 
     /**
-     * The profile button of this post view.
+     * The Twitter profile button of this post view.
      */
-    private final Button profileButton;
+    private final Button twitterProfileButton;
+
+    /**
+     * The Instagram profile button of this post view.
+     */
+    private final Button instagramProfileButton;
 
     /**
      * The tab pane of this post view.
@@ -67,11 +72,15 @@ public final class PostView {
     private PostView() {
         String refreshText = "Refresh";
 
-        String profileText = "Profile";
+        String twitterProfileText = "Twitter Profile";
+
+        String instagramProfileText = "Instagram Profile";
 
         this.refreshButton = new Button(refreshText);
 
-        this.profileButton = new Button(profileText);
+        this.twitterProfileButton = new Button(twitterProfileText);
+
+        this.instagramProfileButton = new Button(instagramProfileText);
 
         this.tabPane = new TabPane();
 
@@ -83,7 +92,7 @@ public final class PostView {
 
         this.allBox = new VBox();
 
-        this.mainBox = new VBox(this.refreshButton, this.tabPane, this.profileButton);
+        this.mainBox = new VBox(this.refreshButton, this.tabPane, this.twitterProfileButton, this.instagramProfileButton);
 
         this.scene = new Scene(this.mainBox);
     } //PostView
@@ -102,8 +111,17 @@ public final class PostView {
      *
      * @return the profile button of this post view
      */
-    public Button getProfileButton() {
-        return this.profileButton;
+    public Button getTwitterProfileButton() {
+        return this.twitterProfileButton;
+    } //getProfileButton
+
+    /**
+     * Returns the profile button of this post view.
+     *
+     * @return the profile button of this post view
+     */
+    public Button getInstagramProfileButton() {
+        return this.instagramProfileButton;
     } //getProfileButton
 
     /**
@@ -198,7 +216,10 @@ public final class PostView {
         postView.refreshButton.prefWidthProperty()
                               .bind(primaryStage.widthProperty());
         
-        postView.profileButton.prefWidthProperty()
+        postView.twitterProfileButton.prefWidthProperty()
+                                .bind(primaryStage.widthProperty());
+
+        postView.instagramProfileButton.prefWidthProperty()
                                 .bind(primaryStage.widthProperty());
 
         redditScrollPane = new ScrollPane(postView.redditBox);

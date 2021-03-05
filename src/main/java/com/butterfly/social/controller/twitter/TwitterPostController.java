@@ -449,7 +449,7 @@ public final class TwitterPostController {
 
         refreshButton = controller.postView.getRefreshButton();
 
-        profileButton = controller.postView.getProfileButton();
+        profileButton = controller.postView.getTwitterProfileButton();
 
         twitterBox = controller.postView.getTwitterBox();
 

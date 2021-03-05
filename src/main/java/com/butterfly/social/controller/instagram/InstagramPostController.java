@@ -523,7 +523,7 @@ public final class InstagramPostController {
 
         refreshButton = controller.postView.getRefreshButton();
 
-        profileButton = controller.postView.getProfileButton();
+        profileButton = controller.postView.getInstagramProfileButton();
 
         instagramBox = controller.postView.getInstagramBox();
 

@@ -67,7 +67,11 @@ public final class SocialButterflyApplication extends Application {
 
         authentication.handlePIN(pin);
 
-        twitterModel.initializeRequests();
+        try {
+            twitterModel.initializeRequests();
+        } catch (TwitterException te) {
+            te.printStackTrace();
+        }
 
         return twitterModel;
     } //getTwitterModel
