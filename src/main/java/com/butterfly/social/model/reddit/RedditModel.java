@@ -10,6 +10,7 @@ import java.util.Objects;
 
 public final class RedditModel {
     private RedditClient client;
+    private String username;
 
     private RedditModel() {
         this.client = null;
@@ -22,6 +23,14 @@ public final class RedditModel {
     public void setClient(RedditClient client) {
         this.client = client;
     } //setClient
+
+    public void setUsername(String username) {
+        this.username = username;
+    } //setUsername
+
+    public String getUsername() {
+        return this.username;
+    } //getUsername
 
     public static RedditModel createRedditModel(String username, String password, String clientId,
                                                 String clientSecret) {
@@ -53,6 +62,8 @@ public final class RedditModel {
         client = OAuthHelper.automatic(networkAdapter, credentials);
 
         redditModel.setClient(client);
+
+        redditModel.setUsername(username);
 
         return redditModel;
     } //createRedditModel
