@@ -141,12 +141,6 @@ public final class SocialButterflyApplication extends Application {
         TextInputDialog passwordInputDialog;
         String passwordQuestion = "What is your password?";
         String password;
-        TextInputDialog clientIdInputDialog;
-        String clientIdQuestion = "What is your client ID?";
-        String clientId;
-        TextInputDialog clientSecretInputDialog;
-        String clientSecretQuestion = "What is your client secret?";
-        String clientSecret;
         RedditModel redditModel = null;
 
         usernameInputDialog = new TextInputDialog();
@@ -169,32 +163,12 @@ public final class SocialButterflyApplication extends Application {
 
         password = passwordInputDialog.getResult();
 
-        clientIdInputDialog = new TextInputDialog();
-
-        clientIdInputDialog.setTitle(title);
-
-        clientIdInputDialog.setHeaderText(clientIdQuestion);
-
-        clientIdInputDialog.showAndWait();
-
-        clientId = clientIdInputDialog.getResult();
-
-        clientSecretInputDialog = new TextInputDialog();
-
-        clientSecretInputDialog.setTitle(title);
-
-        clientSecretInputDialog.setHeaderText(clientSecretQuestion);
-
-        clientSecretInputDialog.showAndWait();
-
-        clientSecret = clientSecretInputDialog.getResult();
-
-        if ((username == null) || (password == null) || (clientId == null) || (clientSecret == null)) {
+        if ((username == null) || (password == null)) {
             return null;
         } //end if
 
         try {
-            redditModel = RedditModel.createRedditModel(username, password, clientId, clientSecret);
+            redditModel = RedditModel.createRedditModel(username, password);
         } catch (Exception e) {
             e.printStackTrace();
         } //end try catch
@@ -267,6 +241,8 @@ public final class SocialButterflyApplication extends Application {
                             System.exit(0);
                         });
                         Button redditProfileButtonTwo = new Button("Reddit Profile");
+                        redditProfileButtonTwo.prefWidthProperty()
+                                            .bind(primaryStage.widthProperty());
                         postView.getMainBox().getChildren().add(redditProfileButtonTwo);
                         redditProfileButtonTwo.setOnAction(new EventHandler<ActionEvent>() {
                             @Override
