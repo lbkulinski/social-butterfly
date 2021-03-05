@@ -25,8 +25,8 @@ public class TwitterUserProfile implements Serializable{
 
     public TwitterUserProfile(Twitter twitter) throws TwitterException{
         this.profile = twitter.showUser(twitter.getId());
-        this.profilePicture = this.getImage(this.profile.get400x400ProfileImageURLHttps());
-        this.bannerImage = this.getImage(this.profile.getProfileBanner1500x500URL());
+        //this.profilePicture = this.getImage(this.profile.get400x400ProfileImageURLHttps());
+        //this.bannerImage = this.getImage(this.profile.getProfileBanner1500x500URL());
         this.name = this.profile.getName();
         this.bio = this.profile.getDescription();
         this.followerCount = this.profile.getFollowersCount();
