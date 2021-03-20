@@ -32,7 +32,8 @@ public final class RedditModel {
         return this.username;
     } //getUsername
 
-    public static RedditModel createRedditModel(String username, String password) {
+    public static RedditModel createRedditModel(String username, String password, String clientId,
+                                                String clientSecret) {
         RedditModel redditModel;
         UserAgent userAgent;
         String platform = "Social Butterfly";
@@ -46,8 +47,9 @@ public final class RedditModel {
 
         Objects.requireNonNull(password, "the specified password is null");
 
-        String clientId = "GaoCzV0A1aEvMA";
-        String clientSecret = "14CAWMVrhheFVi0n5XDgpAAxnZV5Fw";
+        Objects.requireNonNull(clientId, "the specified client ID is null");
+
+        Objects.requireNonNull(clientSecret, "the specified client secret is null");
 
         redditModel = new RedditModel();
 

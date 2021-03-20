@@ -1,20 +1,17 @@
 package com.butterfly.social;
 
 import com.butterfly.social.controller.instagram.InstagramPostController;
+import com.butterfly.social.controller.menu.MenuController;
 import com.butterfly.social.controller.reddit.RedditPostController;
 import com.butterfly.social.controller.twitter.TwitterPostController;
 import com.butterfly.social.model.instagram.InstagramModel;
 import com.butterfly.social.model.reddit.RedditModel;
 import com.butterfly.social.model.twitter.TwitterModel;
 import com.butterfly.social.model.twitter.TwitterUserAuthentication;
-import com.butterfly.social.view.PostView;
-import com.butterfly.social.view.RedditProfileView;
+import com.butterfly.social.view.View;
 import javafx.application.Application;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.TextInputDialog;
 import javafx.stage.Stage;
@@ -27,7 +24,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * A runner for the Social Butterfly application.
  *
  * @author Logan Kulinski, lbk@purdue.edu
- * @version March 4, 2021
+ * @version March 20, 2021
  */
 public final class SocialButterflyApplication extends Application {
     /**
@@ -141,6 +138,12 @@ public final class SocialButterflyApplication extends Application {
         TextInputDialog passwordInputDialog;
         String passwordQuestion = "What is your password?";
         String password;
+        TextInputDialog clientIdInputDialog;
+        String clientIdQuestion = "What is your client ID?";
+        String clientId;
+        TextInputDialog clientSecretInputDialog;
+        String clientSecretQuestion = "What is your client secret?";
+        String clientSecret;
         RedditModel redditModel = null;
 
         usernameInputDialog = new TextInputDialog();
@@ -163,12 +166,32 @@ public final class SocialButterflyApplication extends Application {
 
         password = passwordInputDialog.getResult();
 
-        if ((username == null) || (password == null)) {
+        clientIdInputDialog = new TextInputDialog();
+
+        clientIdInputDialog.setTitle(title);
+
+        clientIdInputDialog.setHeaderText(clientIdQuestion);
+
+        clientIdInputDialog.showAndWait();
+
+        clientId = clientIdInputDialog.getResult();
+
+        clientSecretInputDialog = new TextInputDialog();
+
+        clientSecretInputDialog.setTitle(title);
+
+        clientSecretInputDialog.setHeaderText(clientSecretQuestion);
+
+        clientSecretInputDialog.showAndWait();
+
+        clientSecret = clientSecretInputDialog.getResult();
+
+        if ((username == null) || (password == null) || (clientId == null) || (clientSecret == null)) {
             return null;
         } //end if
 
         try {
-            redditModel = RedditModel.createRedditModel(username, password);
+            redditModel = RedditModel.createRedditModel(username, password, clientId, clientSecret);
         } catch (Exception e) {
             e.printStackTrace();
         } //end try catch
@@ -183,7 +206,7 @@ public final class SocialButterflyApplication extends Application {
      */
     @Override
     public void start(Stage primaryStage) {
-        PostView postView;
+        View view;
         Lock allBoxLock;
         File file;
         String twitterFileName = "twitter-model.ser";
@@ -205,10 +228,9 @@ public final class SocialButterflyApplication extends Application {
         RedditModel redditModel;
         RedditPostController redditPostController;
         Thread redditThread;
-
         Scene scene;
 
-        postView = PostView.createPostView(primaryStage);
+        view = View.createView(primaryStage);
 
         allBoxLock = new ReentrantLock();
 
@@ -221,35 +243,6 @@ public final class SocialButterflyApplication extends Application {
                 e.printStackTrace();
             } //end try catch
         } //end if
-
-        Button redditLoginButton = new Button("Login");
-        redditLoginButton.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                RedditModel newRedditModel = getRedditModel();
-                if (newRedditModel != null) {
-                    RedditPostController newRedditPostController = RedditPostController.createRedditPostController(newRedditModel, postView,
-                            allBoxLock);
-                    Thread newRedditThread = newRedditPostController.getBackgroundThread();
-                    if (newRedditThread != null) {
-                        primaryStage.setOnCloseRequest((windowEvent) -> {
-                            newRedditThread.interrupt();
-                            System.exit(0);
-                        });
-                        Button redditProfileButtonTwo = new Button("Reddit Profile");
-                        redditProfileButtonTwo.prefWidthProperty()
-                                            .bind(primaryStage.widthProperty());
-                        postView.getMainBox().getChildren().add(redditProfileButtonTwo);
-                        redditProfileButtonTwo.setOnAction(new EventHandler<ActionEvent>() {
-                            @Override
-                            public void handle(ActionEvent event) {
-                                RedditProfileView.createRedditProfileView(newRedditModel);
-                            }
-                        });
-                    }
-                }
-            }
-        });
 
         if (readTwitterModel == null) {
             Alert twitterAlert;
@@ -273,8 +266,7 @@ public final class SocialButterflyApplication extends Application {
         } //end if
 
         if (twitterModel != null) {
-            twitterPostController = TwitterPostController.createTwitterPostController(twitterModel, postView,
-                                                                                      allBoxLock);
+            twitterPostController = TwitterPostController.createTwitterPostController(twitterModel, view, allBoxLock);
 
             twitterThread = twitterPostController.getBackgroundThread();
         } else {
@@ -315,12 +307,14 @@ public final class SocialButterflyApplication extends Application {
 
                 instagramThread = null;
             } else {
-                instagramPostController = InstagramPostController.createInstagramPostController(instagramModel,
-                                                                                                postView, allBoxLock);
+                instagramPostController = InstagramPostController.createInstagramPostController(instagramModel, view,
+                                                                                                allBoxLock);
 
                 instagramThread = instagramPostController.getBackgroundThread();
             } //end if
         } else {
+            instagramModel = null;
+
             instagramThread = null;
         } //end if
 
@@ -345,22 +339,14 @@ public final class SocialButterflyApplication extends Application {
 
                 errorAlert.showAndWait();
 
-                postView.getRedditBox().getChildren().add(redditLoginButton);
-
                 redditThread = null;
             } else {
-                redditPostController = RedditPostController.createRedditPostController(redditModel, postView,
-                                                                                       allBoxLock);
+                redditPostController = RedditPostController.createRedditPostController(redditModel, view, allBoxLock);
 
                 redditThread = redditPostController.getBackgroundThread();
-                System.out.println("Reddit account successfully connected!");
-                Button redditProfileButton = new Button("Reddit Profile");
-                postView.getMainBox().getChildren().add(redditProfileButton);
-                redditProfileButton.prefWidthProperty().bind(primaryStage.widthProperty());
-                redditProfileButton.setOnAction(event -> RedditProfileView.createRedditProfileView(redditModel));
             } //end if
         } else {
-            postView.getRedditBox().getChildren().add(redditLoginButton);
+            redditModel = null;
 
             redditThread = null;
         } //end if
@@ -389,7 +375,9 @@ public final class SocialButterflyApplication extends Application {
             System.exit(0);
         });
 
-        scene = postView.getScene();
+        MenuController.createMenuController(redditModel, twitterModel, instagramModel, view);
+
+        scene = view.getScene();
 
         primaryStage.setTitle(title);
 

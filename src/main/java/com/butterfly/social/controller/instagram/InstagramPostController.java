@@ -2,6 +2,7 @@ package com.butterfly.social.controller.instagram;
 
 import com.butterfly.social.model.instagram.InstagramModel;
 import com.butterfly.social.view.PostView;
+import com.butterfly.social.view.View;
 import com.github.instagram4j.instagram4j.IGClient;
 import com.github.instagram4j.instagram4j.actions.feed.FeedIterable;
 import com.github.instagram4j.instagram4j.models.media.ImageVersionsMeta;
@@ -14,7 +15,6 @@ import javafx.scene.CacheHint;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
@@ -39,26 +39,26 @@ import java.util.stream.Collectors;
  * A controller for Instagram posts of the Social Butterfly application.
  *
  * @author Logan Kulinski, lbk@purdue.edu
- * @version March 4, 2021
+ * @version March 20, 2021
  */
 public final class InstagramPostController {
     /**
-     * The lock of this instagram post controller.
+     * The lock of this Instagram post controller.
      */
     private static final Lock lock;
 
     /**
-     * The model of this instagram post controller.
+     * The Instagram model of this Instagram post controller.
      */
     private final InstagramModel instagramModel;
 
     /**
-     * The post view of this instagram post controller.
+     * The view of this Instagram post controller.
      */
-    private final PostView postView;
+    private final View view;
 
     /**
-     * The background thread of this instagram post controller.
+     * The background thread of this Instagram post controller.
      */
     private Thread backgroundThread;
 
@@ -67,29 +67,28 @@ public final class InstagramPostController {
     } //static
 
     /**
-     * Constructs a newly allocated {@code InstagramPostController} object with the specified instagram model and post
-     * view.
+     * Constructs a newly allocated {@code InstagramPostController} object with the specified Instagram model and view.
      *
-     * @param instagramModel the instagram model to be used in construction
-     * @param postView the post view to be used in construction
-     * @throws NullPointerException if the specified instagram model or post view is {@code null}
+     * @param instagramModel the Instagram model to be used in construction
+     * @param view the view to be used in construction
+     * @throws NullPointerException if the specified Instagram model or view is {@code null}
      */
-    private InstagramPostController(InstagramModel instagramModel, PostView postView) {
-        Objects.requireNonNull(instagramModel, "the specified instagram model is null");
+    private InstagramPostController(InstagramModel instagramModel, View view) {
+        Objects.requireNonNull(instagramModel, "the specified Instagram model is null");
 
-        Objects.requireNonNull(postView, "the specified post view is null");
+        Objects.requireNonNull(view, "the specified view is null");
 
         this.instagramModel = instagramModel;
 
-        this.postView = postView;
+        this.view = view;
 
         this.backgroundThread = null;
     } //InstagramPostController
 
     /**
-     * Returns the background thread of this instagram post controller.
+     * Returns the background thread of this Instagram post controller.
      *
-     * @return the background thread of this instagram post controller
+     * @return the background thread of this Instagram post controller
      */
     public Thread getBackgroundThread() {
         return this.backgroundThread;
@@ -445,7 +444,7 @@ public final class InstagramPostController {
 
         nameLabel.setFont(Font.font("Arial", FontWeight.BOLD, 12));
 
-        scene = this.postView.getScene();
+        scene = this.view.getScene();
 
         text = new Text(textString);
 
@@ -497,20 +496,20 @@ public final class InstagramPostController {
     } //createPostBox
 
     /**
-     * Creates, and returns, an {@code InstagramPostController} object using the specified instagram model, post view,
-     * and all box lock.
+     * Creates, and returns, an {@code InstagramPostController} object using the specified Instagram model, view, and
+     * all box lock.
      *
-     * @param instagramModel the instagram model to be used in the operation
-     * @param postView the post view to be used in the operation
+     * @param instagramModel the Instagram model to be used in the operation
+     * @param view the view to be used in the operation
      * @param allBoxLock the all box lock to be used in the operation
-     * @return an {@code InstagramPostController} object using the specified instagram model and post view
-     * @throws NullPointerException if the specified instagram model, post view, or all box lock is {@code null}
+     * @return an {@code InstagramPostController} object using the specified Instagram model and view
+     * @throws NullPointerException if the specified Instagram model, view, or all box lock is {@code null}
      */
     public static InstagramPostController createInstagramPostController(InstagramModel instagramModel,
-                                                                        PostView postView, Lock allBoxLock) {
+                                                                        View view, Lock allBoxLock) {
         InstagramPostController controller;
+        PostView postView;
         Button refreshButton;
-        Button profileButton;
         VBox instagramBox;
         VBox allBox;
         IGClient client;
@@ -519,15 +518,15 @@ public final class InstagramPostController {
 
         Objects.requireNonNull(allBoxLock, "the specified all box lock is null");
 
-        controller = new InstagramPostController(instagramModel, postView);
+        controller = new InstagramPostController(instagramModel, view);
 
-        refreshButton = controller.postView.getRefreshButton();
+        postView = controller.view.getPostView();
 
-        profileButton = controller.postView.getInstagramProfileButton();
+        refreshButton = postView.getRefreshButton();
 
-        instagramBox = controller.postView.getInstagramBox();
+        instagramBox = postView.getInstagramBox();
 
-        allBox = controller.postView.getAllBox();
+        allBox = postView.getAllBox();
 
         client = controller.instagramModel.getClient();
 
@@ -645,17 +644,6 @@ public final class InstagramPostController {
             } finally {
                 allBoxLock.unlock();
             } //end try finally
-        });
-
-        profileButton.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
-            Alert a = new Alert(AlertType.INFORMATION);
-            String profileText = "";
-            profileText+="Name: " + instagramModel.getFullName() + "\n";
-            profileText+="Handle: " + instagramModel.getUsername() + "\n";
-            profileText+="Verified: " + instagramModel.isVerified() + "\n";
-            profileText+="Private: " + instagramModel.isPrivate() + "\n";
-            a.setContentText(profileText);
-            a.show();
         });
 
         return controller;

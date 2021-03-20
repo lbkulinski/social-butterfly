@@ -1,14 +1,13 @@
 package com.butterfly.social.controller.twitter;
 
 import com.butterfly.social.model.twitter.TwitterModel;
-import com.butterfly.social.model.twitter.TwitterUserProfile;
 import com.butterfly.social.view.PostView;
+import com.butterfly.social.view.View;
 import javafx.event.ActionEvent;
 import javafx.scene.CacheHint;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
@@ -33,26 +32,26 @@ import java.util.concurrent.locks.ReentrantLock;
  * A controller for Twitter posts of the Social Butterfly application.
  *
  * @author Logan Kulinski, lbk@purdue.edu
- * @version March 4, 2021
+ * @version March 20, 2021
  */
 public final class TwitterPostController {
     /**
-     * The lock of this twitter post controller.
+     * The lock of this Twitter post controller.
      */
     private static final Lock lock;
 
     /**
-     * The twitter model of this twitter post controller.
+     * The Twitter model of this Twitter post controller.
      */
     private final TwitterModel twitterModel;
 
     /**
-     * The post view of this twitter post controller.
+     * The view of this Twitter post controller.
      */
-    private final PostView postView;
+    private final View view;
 
     /**
-     * The background thread of this twitter post controller.
+     * The background thread of this Twitter post controller.
      */
     private Thread backgroundThread;
 
@@ -61,29 +60,28 @@ public final class TwitterPostController {
     } //static
 
     /**
-     * Constructs a newly allocated {@code TwitterPostController} object with the specified twitter model and post
-     * view.
+     * Constructs a newly allocated {@code TwitterPostController} object with the specified Twitter model and view.
      *
-     * @param twitterModel the twitter model to be used in construction
-     * @param postView the post view to be used in construction
-     * @throws NullPointerException if the specified twitter model or post view is {@code null}
+     * @param twitterModel the Twitter model to be used in construction
+     * @param view the view to be used in construction
+     * @throws NullPointerException if the specified Twitter model or view is {@code null}
      */
-    private TwitterPostController(TwitterModel twitterModel, PostView postView) {
-        Objects.requireNonNull(twitterModel, "the specified twitter model is null");
+    private TwitterPostController(TwitterModel twitterModel, View view) {
+        Objects.requireNonNull(twitterModel, "the specified Twitter model is null");
 
-        Objects.requireNonNull(twitterModel, "the specified post view is null");
+        Objects.requireNonNull(twitterModel, "the specified view is null");
 
         this.twitterModel = twitterModel;
 
-        this.postView = postView;
+        this.view = view;
 
         this.backgroundThread = null;
     } //TwitterPostController
 
     /**
-     * Returns the background thread of this twitter post controller.
+     * Returns the background thread of this Twitter post controller.
      *
-     * @return the background thread of this twitter post controller
+     * @return the background thread of this Twitter post controller
      */
     public Thread getBackgroundThread() {
         return this.backgroundThread;
@@ -366,7 +364,7 @@ public final class TwitterPostController {
 
         nameLabel.setFont(Font.font("Arial", FontWeight.BOLD, 12));
 
-        scene = this.postView.getScene();
+        scene = this.view.getScene();
 
         text = new Text(textString);
 
@@ -420,20 +418,20 @@ public final class TwitterPostController {
     } //createPostBox
 
     /**
-     * Creates, and returns, a {@code TwitterPostController} object using the specified twitter model, post view, and
-     * all box lock.
+     * Creates, and returns, a {@code TwitterPostController} object using the specified Twitter model, view, and all
+     * box lock.
      *
-     * @param twitterModel the twitter model to be used in the operation
-     * @param postView the post view to be used in the operation
+     * @param twitterModel the Twitter model to be used in the operation
+     * @param view the view to be used in the operation
      * @param allBoxLock the all box lock to be used in the operation
-     * @return a {@code TwitterPostController} object using the specified twitter model, post view, and all box lock
-     * @throws NullPointerException if the specified twitter model, post view, or all box lock is {@code null}
+     * @return a {@code TwitterPostController} object using the specified Twitter model, view, and all box lock
+     * @throws NullPointerException if the specified Twitter model, view, or all box lock is {@code null}
      */
-    public static TwitterPostController createTwitterPostController(TwitterModel twitterModel, PostView postView,
+    public static TwitterPostController createTwitterPostController(TwitterModel twitterModel, View view,
                                                                     Lock allBoxLock) {
         TwitterPostController controller;
+        PostView postView;
         Button refreshButton;
-        Button profileButton;
         VBox twitterBox;
         VBox allBox;
         Set<Long> ids;
@@ -445,15 +443,15 @@ public final class TwitterPostController {
 
         Objects.requireNonNull(allBoxLock, "the specified all box lock is null");
 
-        controller = new TwitterPostController(twitterModel, postView);
+        controller = new TwitterPostController(twitterModel, view);
 
-        refreshButton = controller.postView.getRefreshButton();
+        postView = controller.view.getPostView();
 
-        profileButton = controller.postView.getTwitterProfileButton();
+        refreshButton = postView.getRefreshButton();
 
-        twitterBox = controller.postView.getTwitterBox();
+        twitterBox = postView.getTwitterBox();
 
-        allBox = controller.postView.getAllBox();
+        allBox = postView.getAllBox();
 
         ids = new HashSet<>();
 
@@ -570,21 +568,6 @@ public final class TwitterPostController {
             } finally {
                 allBoxLock.unlock();
             } //end try finally
-        });
-
-        profileButton.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
-            Alert a = new Alert(AlertType.INFORMATION);
-            String profileText = "";
-            TwitterUserProfile tp = twitterModel.getRequests().getProfile();
-            profileText+="Name: " + tp.getName() + "\n";
-            profileText+="Twitter Handle: " + tp.getHandle() + "\n";
-            profileText+="Bio: " + tp.getBio() + "\n";
-            profileText+="Followers: " + tp.getFollowerCount() + "\n";
-            profileText+="Following: " + tp.getFollowingCount() + "\n";
-            profileText+="Verified: " + tp.isVerified() + "\n";
-            profileText+="Location: " + tp.getLocation() + "\n";
-            a.setContentText(profileText);
-            a.show();
         });
 
         return controller;

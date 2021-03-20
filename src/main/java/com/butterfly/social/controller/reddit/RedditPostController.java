@@ -2,6 +2,7 @@ package com.butterfly.social.controller.reddit;
 
 import com.butterfly.social.model.reddit.RedditModel;
 import com.butterfly.social.view.PostView;
+import com.butterfly.social.view.View;
 import javafx.event.ActionEvent;
 import javafx.scene.CacheHint;
 import javafx.scene.Node;
@@ -35,26 +36,26 @@ import java.util.concurrent.locks.ReentrantLock;
  * A controller for Reddit posts of the Social Butterfly application.
  *
  * @author Logan Kulinski, lbk@purdue.edu
- * @version March 4, 2021
+ * @version March 20, 2021
  */
 public final class RedditPostController {
     /**
-     * The lock of this reddit post controller.
+     * The lock of this Reddit post controller.
      */
     private static final Lock lock;
 
     /**
-     * The reddit model of this reddit post controller.
+     * The Reddit model of this Reddit post controller.
      */
     private final RedditModel redditModel;
 
     /**
-     * The post view of this reddit post controller.
+     * The view of this Reddit post controller.
      */
-    private final PostView postView;
+    private final View view;
 
     /**
-     * The background thread of this reddit post controller.
+     * The background thread of this Reddit post controller.
      */
     private Thread backgroundThread;
 
@@ -63,28 +64,28 @@ public final class RedditPostController {
     } //static
 
     /**
-     * Constructs a newly allocated {@code RedditPostController} object with the specified reddit model and post view.
+     * Constructs a newly allocated {@code RedditPostController} object with the specified Reddit model and view.
      *
-     * @param redditModel the reddit model to be used in construction
-     * @param postView the post view to be used in construction
-     * @throws NullPointerException if the specified reddit model or post view is {@code null}
+     * @param redditModel the Reddit model to be used in construction
+     * @param view the view to be used in construction
+     * @throws NullPointerException if the specified Reddit model or view is {@code null}
      */
-    private RedditPostController(RedditModel redditModel, PostView postView) {
-        Objects.requireNonNull(redditModel, "the specified reddit model is null");
+    private RedditPostController(RedditModel redditModel, View view) {
+        Objects.requireNonNull(redditModel, "the specified Reddit model is null");
 
-        Objects.requireNonNull(postView, "the specified post view is null");
+        Objects.requireNonNull(view, "the specified view is null");
 
         this.redditModel = redditModel;
 
-        this.postView = postView;
+        this.view = view;
 
         this.backgroundThread = null;
     } //RedditPostController
 
     /**
-     * Returns the background thread of this reddit post controller.
+     * Returns the background thread of this Reddit post controller.
      *
-     * @return the background thread of this reddit post controller
+     * @return the background thread of this Reddit post controller
      */
     public Thread getBackgroundThread() {
         return this.backgroundThread;
@@ -251,7 +252,7 @@ public final class RedditPostController {
                              .atZone(ZoneId.systemDefault())
                              .toLocalDateTime();
 
-        scene = this.postView.getScene();
+        scene = this.view.getScene();
 
         titleText = new Text(title);
 
@@ -314,18 +315,19 @@ public final class RedditPostController {
     } //createPostBox
 
     /**
-     * Creates, and returns, a {@code RedditPostController} object using the specified reddit model, post view, and all
-     * box lock.
+     * Creates, and returns, a {@code RedditPostController} object using the specified Reddit model, view, and all box
+     * lock.
      *
-     * @param redditModel the reddit model to be used in the operation
-     * @param postView the post view to be used in the operation
+     * @param redditModel the Reddit model to be used in the operation
+     * @param view the view to be used in the operation
      * @param allBoxLock the all box lock to be used in the operation
-     * @return a {@code RedditPostController} object using the specified reddit model, post view, and all box lock
-     * @throws NullPointerException if the specified reddit model, post view, or all box lock is {@code null}
+     * @return a {@code RedditPostController} object using the specified Reddit model, view, and all box lock
+     * @throws NullPointerException if the specified Reddit model, view, or all box lock is {@code null}
      */
-    public static RedditPostController createRedditPostController(RedditModel redditModel, PostView postView,
+    public static RedditPostController createRedditPostController(RedditModel redditModel, View view,
                                                                   Lock allBoxLock) {
         RedditPostController controller;
+        PostView postView;
         Button refreshButton;
         VBox redditBox;
         VBox allBox;
@@ -333,13 +335,15 @@ public final class RedditPostController {
         Map<String, Submission> idsToSubmissions;
         Set<String> ids;
 
-        controller = new RedditPostController(redditModel, postView);
+        controller = new RedditPostController(redditModel, view);
 
-        refreshButton = controller.postView.getRefreshButton();
+        postView = controller.view.getPostView();
 
-        redditBox = controller.postView.getRedditBox();
+        refreshButton = postView.getRefreshButton();
 
-        allBox = controller.postView.getAllBox();
+        redditBox = postView.getRedditBox();
+
+        allBox = postView.getAllBox();
 
         client = controller.redditModel.getClient();
 

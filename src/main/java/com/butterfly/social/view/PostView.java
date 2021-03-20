@@ -13,23 +13,13 @@ import java.util.Objects;
  * A view for posts of the Social Butterfly application.
  *
  * @author Logan Kulinski, lbk@purdue.edu
- * @version February 28, 2021
+ * @version March 20, 2021
  */
 public final class PostView {
     /**
      * The refresh button of this post view.
      */
     private final Button refreshButton;
-
-    /**
-     * The Twitter profile button of this post view.
-     */
-    private final Button twitterProfileButton;
-
-    /**
-     * The Instagram profile button of this post view.
-     */
-    private final Button instagramProfileButton;
 
     /**
      * The tab pane of this post view.
@@ -57,30 +47,12 @@ public final class PostView {
     private final VBox allBox;
 
     /**
-     * The main box of this post view.
-     */
-    private final VBox mainBox;
-
-    /**
-     * The scene of this post view.
-     */
-    private final Scene scene;
-
-    /**
      * Constructs a newly allocated {@code PostView} object.
      */
     private PostView() {
         String refreshText = "Refresh";
 
-        String twitterProfileText = "Twitter Profile";
-
-        String instagramProfileText = "Instagram Profile";
-
         this.refreshButton = new Button(refreshText);
-
-        this.twitterProfileButton = new Button(twitterProfileText);
-
-        this.instagramProfileButton = new Button(instagramProfileText);
 
         this.tabPane = new TabPane();
 
@@ -91,10 +63,6 @@ public final class PostView {
         this.instagramBox = new VBox();
 
         this.allBox = new VBox();
-
-        this.mainBox = new VBox(this.refreshButton, this.tabPane, this.twitterProfileButton, this.instagramProfileButton);
-
-        this.scene = new Scene(this.mainBox);
     } //PostView
 
     /**
@@ -105,24 +73,6 @@ public final class PostView {
     public Button getRefreshButton() {
         return this.refreshButton;
     } //getRefreshButton
-
-    /**
-     * Returns the profile button of this post view.
-     *
-     * @return the profile button of this post view
-     */
-    public Button getTwitterProfileButton() {
-        return this.twitterProfileButton;
-    } //getProfileButton
-
-    /**
-     * Returns the profile button of this post view.
-     *
-     * @return the profile button of this post view
-     */
-    public Button getInstagramProfileButton() {
-        return this.instagramProfileButton;
-    } //getProfileButton
 
     /**
      * Returns the tab pane of this post view.
@@ -170,31 +120,14 @@ public final class PostView {
     } //getAllBox
 
     /**
-     * Returns the main box of this post view.
-     *
-     * @return the main box of this post view
-     */
-    public VBox getMainBox() {
-        return this.mainBox;
-    } //getMainBox
-
-    /**
-     * Returns the scene of this post view.
-     *
-     * @return the scene of this post view
-     */
-    public Scene getScene() {
-        return this.scene;
-    } //getScene
-
-    /**
-     * Creates, and returns, a {@code PostView} object using the specified primary stage.
+     * Creates, and returns, a {@code PostView} object using the specified primary stage and scene.
      *
      * @param primaryStage the primary stage to be used in the operation
-     * @return a {@code PostView} object using the specified primary stage
-     * @throws NullPointerException if the specified primary stage is {@code null}
+     * @param scene the scene to be used in the operation
+     * @return a {@code PostView} object using the specified primary stage and scene
+     * @throws NullPointerException if the specified primary stage or scene is {@code null}
      */
-    public static PostView createPostView(Stage primaryStage) {
+    public static PostView createPostView(Stage primaryStage, Scene scene) {
         PostView postView;
         ScrollPane redditScrollPane;
         ScrollPane twitterScrollPane;
@@ -211,16 +144,12 @@ public final class PostView {
 
         Objects.requireNonNull(primaryStage, "the specified primary stage is null");
 
+        Objects.requireNonNull(scene, "the specified primary stage is null");
+
         postView = new PostView();
 
         postView.refreshButton.prefWidthProperty()
                               .bind(primaryStage.widthProperty());
-        
-        postView.twitterProfileButton.prefWidthProperty()
-                                .bind(primaryStage.widthProperty());
-
-        postView.instagramProfileButton.prefWidthProperty()
-                                .bind(primaryStage.widthProperty());
 
         redditScrollPane = new ScrollPane(postView.redditBox);
 
@@ -258,10 +187,10 @@ public final class PostView {
                         .addAll(redditTab, twitterTab, instagramTab, allTab);
 
         postView.tabPane.prefWidthProperty()
-                        .bind(postView.scene.widthProperty());
+                        .bind(scene.widthProperty());
 
         postView.tabPane.prefHeightProperty()
-                        .bind(postView.scene.heightProperty());
+                        .bind(scene.heightProperty());
 
         return postView;
     } //createPostView

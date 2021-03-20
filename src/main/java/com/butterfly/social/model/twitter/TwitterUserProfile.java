@@ -10,33 +10,36 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import java.util.Date;
 
-public class TwitterUserProfile implements Serializable{
-    private User profile;
-    private ImageView profilePicture;
-    private ImageView bannerImage;
-    private String name;
-    private String bio;
-    private int followerCount;
-    private int followingCount;
-    private boolean isVerified;
-    private String handle;
-    private String location;
-    private Date joined;
+public final class TwitterUserProfile implements Serializable {
+    //private ImageView profilePicture;
+    //private ImageView bannerImage;
+    private final String name;
+    private final String bio;
+    private final int followerCount;
+    private final int followingCount;
+    private final boolean isVerified;
+    private final String handle;
+    private final String location;
+    private final Date joined;
 
-    public TwitterUserProfile(Twitter twitter) throws TwitterException{
-        this.profile = twitter.showUser(twitter.getId());
+    public TwitterUserProfile(Twitter twitter) throws TwitterException {
+        User profile;
+
+        profile = twitter.showUser(twitter.getId());
+
         //this.profilePicture = this.getImage(this.profile.get400x400ProfileImageURLHttps());
         //this.bannerImage = this.getImage(this.profile.getProfileBanner1500x500URL());
-        this.name = this.profile.getName();
-        this.bio = this.profile.getDescription();
-        this.followerCount = this.profile.getFollowersCount();
-        this.followingCount = this.profile.getFriendsCount();
-        this.isVerified = this.profile.isVerified();
-        this.handle = this.profile.getScreenName();
-        this.location = this.profile.getLocation();
-        this.joined = this.profile.getCreatedAt();
+        this.name = profile.getName();
+        this.bio = profile.getDescription();
+        this.followerCount = profile.getFollowersCount();
+        this.followingCount = profile.getFriendsCount();
+        this.isVerified = profile.isVerified();
+        this.handle = profile.getScreenName();
+        this.location = profile.getLocation();
+        this.joined = profile.getCreatedAt();
     }
 
+    /*
     public ImageView getProfilePicture() {
         return this.profilePicture;
     }
@@ -44,6 +47,7 @@ public class TwitterUserProfile implements Serializable{
     public ImageView getBannerImage() {
         return this.bannerImage;
     }
+     */
 
     public String getName() {
         return this.name;
@@ -55,7 +59,7 @@ public class TwitterUserProfile implements Serializable{
 
     public int getFollowerCount() {
         return this.followerCount;
-    } 
+    }
 
     public int getFollowingCount() {
         return this.followingCount;
@@ -77,9 +81,7 @@ public class TwitterUserProfile implements Serializable{
         return this.joined;
     }
 
-
-
-    public ImageView getImage(String urlString) {
+    private ImageView getImage(String urlString) {
         URI uri;
         String uriString;
         Image image;
@@ -101,7 +103,4 @@ public class TwitterUserProfile implements Serializable{
 
         return imageView;
     }
-
-
-
 }
