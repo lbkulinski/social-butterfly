@@ -89,9 +89,13 @@ public final class MenuController {
         redditLogInMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
             RedditModel redditModel;
 
-            redditModel = SocialButterflyApplication.getRedditModel();
+            redditModel = controller.model.getRedditModel();
 
-            controller.model.setRedditModel(redditModel);
+            if (redditModel == null) {
+                redditModel = SocialButterflyApplication.getRedditModel();
+
+                controller.model.setRedditModel(redditModel);
+            } //end if
         });
 
         redditProfileMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
@@ -182,9 +186,13 @@ public final class MenuController {
         twitterLogInMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
             TwitterModel twitterModel;
 
-            twitterModel = SocialButterflyApplication.getTwitterModel();
+            twitterModel = controller.model.getTwitterModel();
 
-            controller.model.setTwitterModel(twitterModel);
+            if (twitterModel == null) {
+                twitterModel = SocialButterflyApplication.getTwitterModel();
+
+                controller.model.setTwitterModel(twitterModel);
+            } //end if
         });
 
         twitterProfileMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
@@ -249,9 +257,13 @@ public final class MenuController {
         instagramLogInMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
             InstagramModel instagramModel;
 
-            instagramModel = SocialButterflyApplication.getInstagramModel();
+            instagramModel = controller.model.getInstagramModel();
 
-            controller.model.setInstagramModel(instagramModel);
+            if (instagramModel == null) {
+                instagramModel = SocialButterflyApplication.getInstagramModel();
+
+                controller.model.setInstagramModel(instagramModel);
+            } //end if
         });
 
         instagramProfileMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
