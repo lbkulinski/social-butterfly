@@ -1,5 +1,7 @@
 package com.butterfly.social.controller.menu;
 
+import com.butterfly.social.SocialButterflyApplication;
+import com.butterfly.social.model.Model;
 import com.butterfly.social.model.instagram.InstagramModel;
 import com.butterfly.social.model.reddit.RedditModel;
 import com.butterfly.social.model.twitter.TwitterModel;
@@ -20,23 +22,13 @@ import java.util.Objects;
  * A controller for the menu of the Social Butterfly application.
  *
  * @author Logan Kulinski, lbk@purdue.edu
- * @version March 20, 2021
+ * @version March 21, 2021
  */
 public final class MenuController {
     /**
-     * The Reddit model of this menu controller.
+     * The model of this menu controller.
      */
-    private final RedditModel redditModel;
-
-    /**
-     * The Twitter model of this menu controller.
-     */
-    private final TwitterModel twitterModel;
-
-    /**
-     * The Instagram model of this menu controller.
-     */
-    private final InstagramModel instagramModel;
+    private final Model model;
 
     /**
      * The view of this menu controller.
@@ -44,43 +36,31 @@ public final class MenuController {
     private final View view;
 
     /**
-     * Constructs a newly allocated {@code MenuController} object with the specified Reddit model, Twitter model,
-     * Instagram model, and view.
+     * Constructs a newly allocated {@code MenuController} object with the specified model and view.
      *
-     * @param redditModel the Reddit model to be used in construction
-     * @param twitterModel the Twitter model to be used in construction
-     * @param instagramModel the Instagram model to be used in construction
+     * @param model the model to be used in construction
      * @param view the view to be used in construction
-     * @throws NullPointerException if the specified view is {@code null}
+     * @throws NullPointerException if the specified model or view is {@code null}
      */
-    private MenuController(RedditModel redditModel, TwitterModel twitterModel, InstagramModel instagramModel,
-                           View view) {
+    private MenuController(Model model, View view) {
+        Objects.requireNonNull(model, "the specified model is null");
+
         Objects.requireNonNull(view, "the specified view is null");
 
-        this.redditModel = redditModel;
-
-        this.twitterModel = twitterModel;
-
-        this.instagramModel = instagramModel;
+        this.model = model;
 
         this.view = view;
     } //MenuController
 
     /**
-     * Creates, and returns, a {@code MenuController} object using the specified Reddit model, Twitter model, Instagram
-     * model, and view.
+     * Creates, and returns, a {@code MenuController} object using the specified model and view.
      *
-     * @param redditModel the Reddit model to be used in the operation
-     * @param twitterModel the Twitter model to be used in the operation
-     * @param instagramModel the Instagram model to be used in the operation
+     * @param model the model to be used in the operation
      * @param view the view to be used in the operation
-     * @return a {@code MenuController} object using the specified Reddit model, Twitter model, Instagram model, and
-     * view
-     * @throws NullPointerException if the specified Reddit model, Twitter model, Instagram model, or view is
-     * {@code null}
+     * @return a {@code MenuController} object using the specified model and view
+     * @throws NullPointerException if the specified model or view is {@code null}
      */
-    public static MenuController createMenuController(RedditModel redditModel, TwitterModel twitterModel,
-                                                      InstagramModel instagramModel, View view) {
+    public static MenuController createMenuController(Model model, View view) {
         MenuController controller;
         MenuView menuView;
         MenuItem redditLogInMenuItem;
@@ -90,7 +70,7 @@ public final class MenuController {
         MenuItem instagramLogInMenuItem;
         MenuItem instagramProfileMenuItem;
 
-        controller = new MenuController(redditModel, twitterModel, instagramModel, view);
+        controller = new MenuController(model, view);
 
         menuView = controller.view.getMenuView();
 
@@ -107,9 +87,15 @@ public final class MenuController {
         instagramProfileMenuItem = menuView.getInstagramProfileMenuItem();
 
         redditLogInMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
+            RedditModel redditModel;
+
+            redditModel = SocialButterflyApplication.getRedditModel();
+
+            controller.model.setRedditModel(redditModel);
         });
 
         redditProfileMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
+            RedditModel redditModel;
             String handle;
             RedditClient client;
             OtherUserReference reference;
@@ -124,13 +110,15 @@ public final class MenuController {
             String title = "Social Butterfly";
             String headerText = "Reddit Profile";
 
-            if (controller.redditModel == null) {
+            redditModel = controller.model.getRedditModel();
+
+            if (redditModel == null) {
                 return;
             } //end if
 
-            handle = controller.redditModel.getUsername();
+            handle = redditModel.getUsername();
 
-            client = controller.redditModel.getClient();
+            client = redditModel.getClient();
 
             reference = client.user(handle);
 
@@ -192,9 +180,15 @@ public final class MenuController {
         });
 
         twitterLogInMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
+            TwitterModel twitterModel;
+
+            twitterModel = SocialButterflyApplication.getTwitterModel();
+
+            controller.model.setTwitterModel(twitterModel);
         });
 
         twitterProfileMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
+            TwitterModel twitterModel;
             TwitterUserProfile profile;
             String name;
             String handle;
@@ -208,12 +202,14 @@ public final class MenuController {
             String title = "Social Butterfly";
             String headerText = "Twitter Profile";
 
-            if (controller.twitterModel == null) {
+            twitterModel = controller.model.getTwitterModel();
+
+            if (twitterModel == null) {
                 return;
             } //end if
 
-            profile = controller.twitterModel.getRequests()
-                                             .getProfile();
+            profile = twitterModel.getRequests()
+                                  .getProfile();
 
             name = profile.getName();
 
@@ -251,9 +247,15 @@ public final class MenuController {
         });
 
         instagramLogInMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
+            InstagramModel instagramModel;
+
+            instagramModel = SocialButterflyApplication.getInstagramModel();
+
+            controller.model.setInstagramModel(instagramModel);
         });
 
         instagramProfileMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
+            InstagramModel instagramModel;
             String name;
             String handle;
             boolean verified;
@@ -263,17 +265,19 @@ public final class MenuController {
             String title = "Social Butterfly";
             String headerText = "Instagram Profile";
 
-            if (controller.instagramModel == null) {
+            instagramModel = controller.model.getInstagramModel();
+
+            if (instagramModel == null) {
                 return;
             } //end if
 
-            name = controller.instagramModel.getFullName();
+            name = instagramModel.getFullName();
 
-            handle = controller.instagramModel.getUsername();
+            handle = instagramModel.getUsername();
 
-            verified = controller.instagramModel.isVerified();
+            verified = instagramModel.isVerified();
 
-            privateProfile = controller.instagramModel.isPrivate();
+            privateProfile = instagramModel.isPrivate();
 
             profileText = """
                           Name: %s

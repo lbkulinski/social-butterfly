@@ -1,5 +1,6 @@
 package com.butterfly.social.controller.instagram;
 
+import com.butterfly.social.model.Model;
 import com.butterfly.social.model.instagram.InstagramModel;
 import com.butterfly.social.view.PostView;
 import com.butterfly.social.view.View;
@@ -39,7 +40,7 @@ import java.util.stream.Collectors;
  * A controller for Instagram posts of the Social Butterfly application.
  *
  * @author Logan Kulinski, lbk@purdue.edu
- * @version March 20, 2021
+ * @version March 21, 2021
  */
 public final class InstagramPostController {
     /**
@@ -48,9 +49,9 @@ public final class InstagramPostController {
     private static final Lock lock;
 
     /**
-     * The Instagram model of this Instagram post controller.
+     * The model of this Instagram post controller.
      */
-    private final InstagramModel instagramModel;
+    private final Model model;
 
     /**
      * The view of this Instagram post controller.
@@ -67,18 +68,18 @@ public final class InstagramPostController {
     } //static
 
     /**
-     * Constructs a newly allocated {@code InstagramPostController} object with the specified Instagram model and view.
+     * Constructs a newly allocated {@code InstagramPostController} object with the specified model and view.
      *
-     * @param instagramModel the Instagram model to be used in construction
+     * @param model the model to be used in construction
      * @param view the view to be used in construction
-     * @throws NullPointerException if the specified Instagram model or view is {@code null}
+     * @throws NullPointerException if the specified model or view is {@code null}
      */
-    private InstagramPostController(InstagramModel instagramModel, View view) {
-        Objects.requireNonNull(instagramModel, "the specified Instagram model is null");
+    private InstagramPostController(Model model, View view) {
+        Objects.requireNonNull(model, "the specified model is null");
 
         Objects.requireNonNull(view, "the specified view is null");
 
-        this.instagramModel = instagramModel;
+        this.model = model;
 
         this.view = view;
 
@@ -496,29 +497,27 @@ public final class InstagramPostController {
     } //createPostBox
 
     /**
-     * Creates, and returns, an {@code InstagramPostController} object using the specified Instagram model, view, and
-     * all box lock.
+     * Creates, and returns, an {@code InstagramPostController} object using the specified model, view, and all box
+     * lock.
      *
-     * @param instagramModel the Instagram model to be used in the operation
+     * @param model the model to be used in the operation
      * @param view the view to be used in the operation
      * @param allBoxLock the all box lock to be used in the operation
-     * @return an {@code InstagramPostController} object using the specified Instagram model and view
-     * @throws NullPointerException if the specified Instagram model, view, or all box lock is {@code null}
+     * @return an {@code InstagramPostController} object using the specified model, view, and all box lock
+     * @throws NullPointerException if the specified model, view, or all box lock is {@code null}
      */
-    public static InstagramPostController createInstagramPostController(InstagramModel instagramModel,
-                                                                        View view, Lock allBoxLock) {
+    public static InstagramPostController createInstagramPostController(Model model, View view, Lock allBoxLock) {
         InstagramPostController controller;
         PostView postView;
         Button refreshButton;
         VBox instagramBox;
         VBox allBox;
-        IGClient client;
         Set<String> ids;
         Map<String, TimelineMedia> idsToMedia;
 
         Objects.requireNonNull(allBoxLock, "the specified all box lock is null");
 
-        controller = new InstagramPostController(instagramModel, view);
+        controller = new InstagramPostController(model, view);
 
         postView = controller.view.getPostView();
 
@@ -528,13 +527,13 @@ public final class InstagramPostController {
 
         allBox = postView.getAllBox();
 
-        client = controller.instagramModel.getClient();
-
         ids = new HashSet<>();
 
         idsToMedia = new HashMap<>();
 
         controller.backgroundThread = new Thread(() -> {
+            InstagramModel instagramModel;
+            IGClient client;
             FeedIterable<FeedTimelineRequest, FeedTimelineResponse> feedIterable;
             List<TimelineMedia> mediaList;
             String id;
@@ -542,30 +541,36 @@ public final class InstagramPostController {
             int amount = 60_000;
 
             while (true) {
-                feedIterable = client.actions()
-                                     .timeline()
-                                     .feed();
+                instagramModel = controller.model.getInstagramModel();
 
-                lock.lock();
+                if (instagramModel != null) {
+                    client = instagramModel.getClient();
 
-                try {
-                    breakLoop:
-                    for (FeedTimelineResponse response : feedIterable) {
-                        mediaList = response.getFeed_items();
+                    feedIterable = client.actions()
+                                         .timeline()
+                                         .feed();
 
-                        for (TimelineMedia media : mediaList) {
-                            id = media.getId();
+                    lock.lock();
 
-                            idsToMedia.put(id, media);
+                    try {
+                        breakLoop:
+                        for (FeedTimelineResponse response : feedIterable) {
+                            mediaList = response.getFeed_items();
 
-                            if (idsToMedia.size() == maxCount) {
-                                break breakLoop;
-                            } //end if
+                            for (TimelineMedia media : mediaList) {
+                                id = media.getId();
+
+                                idsToMedia.put(id, media);
+
+                                if (idsToMedia.size() == maxCount) {
+                                    break breakLoop;
+                                } //end if
+                            } //end for
                         } //end for
-                    } //end for
-                } finally {
-                    lock.unlock();
-                } //end try finally
+                    } finally {
+                        lock.unlock();
+                    } //end try finally
+                } //end if
 
                 try {
                     Thread.sleep(amount);

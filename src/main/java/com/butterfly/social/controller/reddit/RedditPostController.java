@@ -1,5 +1,6 @@
 package com.butterfly.social.controller.reddit;
 
+import com.butterfly.social.model.Model;
 import com.butterfly.social.model.reddit.RedditModel;
 import com.butterfly.social.view.PostView;
 import com.butterfly.social.view.View;
@@ -36,7 +37,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * A controller for Reddit posts of the Social Butterfly application.
  *
  * @author Logan Kulinski, lbk@purdue.edu
- * @version March 20, 2021
+ * @version March 21, 2021
  */
 public final class RedditPostController {
     /**
@@ -45,9 +46,9 @@ public final class RedditPostController {
     private static final Lock lock;
 
     /**
-     * The Reddit model of this Reddit post controller.
+     * The model of this Reddit post controller.
      */
-    private final RedditModel redditModel;
+    private final Model model;
 
     /**
      * The view of this Reddit post controller.
@@ -64,18 +65,18 @@ public final class RedditPostController {
     } //static
 
     /**
-     * Constructs a newly allocated {@code RedditPostController} object with the specified Reddit model and view.
+     * Constructs a newly allocated {@code RedditPostController} object with the specified model and view.
      *
-     * @param redditModel the Reddit model to be used in construction
+     * @param model the model to be used in construction
      * @param view the view to be used in construction
-     * @throws NullPointerException if the specified Reddit model or view is {@code null}
+     * @throws NullPointerException if the specified model or view is {@code null}
      */
-    private RedditPostController(RedditModel redditModel, View view) {
-        Objects.requireNonNull(redditModel, "the specified Reddit model is null");
+    private RedditPostController(Model model, View view) {
+        Objects.requireNonNull(model, "the specified model is null");
 
         Objects.requireNonNull(view, "the specified view is null");
 
-        this.redditModel = redditModel;
+        this.model = model;
 
         this.view = view;
 
@@ -315,27 +316,24 @@ public final class RedditPostController {
     } //createPostBox
 
     /**
-     * Creates, and returns, a {@code RedditPostController} object using the specified Reddit model, view, and all box
-     * lock.
+     * Creates, and returns, a {@code RedditPostController} object using the specified model, view, and all box lock.
      *
-     * @param redditModel the Reddit model to be used in the operation
+     * @param model the model to be used in the operation
      * @param view the view to be used in the operation
      * @param allBoxLock the all box lock to be used in the operation
-     * @return a {@code RedditPostController} object using the specified Reddit model, view, and all box lock
-     * @throws NullPointerException if the specified Reddit model, view, or all box lock is {@code null}
+     * @return a {@code RedditPostController} object using the specified model, view, and all box lock
+     * @throws NullPointerException if the specified model, view, or all box lock is {@code null}
      */
-    public static RedditPostController createRedditPostController(RedditModel redditModel, View view,
-                                                                  Lock allBoxLock) {
+    public static RedditPostController createRedditPostController(Model model, View view, Lock allBoxLock) {
         RedditPostController controller;
         PostView postView;
         Button refreshButton;
         VBox redditBox;
         VBox allBox;
-        RedditClient client;
         Map<String, Submission> idsToSubmissions;
         Set<String> ids;
 
-        controller = new RedditPostController(redditModel, view);
+        controller = new RedditPostController(model, view);
 
         postView = controller.view.getPostView();
 
@@ -345,11 +343,11 @@ public final class RedditPostController {
 
         allBox = postView.getAllBox();
 
-        client = controller.redditModel.getClient();
-
         idsToSubmissions = new HashMap<>();
 
         controller.backgroundThread = new Thread(() -> {
+            RedditModel redditModel;
+            RedditClient client;
             DefaultPaginator<Submission> paginator;
             int limit = 200;
             String id;
@@ -357,29 +355,35 @@ public final class RedditPostController {
             int amount = 60_000;
 
             while (true) {
-                paginator = client.frontPage()
-                                  .sorting(SubredditSort.NEW)
-                                  .limit(limit)
-                                  .build();
+                redditModel = controller.model.getRedditModel();
 
-                lock.lock();
+                if (redditModel != null) {
+                    client = redditModel.getClient();
 
-                try {
-                    breakLoop:
-                    for (Listing<Submission> listing : paginator) {
-                        for (Submission submission : listing) {
-                            id = submission.getId();
+                    paginator = client.frontPage()
+                                      .sorting(SubredditSort.NEW)
+                                      .limit(limit)
+                                      .build();
 
-                            idsToSubmissions.put(id, submission);
+                    lock.lock();
 
-                            if (idsToSubmissions.size() == maxCount) {
-                                break breakLoop;
-                            } //end if
+                    try {
+                        breakLoop:
+                        for (Listing<Submission> listing : paginator) {
+                            for (Submission submission : listing) {
+                                id = submission.getId();
+
+                                idsToSubmissions.put(id, submission);
+
+                                if (idsToSubmissions.size() == maxCount) {
+                                    break breakLoop;
+                                } //end if
+                            } //end for
                         } //end for
-                    } //end for
-                } finally {
-                    lock.unlock();
-                } //end try finally
+                    } finally {
+                        lock.unlock();
+                    } //end try finally
+                } //end if
 
                 try {
                     Thread.sleep(amount);

@@ -1,5 +1,6 @@
 package com.butterfly.social.controller.twitter;
 
+import com.butterfly.social.model.Model;
 import com.butterfly.social.model.twitter.TwitterModel;
 import com.butterfly.social.view.PostView;
 import com.butterfly.social.view.View;
@@ -32,7 +33,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * A controller for Twitter posts of the Social Butterfly application.
  *
  * @author Logan Kulinski, lbk@purdue.edu
- * @version March 20, 2021
+ * @version March 21, 2021
  */
 public final class TwitterPostController {
     /**
@@ -41,9 +42,9 @@ public final class TwitterPostController {
     private static final Lock lock;
 
     /**
-     * The Twitter model of this Twitter post controller.
+     * The model of this Twitter post controller.
      */
-    private final TwitterModel twitterModel;
+    private final Model model;
 
     /**
      * The view of this Twitter post controller.
@@ -60,18 +61,18 @@ public final class TwitterPostController {
     } //static
 
     /**
-     * Constructs a newly allocated {@code TwitterPostController} object with the specified Twitter model and view.
+     * Constructs a newly allocated {@code TwitterPostController} object with the specified model and view.
      *
-     * @param twitterModel the Twitter model to be used in construction
+     * @param model the model to be used in construction
      * @param view the view to be used in construction
-     * @throws NullPointerException if the specified Twitter model or view is {@code null}
+     * @throws NullPointerException if the specified model or view is {@code null}
      */
-    private TwitterPostController(TwitterModel twitterModel, View view) {
-        Objects.requireNonNull(twitterModel, "the specified Twitter model is null");
+    private TwitterPostController(Model model, View view) {
+        Objects.requireNonNull(model, "the specified Twitter model is null");
 
-        Objects.requireNonNull(twitterModel, "the specified view is null");
+        Objects.requireNonNull(view, "the specified view is null");
 
-        this.twitterModel = twitterModel;
+        this.model = model;
 
         this.view = view;
 
@@ -418,17 +419,15 @@ public final class TwitterPostController {
     } //createPostBox
 
     /**
-     * Creates, and returns, a {@code TwitterPostController} object using the specified Twitter model, view, and all
-     * box lock.
+     * Creates, and returns, a {@code TwitterPostController} object using the specified model, view, and all box lock.
      *
-     * @param twitterModel the Twitter model to be used in the operation
+     * @param model the model to be used in the operation
      * @param view the view to be used in the operation
      * @param allBoxLock the all box lock to be used in the operation
-     * @return a {@code TwitterPostController} object using the specified Twitter model, view, and all box lock
-     * @throws NullPointerException if the specified Twitter model, view, or all box lock is {@code null}
+     * @return a {@code TwitterPostController} object using the specified model, view, and all box lock
+     * @throws NullPointerException if the specified model, view, or all box lock is {@code null}
      */
-    public static TwitterPostController createTwitterPostController(TwitterModel twitterModel, View view,
-                                                                    Lock allBoxLock) {
+    public static TwitterPostController createTwitterPostController(Model model, View view, Lock allBoxLock) {
         TwitterPostController controller;
         PostView postView;
         Button refreshButton;
@@ -437,13 +436,10 @@ public final class TwitterPostController {
         Set<Long> ids;
         Map<Long, Status> idsToStatuses;
         TwitterListener twitterListener;
-        Twitter twitter;
-        AsyncTwitterFactory factory;
-        AsyncTwitter asyncTwitter;
 
         Objects.requireNonNull(allBoxLock, "the specified all box lock is null");
 
-        controller = new TwitterPostController(twitterModel, view);
+        controller = new TwitterPostController(model, view);
 
         postView = controller.view.getPostView();
 
@@ -476,18 +472,34 @@ public final class TwitterPostController {
             } //gotHomeTimeline
         };
 
-        twitter = controller.twitterModel.getTwitter();
-
-        factory = new AsyncTwitterFactory();
-
-        asyncTwitter = factory.getInstance(twitter);
-
-        asyncTwitter.addListener(twitterListener);
-
         controller.backgroundThread = new Thread(() -> {
+            TwitterModel twitterModel;
+            Twitter twitter;
+            AsyncTwitterFactory factory;
+            AsyncTwitter asyncTwitter;
             Paging paging;
             int count = 200;
             int amount = 60_000;
+
+            twitterModel = controller.model.getTwitterModel();
+
+            while (twitterModel == null) {
+                try {
+                    Thread.sleep(amount);
+                } catch (InterruptedException e) {
+                    return;
+                } //end try catch
+
+                twitterModel = controller.model.getTwitterModel();
+            } //end while
+
+            twitter = twitterModel.getTwitter();
+
+            factory = new AsyncTwitterFactory();
+
+            asyncTwitter = factory.getInstance(twitter);
+
+            asyncTwitter.addListener(twitterListener);
 
             paging = new Paging();
 
