@@ -69,8 +69,9 @@ public final class Controller {
         this.twitterPostController = TwitterPostController.createTwitterPostController(model, view, this.boxesToPosts,
                                                                                        allBoxLock);
 
-        this.instagramPostController = InstagramPostController.createInstagramPostController(model, view, allBoxLock,
-                                                                                             this.boxesToPosts);
+        this.instagramPostController = InstagramPostController.createInstagramPostController(model, view,
+                                                                                             this.boxesToPosts,
+                                                                                             allBoxLock);
     } //Controller
 
     /**

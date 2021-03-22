@@ -50,6 +50,11 @@ public final class TwitterPostController {
     private final View view;
 
     /**
+     * The IDs of this Twitter post controller.
+     */
+    private final Set<Long> ids;
+
+    /**
      * The map from boxes to posts of this Twitter post controller.
      */
     private final Map<VBox, Post> boxesToPosts;
@@ -87,6 +92,8 @@ public final class TwitterPostController {
         this.model = model;
 
         this.view = view;
+
+        this.ids = new HashSet<>();
 
         this.boxesToPosts = boxesToPosts;
 
@@ -441,9 +448,8 @@ public final class TwitterPostController {
         TwitterModel twitterModel;
         Twitter twitter;
         Paging paging;
-        int count = 200;
+        int count = 50;
         List<Status> statuses;
-        Set<Long> ids;
         List<Node> nodes;
         List<Node> nodeCopies;
         long id;
@@ -474,8 +480,6 @@ public final class TwitterPostController {
             return;
         } //end try catch
 
-        ids = new HashSet<>();
-
         nodes = new ArrayList<>();
 
         nodeCopies = new ArrayList<>();
@@ -483,8 +487,8 @@ public final class TwitterPostController {
         for (Status status : statuses) {
             id = status.getId();
 
-            if (!ids.contains(id)) {
-                ids.add(id);
+            if (!this.ids.contains(id)) {
+                this.ids.add(id);
 
                 vBox = this.createBox(status, false);
 
@@ -543,13 +547,8 @@ public final class TwitterPostController {
     public static TwitterPostController createTwitterPostController(Model model, View view,
                                                                     Map<VBox, Post> boxesToPosts, Lock allBoxLock) {
         TwitterPostController controller;
-        ScheduledExecutorService executorService;
         int delay = 0;
         int period = 1;
-
-        Objects.requireNonNull(boxesToPosts, "the specified map from boxes to posts is null");
-
-        Objects.requireNonNull(allBoxLock, "the specified all box lock is null");
 
         controller = new TwitterPostController(model, view, boxesToPosts, allBoxLock);
 

@@ -12,8 +12,6 @@ import com.butterfly.social.model.twitter.TwitterUserAuthentication;
 import com.butterfly.social.view.View;
 import javafx.application.Application;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.TextInputDialog;
 import javafx.stage.Stage;
 import twitter4j.TwitterException;
@@ -269,25 +267,11 @@ public final class SocialButterflyApplication extends Application {
         primaryStage.setOnCloseRequest((windowEvent) -> {
             TwitterModel twitterModel;
             RedditPostController redditPostController;
-            Thread redditThread;
             TwitterPostController twitterPostController;
             ScheduledExecutorService executorService;
             InstagramPostController instagramPostController;
-            Thread instagramThread;
 
             twitterModel = model.getTwitterModel();
-
-            redditPostController = controller.getRedditPostController();
-
-            redditThread = redditPostController.getBackgroundThread();
-
-            twitterPostController = controller.getTwitterPostController();
-
-            executorService = twitterPostController.getExecutorService();
-
-            instagramPostController = controller.getInstagramPostController();
-
-            instagramThread = instagramPostController.getBackgroundThread();
 
             if (twitterModel != null) {
                 try (var outputStream = new ObjectOutputStream(new FileOutputStream("twitter-model.ser"))) {
@@ -297,15 +281,29 @@ public final class SocialButterflyApplication extends Application {
                 } //end try catch
             } //end if
 
-            if (redditThread != null) {
-                redditThread.interrupt();
+            redditPostController = controller.getRedditPostController();
+
+            if (redditPostController.getBackgroundThread() != null) {
+                redditPostController.getBackgroundThread().interrupt();
             } //end if
+
+            /*
+            executorService = redditPostController.getExecutorService();
 
             executorService.shutdown();
+             */
 
-            if (instagramThread != null) {
-                instagramThread.interrupt();
-            } //end if
+            twitterPostController = controller.getTwitterPostController();
+
+            executorService = twitterPostController.getExecutorService();
+
+            executorService.shutdownNow();
+
+            instagramPostController = controller.getInstagramPostController();
+
+            executorService = instagramPostController.getExecutorService();
+
+            executorService.shutdownNow();
         });
 
         scene = view.getScene();

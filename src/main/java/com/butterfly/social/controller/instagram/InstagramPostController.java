@@ -12,7 +12,7 @@ import com.github.instagram4j.instagram4j.models.media.VideoVersionsMeta;
 import com.github.instagram4j.instagram4j.models.media.timeline.*;
 import com.github.instagram4j.instagram4j.requests.feed.FeedTimelineRequest;
 import com.github.instagram4j.instagram4j.responses.feed.FeedTimelineResponse;
-import javafx.event.ActionEvent;
+import javafx.application.Platform;
 import javafx.scene.CacheHint;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -33,9 +33,11 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoField;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * A controller for Instagram posts of the Social Butterfly application.
@@ -44,11 +46,6 @@ import java.util.stream.Collectors;
  * @version March 21, 2021
  */
 public final class InstagramPostController {
-    /**
-     * The lock of this Instagram post controller.
-     */
-    private static final Lock lock;
-
     /**
      * The model of this Instagram post controller.
      */
@@ -60,41 +57,66 @@ public final class InstagramPostController {
     private final View view;
 
     /**
-     * The background thread of this Instagram post controller.
+     * The IDs of this Instagram post controller.
      */
-    private Thread backgroundThread;
-
-    static {
-        lock = new ReentrantLock();
-    } //static
+    private final Set<String> ids;
 
     /**
-     * Constructs a newly allocated {@code InstagramPostController} object with the specified model and view.
+     * The map from boxes to posts of this Instagram post controller.
+     */
+    private final Map<VBox, Post> boxesToPosts;
+
+    /**
+     * The all box lock of this Instagram post controller.
+     */
+    private final Lock allBoxLock;
+
+    /**
+     * The executor service of this Instagram post controller.
+     */
+    private final ScheduledExecutorService executorService;
+
+    /**
+     * Constructs a newly allocated {@code InstagramPostController} object with the specified model, view, map from
+     * boxes to posts, and all box lock.
      *
      * @param model the model to be used in construction
      * @param view the view to be used in construction
-     * @throws NullPointerException if the specified model or view is {@code null}
+     * @param boxesToPosts the map from boxes to posts to be used in construction
+     * @param allBoxLock the all box lock to be used in construction
+     * @throws NullPointerException if the specified model, view, map from boxes to posts, or all box lock is
+     * {@code null}
      */
-    private InstagramPostController(Model model, View view) {
+    private InstagramPostController(Model model, View view, Map<VBox, Post> boxesToPosts, Lock allBoxLock) {
         Objects.requireNonNull(model, "the specified model is null");
 
         Objects.requireNonNull(view, "the specified view is null");
+
+        Objects.requireNonNull(boxesToPosts, "the specified map from boxes to posts is null");
+
+        Objects.requireNonNull(allBoxLock, "the specified all box lock is null");
 
         this.model = model;
 
         this.view = view;
 
-        this.backgroundThread = null;
+        this.ids = new HashSet<>();
+
+        this.boxesToPosts = boxesToPosts;
+
+        this.allBoxLock = allBoxLock;
+
+        this.executorService = Executors.newSingleThreadScheduledExecutor();
     } //InstagramPostController
 
     /**
-     * Returns the background thread of this Instagram post controller.
+     * Returns the executor service of this Instagram post controller.
      *
-     * @return the background thread of this Instagram post controller
+     * @return the executor service of this Instagram post controller
      */
-    public Thread getBackgroundThread() {
-        return this.backgroundThread;
-    } //getBackgroundThread
+    public ScheduledExecutorService getExecutorService() {
+        return this.executorService;
+    } //getExecutorService
 
     /**
      * Returns the photo node for the specified image media.
@@ -498,172 +520,126 @@ public final class InstagramPostController {
     } //createPostBox
 
     /**
-     * Creates, and returns, an {@code InstagramPostController} object using the specified model, view, all box lock,
-     * and map from boxes to posts.
-     *
-     * @param model the model to be used in the operation
-     * @param view the view to be used in the operation
-     * @param allBoxLock the all box lock to be used in the operation
-     * @param boxesToPosts the map from boxes to posts to be used in the operation
-     * @return an {@code InstagramPostController} object using the specified model, view, all box lock, and map from
-     * boxes to posts
-     * @throws NullPointerException if the specified model, view, all box lock, or map from boxes to posts is
-     * {@code null}
+     * Updates the posts of this Instagram post controller.
      */
-    public static InstagramPostController createInstagramPostController(Model model, View view, Lock allBoxLock,
-                                                                        Map<VBox, Post> boxesToPosts) {
-        InstagramPostController controller;
+    private void updatePosts() {
+        InstagramModel instagramModel;
+        IGClient client;
+        Iterator<FeedTimelineResponse> iterator;
+        List<Node> nodes;
+        List<Node> nodeCopies;
+        FeedTimelineResponse response;
+        List<TimelineMedia> feedItems;
+        String id;
+        VBox vBox;
+        VBox vBoxCopy;
+        InstagramPost post;
+        int count = 0;
+        int maxCount = 5;
         PostView postView;
-        Button refreshButton;
         VBox instagramBox;
         VBox allBox;
-        Set<String> ids;
-        Map<String, TimelineMedia> idsToMedia;
 
-        Objects.requireNonNull(allBoxLock, "the specified all box lock is null");
+        instagramModel = this.model.getInstagramModel();
 
-        Objects.requireNonNull(boxesToPosts, "the specified map from boxes to posts is null");
+        if (instagramModel == null) {
+            return;
+        } //end if
 
-        controller = new InstagramPostController(model, view);
+        client = instagramModel.getClient();
 
-        postView = controller.view.getPostView();
+        iterator = client.actions()
+                         .timeline()
+                         .feed()
+                         .iterator();
 
-        refreshButton = postView.getRefreshButton();
+        nodes = new ArrayList<>();
+
+        nodeCopies = new ArrayList<>();
+
+        breakLoop:
+        while (iterator.hasNext()) {
+            response = iterator.next();
+
+            feedItems = response.getFeed_items();
+
+            for (TimelineMedia media : feedItems) {
+                id = media.getId();
+
+                if (!this.ids.contains(id)) {
+                    this.ids.add(id);
+
+                    vBox = this.createBox(media, false);
+
+                    vBoxCopy = this.createBox(media, true);
+
+                    nodes.add(vBox);
+
+                    nodes.add(new Separator());
+
+                    nodeCopies.add(vBoxCopy);
+
+                    nodeCopies.add(new Separator());
+
+                    post = new InstagramPost(media);
+
+                    this.boxesToPosts.put(vBox, post);
+
+                    this.boxesToPosts.put(vBoxCopy, post);
+
+                    count++;
+
+                    if (count == maxCount) {
+                        break breakLoop;
+                    } //end if
+                } //end if
+            } //end for
+        } //end while
+
+        postView = this.view.getPostView();
 
         instagramBox = postView.getInstagramBox();
 
         allBox = postView.getAllBox();
 
-        ids = new HashSet<>();
+        Platform.runLater(() -> instagramBox.getChildren()
+                                            .addAll(0, nodes));
 
-        idsToMedia = new HashMap<>();
-
-        controller.backgroundThread = new Thread(() -> {
-            InstagramModel instagramModel;
-            IGClient client;
-            FeedIterable<FeedTimelineRequest, FeedTimelineResponse> feedIterable;
-            List<TimelineMedia> mediaList;
-            String id;
-            int maxCount = 200;
-            int amount = 60_000;
-
-            while (true) {
-                instagramModel = controller.model.getInstagramModel();
-
-                if (instagramModel != null) {
-                    client = instagramModel.getClient();
-
-                    feedIterable = client.actions()
-                                         .timeline()
-                                         .feed();
-
-                    lock.lock();
-
-                    try {
-                        breakLoop:
-                        for (FeedTimelineResponse response : feedIterable) {
-                            mediaList = response.getFeed_items();
-
-                            for (TimelineMedia media : mediaList) {
-                                id = media.getId();
-
-                                idsToMedia.put(id, media);
-
-                                if (idsToMedia.size() == maxCount) {
-                                    break breakLoop;
-                                } //end if
-                            } //end for
-                        } //end for
-                    } finally {
-                        lock.unlock();
-                    } //end try finally
-                } //end if
-
-                try {
-                    Thread.sleep(amount);
-                } catch (InterruptedException e) {
-                    return;
-                } //end try catch
-            } //end while
-        });
-
-        controller.backgroundThread.start();
-
-        refreshButton.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
-            Comparator<TimelineMedia> comparator;
-            Collection<TimelineMedia> values;
-            Set<TimelineMedia> mediaSet;
-            List<Node> nodes;
-            List<Node> nodeCopies;
-            String id;
-            VBox vBox;
-            VBox vBoxCopy;
-            InstagramPost post;
-
-            comparator = Comparator.<TimelineMedia>comparingLong((media -> media.getCaption()
-                                                                                .getCreated_at_utc()))
-                                   .reversed();
-
-            lock.lock();
-
-            try {
-                values = idsToMedia.values();
-
-                values = values.stream()
-                               .filter(value -> Objects.nonNull(value.getCaption()))
-                               .collect(Collectors.toCollection(HashSet::new));
-
-                mediaSet = new TreeSet<>(comparator);
-
-                mediaSet.addAll(values);
-
-                nodes = new ArrayList<>();
-
-                nodeCopies = new ArrayList<>();
-
-                for (TimelineMedia media : mediaSet) {
-                    id = media.getId();
-
-                    if (!ids.contains(id)) {
-                        ids.add(id);
-
-                        vBox = controller.createBox(media, false);
-
-                        vBoxCopy = controller.createBox(media, true);
-
-                        nodes.add(vBox);
-
-                        nodes.add(new Separator());
-
-                        nodeCopies.add(vBoxCopy);
-
-                        nodeCopies.add(new Separator());
-
-                        post = new InstagramPost(media);
-
-                        boxesToPosts.put(vBox, post);
-
-                        boxesToPosts.put(vBoxCopy, post);
-                    } //end if
-                } //end for
-
-                idsToMedia.clear();
-            } finally {
-                lock.unlock();
-            } //end try finally
-
-            instagramBox.getChildren()
-                        .addAll(0, nodes);
-
-            allBoxLock.lock();
+        Platform.runLater(() -> {
+            this.allBoxLock.lock();
 
             try {
                 allBox.getChildren()
                       .addAll(0, nodeCopies);
             } finally {
-                allBoxLock.unlock();
+                this.allBoxLock.unlock();
             } //end try finally
         });
+    } //updatePosts
+
+    /**
+     * Creates, and returns, a {@code InstagramPostController} object using the specified model, view, map from boxes
+     * to posts, and all box lock.
+     *
+     * @param model the model to be used in the operation
+     * @param view the view to be used in the operation
+     * @param boxesToPosts the map from boxes to posts to be used in the operation
+     * @param allBoxLock the all box lock to be used in the operation
+     * @return a {@code InstagramPostController} object using the specified model, view, map from boxes to posts, and
+     * all box lock
+     * @throws NullPointerException if the specified model, view, map from boxes to posts, or all box lock is
+     * {@code null}
+     */
+    public static InstagramPostController createInstagramPostController(Model model, View view,
+                                                                        Map<VBox, Post> boxesToPosts,
+                                                                        Lock allBoxLock) {
+        InstagramPostController controller;
+        int delay = 0;
+        int period = 1;
+
+        controller = new InstagramPostController(model, view, boxesToPosts, allBoxLock);
+
+        controller.executorService.scheduleAtFixedRate(controller::updatePosts, delay, period, TimeUnit.MINUTES);
 
         return controller;
     } //createInstagramPostController

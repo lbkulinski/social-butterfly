@@ -94,6 +94,17 @@ public final class MenuController {
             if (redditModel == null) {
                 redditModel = SocialButterflyApplication.getRedditModel();
 
+                if (redditModel == null) {
+                    Alert alert;
+                    String message = "You could not be signed into Reddit! Please try again later.";
+
+                    alert = new Alert(Alert.AlertType.ERROR, message);
+
+                    alert.show();
+
+                    return;
+                } //end if
+
                 controller.model.setRedditModel(redditModel);
             } //end if
         });
@@ -191,6 +202,17 @@ public final class MenuController {
             if (twitterModel == null) {
                 twitterModel = SocialButterflyApplication.getTwitterModel();
 
+                if (twitterModel == null) {
+                    Alert alert;
+                    String message = "You could not be signed into Twitter! Please try again later.";
+
+                    alert = new Alert(Alert.AlertType.ERROR, message);
+
+                    alert.show();
+
+                    return;
+                } //end if
+
                 controller.model.setTwitterModel(twitterModel);
             } //end if
         });
@@ -261,6 +283,17 @@ public final class MenuController {
 
             if (instagramModel == null) {
                 instagramModel = SocialButterflyApplication.getInstagramModel();
+
+                if (instagramModel == null) {
+                    Alert alert;
+                    String message = "You could not be signed into Instagram! Please try again later.";
+
+                    alert = new Alert(Alert.AlertType.ERROR, message);
+
+                    alert.show();
+
+                    return;
+                } //end if
 
                 controller.model.setInstagramModel(instagramModel);
             } //end if
