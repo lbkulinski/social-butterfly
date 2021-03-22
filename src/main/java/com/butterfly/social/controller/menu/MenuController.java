@@ -7,10 +7,12 @@ import com.butterfly.social.model.reddit.RedditModel;
 import com.butterfly.social.model.twitter.TwitterModel;
 import com.butterfly.social.model.twitter.TwitterUserProfile;
 import com.butterfly.social.view.MenuView;
+import com.butterfly.social.view.PostView;
 import com.butterfly.social.view.View;
 import javafx.event.ActionEvent;
-import javafx.scene.control.Alert;
-import javafx.scene.control.MenuItem;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.scene.layout.VBox;
 import net.dean.jraw.RedditClient;
 import net.dean.jraw.models.Account;
 import net.dean.jraw.models.Trophy;
@@ -22,7 +24,7 @@ import java.util.Objects;
  * A controller for the menu of the Social Butterfly application.
  *
  * @author Logan Kulinski, lbk@purdue.edu
- * @version March 21, 2021
+ * @version March 22, 2021
  */
 public final class MenuController {
     /**
@@ -69,6 +71,8 @@ public final class MenuController {
         MenuItem twitterProfileMenuItem;
         MenuItem instagramLogInMenuItem;
         MenuItem instagramProfileMenuItem;
+        RadioMenuItem tabRadioMenuItem;
+        RadioMenuItem splitRadioMenuItem;
 
         controller = new MenuController(model, view);
 
@@ -85,6 +89,10 @@ public final class MenuController {
         instagramLogInMenuItem = menuView.getInstagramLogInMenuItem();
 
         instagramProfileMenuItem = menuView.getInstagramProfileMenuItem();
+
+        tabRadioMenuItem = menuView.getTabRadioMenuItem();
+
+        splitRadioMenuItem = menuView.getSplitRadioMenuItem();
 
         redditLogInMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
             RedditModel redditModel;
@@ -339,6 +347,182 @@ public final class MenuController {
             alert.setContentText(profileText);
 
             alert.show();
+        });
+
+        tabRadioMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
+            VBox mainBox;
+            PostView postView;
+            TabPane tabPane;
+            boolean contains;
+            SplitPane splitPane;
+            VBox redditBox;
+            VBox twitterBox;
+            VBox instagramBox;
+            VBox allBox;
+            ScrollPane redditScrollPane;
+            ScrollPane twitterScrollPane;
+            ScrollPane instagramScrollPane;
+            ScrollPane allScrollPane;
+            Tab redditTab;
+            String redditText = "Reddit";
+            Tab twitterTab;
+            String twitterText = "Twitter";
+            Tab instagramTab;
+            String instagramText = "Instagram";
+            Tab allTab;
+            String allText = "All";
+            Scene scene;
+            MenuBar menuBar;
+
+            mainBox = view.getMainBox();
+
+            postView = view.getPostView();
+
+            tabPane = postView.getTabPane();
+
+            contains = mainBox.getChildren()
+                              .contains(tabPane);
+
+            if (contains) {
+                return;
+            } //end if
+
+            mainBox.getChildren()
+                   .clear();
+
+            splitPane = postView.getSplitPane();
+
+            splitPane.getItems()
+                     .clear();
+
+            redditBox = postView.getRedditBox();
+
+            twitterBox = postView.getTwitterBox();
+
+            instagramBox = postView.getInstagramBox();
+
+            allBox = postView.getAllBox();
+
+            redditScrollPane = new ScrollPane(redditBox);
+
+            twitterScrollPane = new ScrollPane(twitterBox);
+
+            instagramScrollPane = new ScrollPane(instagramBox);
+
+            allScrollPane = new ScrollPane(allBox);
+
+            redditTab = new Tab(redditText);
+
+            redditTab.setClosable(false);
+
+            redditTab.setContent(redditScrollPane);
+
+            twitterTab = new Tab(twitterText);
+
+            twitterTab.setClosable(false);
+
+            twitterTab.setContent(twitterScrollPane);
+
+            instagramTab = new Tab(instagramText);
+
+            instagramTab.setClosable(false);
+
+            instagramTab.setContent(instagramScrollPane);
+
+            allTab = new Tab(allText);
+
+            allTab.setClosable(false);
+
+            allTab.setContent(allScrollPane);
+
+            scene = view.getScene();
+
+            tabPane.getTabs()
+                   .addAll(redditTab, twitterTab, instagramTab, allTab);
+
+            tabPane.prefWidthProperty()
+                   .bind(scene.widthProperty());
+
+            tabPane.prefHeightProperty()
+                   .bind(scene.heightProperty());
+
+            menuBar = menuView.getMenuBar();
+
+            mainBox.getChildren()
+                   .addAll(menuBar, tabPane);
+        });
+
+        splitRadioMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
+            VBox mainBox;
+            PostView postView;
+            SplitPane splitPane;
+            boolean contains;
+            TabPane tabPane;
+            VBox redditBox;
+            VBox twitterBox;
+            VBox instagramBox;
+            ScrollPane redditScrollPane;
+            ScrollPane twitterScrollPane;
+            ScrollPane instagramScrollPane;
+            double position0;
+            double position1;
+            Scene scene;
+            MenuBar menuBar;
+
+            mainBox = view.getMainBox();
+
+            postView = view.getPostView();
+
+            splitPane = postView.getSplitPane();
+
+            contains = mainBox.getChildren()
+                              .contains(splitPane);
+
+            if (contains) {
+                return;
+            } //end if
+
+            mainBox.getChildren()
+                   .clear();
+
+            tabPane = postView.getTabPane();
+
+            tabPane.getTabs()
+                   .clear();
+
+            redditBox = postView.getRedditBox();
+
+            twitterBox = postView.getTwitterBox();
+
+            instagramBox = postView.getInstagramBox();
+
+            redditScrollPane = new ScrollPane(redditBox);
+
+            twitterScrollPane = new ScrollPane(twitterBox);
+
+            instagramScrollPane = new ScrollPane(instagramBox);
+
+            splitPane.getItems()
+                     .addAll(redditScrollPane, twitterScrollPane, instagramScrollPane);
+
+            position0 = 1.0 / 3.0;
+
+            position1 = 2.0 / 3.0;
+
+            splitPane.setDividerPositions(position0, position1);
+
+            scene = view.getScene();
+
+            splitPane.prefWidthProperty()
+                     .bind(scene.widthProperty());
+
+            splitPane.prefHeightProperty()
+                     .bind(scene.heightProperty());
+
+            menuBar = menuView.getMenuBar();
+
+            mainBox.getChildren()
+                   .addAll(menuBar, splitPane);
         });
 
         return controller;

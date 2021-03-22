@@ -1,12 +1,10 @@
 package com.butterfly.social.view;
 
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.TabPane;
+import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.Tab;
+
 import java.util.Objects;
 
 /**
@@ -20,6 +18,11 @@ public final class PostView {
      * The tab pane of this post view.
      */
     private final TabPane tabPane;
+
+    /**
+     * The split pane of this post view.
+     */
+    private final SplitPane splitPane;
 
     /**
      * The Reddit box of this post view.
@@ -47,6 +50,8 @@ public final class PostView {
     private PostView() {
         this.tabPane = new TabPane();
 
+        this.splitPane = new SplitPane();
+
         this.redditBox = new VBox();
 
         this.twitterBox = new VBox();
@@ -64,6 +69,15 @@ public final class PostView {
     public TabPane getTabPane() {
         return this.tabPane;
     } //getTabPane
+
+    /**
+     * Returns the split pane of this post view.
+     *
+     * @return the split pane of this post view
+     */
+    public SplitPane getSplitPane() {
+        return this.splitPane;
+    } //getSplitPane
 
     /**
      * Returns the Reddit box of this post view.
