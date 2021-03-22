@@ -418,9 +418,9 @@ public final class TwitterPostController {
         amPm = (dateTime.get(ChronoField.AMPM_OF_DAY) == 0) ? "AM" : "PM";
 
         if (displayTwitter) {
-            format = "%s, %02d %d at %02d:%02d %s on Twitter";
+            format = "%s %d, %d at %02d:%02d %s on Twitter";
         } else {
-            format = "%s, %02d %d at %02d:%02d %s";
+            format = "%s %d, %d at %02d:%02d %s";
         } //end if
 
         dateTimeString = String.format(format, month, day, year, hour, minute, amPm);

@@ -6,11 +6,9 @@ import com.butterfly.social.model.instagram.InstagramModel;
 import com.butterfly.social.view.PostView;
 import com.butterfly.social.view.View;
 import com.github.instagram4j.instagram4j.IGClient;
-import com.github.instagram4j.instagram4j.actions.feed.FeedIterable;
 import com.github.instagram4j.instagram4j.models.media.ImageVersionsMeta;
 import com.github.instagram4j.instagram4j.models.media.VideoVersionsMeta;
 import com.github.instagram4j.instagram4j.models.media.timeline.*;
-import com.github.instagram4j.instagram4j.requests.feed.FeedTimelineRequest;
 import com.github.instagram4j.instagram4j.responses.feed.FeedTimelineResponse;
 import javafx.application.Platform;
 import javafx.scene.CacheHint;
@@ -37,7 +35,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
-import java.util.stream.Stream;
 
 /**
  * A controller for Instagram posts of the Social Butterfly application.
@@ -117,6 +114,38 @@ public final class InstagramPostController {
     public ScheduledExecutorService getExecutorService() {
         return this.executorService;
     } //getExecutorService
+
+    /**
+     * Determines whether or not the specified media is an ad.
+     *
+     * @param media the media to be used in the operation
+     * @return {@code true}, if the specified media is an ad and {@code false} otherwise
+     * @throws NullPointerException if the specified media is {@code null}
+     */
+    private boolean isAd(TimelineMedia media) {
+        Map<?, ?> map;
+        String injectedKey = "injected";
+        String label;
+        String labelKey = "label";
+        boolean ad = false;
+        String sponsoredLabel = "Sponsored";
+
+        Objects.requireNonNull(media, "the specified media is null");
+
+        try {
+            map = (Map<?, ?>) media.get(injectedKey);
+
+            if (map != null) {
+                label = (String) map.get(labelKey);
+
+                ad = sponsoredLabel.equalsIgnoreCase(label);
+            } //end if
+        } catch (Exception e) {
+            e.printStackTrace();
+        } //end try catch
+
+        return ad;
+    } //isAd
 
     /**
      * Returns the photo node for the specified image media.
@@ -496,9 +525,9 @@ public final class InstagramPostController {
         amPm = (dateTime.get(ChronoField.AMPM_OF_DAY) == 0) ? "AM" : "PM";
 
         if (displayInstagram) {
-            format = "%s, %d %d at %02d:%02d %s on Instagram";
+            format = "%s %d, %d at %02d:%02d %s on Instagram";
         } else {
-            format = "%s, %d %d at %02d:%02d %s";
+            format = "%s %d, %d at %02d:%02d %s";
         } //end if
 
         dateTimeString = String.format(format, month, day, year, hour, minute, amPm);
@@ -526,15 +555,17 @@ public final class InstagramPostController {
         InstagramModel instagramModel;
         IGClient client;
         Iterable<FeedTimelineResponse> iterable;
+        Comparator<TimelineMedia> comparator;
+        Set<TimelineMedia> mediaSet;
+        List<TimelineMedia> feedItems;
         List<Node> nodes;
         List<Node> nodeCopies;
-        List<TimelineMedia> feedItems;
         String id;
         VBox vBox;
         VBox vBoxCopy;
         InstagramPost post;
         int count = 0;
-        int maxCount = 5;
+        int maxCount = 50;
         PostView postView;
         VBox instagramBox;
         VBox allBox;
@@ -551,38 +582,22 @@ public final class InstagramPostController {
                          .timeline()
                          .feed();
 
-        nodes = new ArrayList<>();
+        comparator = Comparator.<TimelineMedia>comparingLong(media -> media.getCaption()
+                                                                           .getCreated_at_utc())
+                               .reversed();
 
-        nodeCopies = new ArrayList<>();
+        mediaSet = new TreeSet<>(comparator);
 
         breakLoop:
         for (FeedTimelineResponse response : iterable) {
             feedItems = response.getFeed_items();
 
             for (TimelineMedia media : feedItems) {
-                id = media.getId();
-
-                if (!this.ids.contains(id)) {
-                    this.ids.add(id);
-
-                    vBox = this.createBox(media, false);
-
-                    vBoxCopy = this.createBox(media, true);
-
-                    nodes.add(vBox);
-
-                    nodes.add(new Separator());
-
-                    nodeCopies.add(vBoxCopy);
-
-                    nodeCopies.add(new Separator());
-
-                    post = new InstagramPost(media);
-
-                    this.boxesToPosts.put(vBox, post);
-
-                    this.boxesToPosts.put(vBoxCopy, post);
+                if (this.isAd(media)) {
+                    continue;
                 } //end if
+
+                mediaSet.add(media);
 
                 count++;
 
@@ -590,6 +605,36 @@ public final class InstagramPostController {
                     break breakLoop;
                 } //end if
             } //end for
+        } //end for
+
+        nodes = new ArrayList<>();
+
+        nodeCopies = new ArrayList<>();
+
+        for (TimelineMedia media : mediaSet) {
+            id = media.getId();
+
+            if (!this.ids.contains(id)) {
+                this.ids.add(id);
+
+                vBox = this.createBox(media, false);
+
+                vBoxCopy = this.createBox(media, true);
+
+                nodes.add(vBox);
+
+                nodes.add(new Separator());
+
+                nodeCopies.add(vBoxCopy);
+
+                nodeCopies.add(new Separator());
+
+                post = new InstagramPost(media);
+
+                this.boxesToPosts.put(vBox, post);
+
+                this.boxesToPosts.put(vBoxCopy, post);
+            } //end if
         } //end for
 
         postView = this.view.getPostView();
