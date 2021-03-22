@@ -17,6 +17,7 @@ import net.dean.jraw.RedditClient;
 import net.dean.jraw.models.Account;
 import net.dean.jraw.models.Trophy;
 import net.dean.jraw.references.OtherUserReference;
+import java.net.URL;
 import java.util.List;
 import java.util.Objects;
 
@@ -71,6 +72,8 @@ public final class MenuController {
         MenuItem twitterProfileMenuItem;
         MenuItem instagramLogInMenuItem;
         MenuItem instagramProfileMenuItem;
+        RadioMenuItem lightRadioMenuItem;
+        RadioMenuItem darkRadioMenuItem;
         RadioMenuItem tabRadioMenuItem;
         RadioMenuItem splitRadioMenuItem;
 
@@ -89,6 +92,10 @@ public final class MenuController {
         instagramLogInMenuItem = menuView.getInstagramLogInMenuItem();
 
         instagramProfileMenuItem = menuView.getInstagramProfileMenuItem();
+
+        lightRadioMenuItem = menuView.getLightRadioMenuItem();
+
+        darkRadioMenuItem = menuView.getDarkRadioMenuItem();
 
         tabRadioMenuItem = menuView.getTabRadioMenuItem();
 
@@ -347,6 +354,45 @@ public final class MenuController {
             alert.setContentText(profileText);
 
             alert.show();
+        });
+
+        lightRadioMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
+            Scene scene;
+
+            scene = view.getScene();
+
+            scene.getStylesheets()
+                 .clear();
+        });
+
+        darkRadioMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
+            String fileName = "dark-theme.css";
+            URL url;
+            String externalForm;
+            Scene scene;
+
+            url = MenuController.class.getResource(fileName);
+
+            if (url == null) {
+                Alert alert;
+                String message = "Dark mode could not be enabled! Please try again later.";
+
+                alert = new Alert(Alert.AlertType.ERROR, message);
+
+                alert.show();
+
+                return;
+            } //end if
+
+            externalForm = url.toExternalForm();
+
+            scene = view.getScene();
+
+            scene.getStylesheets()
+                 .clear();
+
+            scene.getStylesheets()
+                 .add(externalForm);
         });
 
         tabRadioMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {

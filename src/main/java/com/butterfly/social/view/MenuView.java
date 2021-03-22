@@ -40,6 +40,16 @@ public final class MenuView {
     private final MenuItem instagramProfileMenuItem;
 
     /**
+     * The light radio menu item of this menu view.
+     */
+    private final RadioMenuItem lightRadioMenuItem;
+
+    /**
+     * The dark radio menu item of this menu view.
+     */
+    private final RadioMenuItem darkRadioMenuItem;
+
+    /**
      * The tab radio menu item of this menu view.
      */
     private final RadioMenuItem tabRadioMenuItem;
@@ -80,12 +90,15 @@ public final class MenuView {
     private MenuView() {
         String logInText = "Log In";
         String profileText = "View Profile";
+        String lightText = "Light";
+        String darkText = "Dark";
         String tabText = "Tab";
         String splitText = "Split";
         String redditText = "Reddit";
         String twitterText = "Twitter";
         String instagramText = "Instagram";
         String viewText = "View";
+        SeparatorMenuItem separator;
 
         this.redditLogInMenuItem = new MenuItem(logInText);
 
@@ -99,6 +112,10 @@ public final class MenuView {
 
         this.instagramProfileMenuItem = new MenuItem(profileText);
 
+        this.lightRadioMenuItem = new RadioMenuItem(lightText);
+
+        this.darkRadioMenuItem = new RadioMenuItem(darkText);
+
         this.tabRadioMenuItem = new RadioMenuItem(tabText);
 
         this.splitRadioMenuItem = new RadioMenuItem(splitText);
@@ -109,7 +126,10 @@ public final class MenuView {
 
         this.instagramMenu = new Menu(instagramText, null, this.instagramLogInMenuItem, this.instagramProfileMenuItem);
 
-        this.viewMenu = new Menu(viewText, null, this.tabRadioMenuItem, this.splitRadioMenuItem);
+        separator = new SeparatorMenuItem();
+
+        this.viewMenu = new Menu(viewText, null, this.lightRadioMenuItem, this.darkRadioMenuItem, separator,
+                                 this.tabRadioMenuItem, this.splitRadioMenuItem);
 
         this.menuBar = new MenuBar(this.redditMenu, this.twitterMenu, this.instagramMenu, this.viewMenu);
     } //MenuView
@@ -169,6 +189,24 @@ public final class MenuView {
     } //getInstagramProfileMenuItem
 
     /**
+     * Returns the light radio menu item of this menu view.
+     *
+     * @return the light radio menu item of this menu view
+     */
+    public RadioMenuItem getLightRadioMenuItem() {
+        return this.lightRadioMenuItem;
+    } //getLightRadioMenuItem
+
+    /**
+     * Returns the dark radio menu item of this menu view.
+     *
+     * @return the dark radio menu item of this menu view
+     */
+    public RadioMenuItem getDarkRadioMenuItem() {
+        return this.darkRadioMenuItem;
+    } //getDarkRadioMenuItem
+
+    /**
      * Returns the tab radio menu item of this menu view.
      *
      * @return the tab radio menu item of this menu view
@@ -214,15 +252,6 @@ public final class MenuView {
     } //getInstagramMenu
 
     /**
-     * Returns the menu bar of this menu view.
-     *
-     * @return the menu bar of this menu view
-     */
-    public MenuBar getMenuBar() {
-        return this.menuBar;
-    } //getMenuBar
-
-    /**
      * Returns the view menu of this menu view.
      *
      * @return the view menu of this menu view
@@ -232,21 +261,37 @@ public final class MenuView {
     } //getViewMenu
 
     /**
+     * Returns the menu bar of this menu view.
+     *
+     * @return the menu bar of this menu view
+     */
+    public MenuBar getMenuBar() {
+        return this.menuBar;
+    } //getMenuBar
+
+    /**
      * Creates, and returns, a {@code MenuView} object.
      *
      * @return a {@code MenuView} object
      */
     public static MenuView createMenuView() {
-        ToggleGroup toggleGroup;
+        ToggleGroup toggleGroup0;
+        ToggleGroup toggleGroup1;
         MenuView menuView;
 
-        toggleGroup = new ToggleGroup();
+        toggleGroup0 = new ToggleGroup();
+
+        toggleGroup1 = new ToggleGroup();
 
         menuView = new MenuView();
 
-        menuView.tabRadioMenuItem.setToggleGroup(toggleGroup);
+        menuView.lightRadioMenuItem.setToggleGroup(toggleGroup0);
 
-        menuView.splitRadioMenuItem.setToggleGroup(toggleGroup);
+        menuView.darkRadioMenuItem.setToggleGroup(toggleGroup0);
+
+        menuView.tabRadioMenuItem.setToggleGroup(toggleGroup1);
+
+        menuView.splitRadioMenuItem.setToggleGroup(toggleGroup1);
 
         return menuView;
     } //createMenuView
