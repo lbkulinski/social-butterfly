@@ -26,7 +26,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * A runner for the Social Butterfly application.
  *
  * @author Logan Kulinski, lbk@purdue.edu
- * @version March 21, 2021
+ * @version March 22, 2021
  */
 public final class SocialButterflyApplication extends Application {
     /**
@@ -283,15 +283,9 @@ public final class SocialButterflyApplication extends Application {
 
             redditPostController = controller.getRedditPostController();
 
-            if (redditPostController.getBackgroundThread() != null) {
-                redditPostController.getBackgroundThread().interrupt();
-            } //end if
-
-            /*
             executorService = redditPostController.getExecutorService();
 
-            executorService.shutdown();
-             */
+            executorService.shutdownNow();
 
             twitterPostController = controller.getTwitterPostController();
 

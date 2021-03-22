@@ -36,7 +36,7 @@ import java.util.concurrent.locks.Lock;
  * A controller for Twitter posts of the Social Butterfly application.
  *
  * @author Logan Kulinski, lbk@purdue.edu
- * @version March 21, 2021
+ * @version March 22, 2021
  */
 public final class TwitterPostController {
     /**
@@ -81,7 +81,7 @@ public final class TwitterPostController {
      * {@code null}
      */
     private TwitterPostController(Model model, View view, Map<VBox, Post> boxesToPosts, Lock allBoxLock) {
-        Objects.requireNonNull(model, "the specified Twitter model is null");
+        Objects.requireNonNull(model, "the specified model is null");
 
         Objects.requireNonNull(view, "the specified view is null");
 

@@ -5,7 +5,7 @@ import com.butterfly.social.model.Model;
 import com.butterfly.social.model.reddit.RedditModel;
 import com.butterfly.social.view.PostView;
 import com.butterfly.social.view.View;
-import javafx.event.ActionEvent;
+import javafx.application.Platform;
 import javafx.scene.CacheHint;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -31,21 +31,18 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoField;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * A controller for Reddit posts of the Social Butterfly application.
  *
  * @author Logan Kulinski, lbk@purdue.edu
- * @version March 21, 2021
+ * @version March 22, 2021
  */
 public final class RedditPostController {
-    /**
-     * The lock of this Reddit post controller.
-     */
-    private static final Lock lock;
-
     /**
      * The model of this Reddit post controller.
      */
@@ -57,41 +54,66 @@ public final class RedditPostController {
     private final View view;
 
     /**
-     * The background thread of this Reddit post controller.
+     * The IDs of this Reddit post controller.
      */
-    private Thread backgroundThread;
-
-    static {
-        lock = new ReentrantLock();
-    } //static
+    private final Set<String> ids;
 
     /**
-     * Constructs a newly allocated {@code RedditPostController} object with the specified model and view.
+     * The map from boxes to posts of this Reddit post controller.
+     */
+    private final Map<VBox, Post> boxesToPosts;
+
+    /**
+     * The all box lock of this Reddit post controller.
+     */
+    private final Lock allBoxLock;
+
+    /**
+     * The executor service of this Reddit post controller.
+     */
+    private final ScheduledExecutorService executorService;
+
+    /**
+     * Constructs a newly allocated {@code RedditPostController} object with the specified model, view, map from boxes
+     * to posts, and all box lock.
      *
      * @param model the model to be used in construction
      * @param view the view to be used in construction
-     * @throws NullPointerException if the specified model or view is {@code null}
+     * @param boxesToPosts the map from boxes to posts to be used in construction
+     * @param allBoxLock the all box lock to be used in construction
+     * @throws NullPointerException if the specified model, view, map from boxes to posts, or all box lock is
+     * {@code null}
      */
-    private RedditPostController(Model model, View view) {
+    private RedditPostController(Model model, View view, Map<VBox, Post> boxesToPosts, Lock allBoxLock) {
         Objects.requireNonNull(model, "the specified model is null");
 
         Objects.requireNonNull(view, "the specified view is null");
+
+        Objects.requireNonNull(boxesToPosts, "the specified map from boxes to posts is null");
+
+        Objects.requireNonNull(allBoxLock, "the specified all box lock is null");
 
         this.model = model;
 
         this.view = view;
 
-        this.backgroundThread = null;
+        this.ids = new HashSet<>();
+
+        this.boxesToPosts = boxesToPosts;
+
+        this.allBoxLock = allBoxLock;
+
+        this.executorService = Executors.newSingleThreadScheduledExecutor();
     } //RedditPostController
 
     /**
-     * Returns the background thread of this Reddit post controller.
+     * Returns the executor service of this Reddit post controller.
      *
-     * @return the background thread of this Reddit post controller
+     * @return the executor service of this Reddit post controller
      */
-    public Thread getBackgroundThread() {
-        return this.backgroundThread;
-    } //getBackgroundThread
+    public ScheduledExecutorService getExecutorService() {
+        return this.executorService;
+    } //getExecutorService
 
     /**
      * Returns a media accordion for the specified submission.
@@ -317,166 +339,120 @@ public final class RedditPostController {
     } //createPostBox
 
     /**
-     * Creates, and returns, a {@code RedditPostController} object using the specified model, view, all box lock, and
-     * map from boxes to posts.
-     *
-     * @param model the model to be used in the operation
-     * @param view the view to be used in the operation
-     * @param allBoxLock the all box lock to be used in the operation
-     * @param boxesToPosts the map from boxes to posts to be used in the operation
-     * @return a {@code RedditPostController} object using the specified model, view, all box lock, and map from boxes
-     * to posts
-     * @throws NullPointerException if the specified model, view, all box lock, or map from boxes to posts is
-     * {@code null}
+     * Updates the posts of this Reddit post controller.
      */
-    public static RedditPostController createRedditPostController(Model model, View view, Lock allBoxLock,
-                                                                  Map<VBox, Post> boxesToPosts) {
-        RedditPostController controller;
+    private void updatePosts() {
+        RedditModel redditModel;
+        RedditClient client;
+        DefaultPaginator<Submission> paginator;
+        int limit = 50;
+        List<Node> nodes;
+        List<Node> nodeCopies;
+        String id;
+        VBox vBox;
+        VBox vBoxCopy;
+        RedditPost post;
+        int count = 0;
+        int maxCount = 50;
         PostView postView;
-        Button refreshButton;
         VBox redditBox;
         VBox allBox;
-        Map<String, Submission> idsToSubmissions;
-        Set<String> ids;
 
-        Objects.requireNonNull(allBoxLock, "the specified all box lock is null");
+        redditModel = this.model.getRedditModel();
 
-        Objects.requireNonNull(boxesToPosts, "the specified map from boxes to posts is null");
+        if (redditModel == null) {
+            return;
+        } //end if
 
-        controller = new RedditPostController(model, view);
+        client = redditModel.getClient();
 
-        postView = controller.view.getPostView();
+        paginator = client.frontPage()
+                          .sorting(SubredditSort.NEW)
+                          .limit(limit)
+                          .build();
 
-        refreshButton = postView.getRefreshButton();
+        nodes = new ArrayList<>();
+
+        nodeCopies = new ArrayList<>();
+
+        breakLoop:
+        for (Listing<Submission> listing : paginator) {
+            for (Submission submission : listing) {
+                id = submission.getId();
+
+                if (!this.ids.contains(id)) {
+                    this.ids.add(id);
+
+                    vBox = this.createBox(submission, false);
+
+                    vBoxCopy = this.createBox(submission, true);
+
+                    nodes.add(vBox);
+
+                    nodes.add(new Separator());
+
+                    nodeCopies.add(vBoxCopy);
+
+                    nodeCopies.add(new Separator());
+
+                    post = new RedditPost(submission);
+
+                    this.boxesToPosts.put(vBox, post);
+
+                    this.boxesToPosts.put(vBoxCopy, post);
+                } //end if
+
+                count++;
+
+                if (count == maxCount) {
+                    break breakLoop;
+                } //end if
+            } //end for
+        } //end for
+
+        postView = this.view.getPostView();
 
         redditBox = postView.getRedditBox();
 
         allBox = postView.getAllBox();
 
-        idsToSubmissions = new HashMap<>();
+        Platform.runLater(() -> redditBox.getChildren()
+                                         .addAll(0, nodes));
 
-        controller.backgroundThread = new Thread(() -> {
-            RedditModel redditModel;
-            RedditClient client;
-            DefaultPaginator<Submission> paginator;
-            int limit = 200;
-            String id;
-            int maxCount = 200;
-            int amount = 60_000;
-
-            while (true) {
-                redditModel = controller.model.getRedditModel();
-
-                if (redditModel != null) {
-                    client = redditModel.getClient();
-
-                    paginator = client.frontPage()
-                                      .sorting(SubredditSort.NEW)
-                                      .limit(limit)
-                                      .build();
-
-                    lock.lock();
-
-                    try {
-                        breakLoop:
-                        for (Listing<Submission> listing : paginator) {
-                            for (Submission submission : listing) {
-                                id = submission.getId();
-
-                                idsToSubmissions.put(id, submission);
-
-                                if (idsToSubmissions.size() == maxCount) {
-                                    break breakLoop;
-                                } //end if
-                            } //end for
-                        } //end for
-                    } finally {
-                        lock.unlock();
-                    } //end try finally
-                } //end if
-
-                try {
-                    Thread.sleep(amount);
-                } catch (InterruptedException e) {
-                    return;
-                } //end try catch
-            } //end while
-        });
-
-        controller.backgroundThread.start();
-
-        ids = new HashSet<>();
-
-        refreshButton.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
-            Comparator<Submission> comparator;
-            Collection<Submission> values;
-            Set<Submission> submissions;
-            List<Node> nodes;
-            List<Node> nodeCopies;
-            String id;
-            VBox vBox;
-            VBox vBoxCopy;
-            RedditPost post;
-
-            comparator = Comparator.comparing(Submission::getCreated)
-                                   .reversed();
-
-            lock.lock();
-
-            try {
-                values = idsToSubmissions.values();
-
-                submissions = new TreeSet<>(comparator);
-
-                submissions.addAll(values);
-
-                nodes = new ArrayList<>();
-
-                nodeCopies = new ArrayList<>();
-
-                for (Submission submission : submissions) {
-                    id = submission.getId();
-
-                    if (!ids.contains(id)) {
-                        ids.add(id);
-
-                        vBox = controller.createBox(submission, false);
-
-                        vBoxCopy = controller.createBox(submission, true);
-
-                        nodes.add(vBox);
-
-                        nodes.add(new Separator());
-
-                        nodeCopies.add(vBoxCopy);
-
-                        nodeCopies.add(new Separator());
-
-                        post = new RedditPost(submission);
-
-                        boxesToPosts.put(vBox, post);
-
-                        boxesToPosts.put(vBoxCopy, post);
-                    } //end if
-                } //end for
-
-                idsToSubmissions.clear();
-            } finally {
-                lock.unlock();
-            } //end try finally
-
-            redditBox.getChildren()
-                     .addAll(0, nodes);
-
-            allBoxLock.lock();
+        Platform.runLater(() -> {
+            this.allBoxLock.lock();
 
             try {
                 allBox.getChildren()
                       .addAll(0, nodeCopies);
             } finally {
-                allBoxLock.unlock();
+                this.allBoxLock.unlock();
             } //end try finally
         });
+    } //updatePosts
+
+    /**
+     * Creates, and returns, a {@code createRedditPostController} object using the specified model, view, map from
+     * boxes to posts, and all box lock.
+     *
+     * @param model the model to be used in the operation
+     * @param view the view to be used in the operation
+     * @param boxesToPosts the map from boxes to posts to be used in the operation
+     * @param allBoxLock the all box lock to be used in the operation
+     * @return a {@code createRedditPostController} object using the specified model, view, map from boxes to posts,
+     * and all box lock
+     * @throws NullPointerException if the specified model, view, map from boxes to posts, or all box lock is
+     * {@code null}
+     */
+    public static RedditPostController createRedditPostController(Model model, View view, Map<VBox, Post> boxesToPosts,
+                                                                  Lock allBoxLock) {
+        RedditPostController controller;
+        int delay = 0;
+        int period = 1;
+
+        controller = new RedditPostController(model, view, boxesToPosts, allBoxLock);
+
+        controller.executorService.scheduleAtFixedRate(controller::updatePosts, delay, period, TimeUnit.MINUTES);
 
         return controller;
     } //createRedditPostController

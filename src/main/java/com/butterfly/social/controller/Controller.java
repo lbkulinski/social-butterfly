@@ -16,7 +16,7 @@ import java.util.concurrent.locks.Lock;
  * A controller of the Social Butterfly application.
  *
  * @author Logan Kulinski, lbk@purdue.edu
- * @version March 21, 2021
+ * @version March 22, 2021
  */
 public final class Controller {
     /**
@@ -63,8 +63,8 @@ public final class Controller {
 
         this.menuController = MenuController.createMenuController(model, view);
 
-        this.redditPostController = RedditPostController.createRedditPostController(model, view, allBoxLock,
-                                                                                    this.boxesToPosts);
+        this.redditPostController = RedditPostController.createRedditPostController(model, view, this.boxesToPosts,
+                                                                                    allBoxLock);
 
         this.twitterPostController = TwitterPostController.createTwitterPostController(model, view, this.boxesToPosts,
                                                                                        allBoxLock);

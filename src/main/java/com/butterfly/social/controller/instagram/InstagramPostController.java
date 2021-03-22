@@ -525,10 +525,9 @@ public final class InstagramPostController {
     private void updatePosts() {
         InstagramModel instagramModel;
         IGClient client;
-        Iterator<FeedTimelineResponse> iterator;
+        Iterable<FeedTimelineResponse> iterable;
         List<Node> nodes;
         List<Node> nodeCopies;
-        FeedTimelineResponse response;
         List<TimelineMedia> feedItems;
         String id;
         VBox vBox;
@@ -548,19 +547,16 @@ public final class InstagramPostController {
 
         client = instagramModel.getClient();
 
-        iterator = client.actions()
+        iterable = client.actions()
                          .timeline()
-                         .feed()
-                         .iterator();
+                         .feed();
 
         nodes = new ArrayList<>();
 
         nodeCopies = new ArrayList<>();
 
         breakLoop:
-        while (iterator.hasNext()) {
-            response = iterator.next();
-
+        for (FeedTimelineResponse response : iterable) {
             feedItems = response.getFeed_items();
 
             for (TimelineMedia media : feedItems) {
@@ -586,15 +582,15 @@ public final class InstagramPostController {
                     this.boxesToPosts.put(vBox, post);
 
                     this.boxesToPosts.put(vBoxCopy, post);
+                } //end if
 
-                    count++;
+                count++;
 
-                    if (count == maxCount) {
-                        break breakLoop;
-                    } //end if
+                if (count == maxCount) {
+                    break breakLoop;
                 } //end if
             } //end for
-        } //end while
+        } //end for
 
         postView = this.view.getPostView();
 
