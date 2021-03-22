@@ -298,6 +298,8 @@ public final class SocialButterflyApplication extends Application {
             executorService = instagramPostController.getExecutorService();
 
             executorService.shutdownNow();
+
+            System.exit(0);
         });
 
         scene = view.getScene();

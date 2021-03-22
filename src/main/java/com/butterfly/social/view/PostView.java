@@ -13,14 +13,9 @@ import java.util.Objects;
  * A view for posts of the Social Butterfly application.
  *
  * @author Logan Kulinski, lbk@purdue.edu
- * @version March 20, 2021
+ * @version March 22, 2021
  */
 public final class PostView {
-    /**
-     * The refresh button of this post view.
-     */
-    private final Button refreshButton;
-
     /**
      * The tab pane of this post view.
      */
@@ -50,10 +45,6 @@ public final class PostView {
      * Constructs a newly allocated {@code PostView} object.
      */
     private PostView() {
-        String refreshText = "Refresh";
-
-        this.refreshButton = new Button(refreshText);
-
         this.tabPane = new TabPane();
 
         this.redditBox = new VBox();
@@ -64,15 +55,6 @@ public final class PostView {
 
         this.allBox = new VBox();
     } //PostView
-
-    /**
-     * Returns the refresh button of this post view.
-     *
-     * @return the refresh button of this post view
-     */
-    public Button getRefreshButton() {
-        return this.refreshButton;
-    } //getRefreshButton
 
     /**
      * Returns the tab pane of this post view.
@@ -147,9 +129,6 @@ public final class PostView {
         Objects.requireNonNull(scene, "the specified primary stage is null");
 
         postView = new PostView();
-
-        postView.refreshButton.prefWidthProperty()
-                              .bind(primaryStage.widthProperty());
 
         redditScrollPane = new ScrollPane(postView.redditBox);
 

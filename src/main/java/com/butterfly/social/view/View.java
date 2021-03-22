@@ -1,7 +1,6 @@
 package com.butterfly.social.view;
 
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.TabPane;
 import javafx.scene.layout.VBox;
@@ -12,7 +11,7 @@ import java.util.Objects;
  * A view of the Social Butterfly application.
  *
  * @author Logan Kulinski, lbk@purdue.edu
- * @version March 20, 2021
+ * @version March 22, 2021
  */
 public final class View {
     /**
@@ -97,19 +96,16 @@ public final class View {
     public static View createView(Stage primaryStage) {
         View view;
         MenuBar menuBar;
-        Button refreshButton;
         TabPane tabPane;
 
         view = new View(primaryStage);
 
         menuBar = view.menuView.getMenuBar();
 
-        refreshButton = view.postView.getRefreshButton();
-
         tabPane = view.postView.getTabPane();
 
         view.mainBox.getChildren()
-                    .addAll(menuBar, refreshButton, tabPane);
+                    .addAll(menuBar, tabPane);
 
         return view;
     } //createView
