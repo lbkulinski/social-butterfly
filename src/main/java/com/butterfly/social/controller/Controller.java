@@ -25,11 +25,6 @@ public final class Controller {
     private final Map<VBox, Post> boxesToPosts;
 
     /**
-     * The menu controller of this controller.
-     */
-    private final MenuController menuController;
-
-    /**
      * The Reddit post controller of this controller.
      */
     private final RedditPostController redditPostController;
@@ -43,6 +38,11 @@ public final class Controller {
      * The Instagram post controller of this controller.
      */
     private final InstagramPostController instagramPostController;
+
+    /**
+     * The menu controller of this controller.
+     */
+    private final MenuController menuController;
 
     /**
      * Constructs a newly allocated {@code Controller} object with the specified model, view, and all box lock.
@@ -61,8 +61,6 @@ public final class Controller {
 
         this.boxesToPosts = new ConcurrentHashMap<>();
 
-        this.menuController = MenuController.createMenuController(model, view);
-
         this.redditPostController = RedditPostController.createRedditPostController(model, view, this.boxesToPosts,
                                                                                     allBoxLock);
 
@@ -72,6 +70,10 @@ public final class Controller {
         this.instagramPostController = InstagramPostController.createInstagramPostController(model, view,
                                                                                              this.boxesToPosts,
                                                                                              allBoxLock);
+
+        this.menuController = MenuController.createMenuController(model, view, this.redditPostController,
+                                                                  this.twitterPostController,
+                                                                  this.instagramPostController);
     } //Controller
 
     /**
@@ -82,15 +84,6 @@ public final class Controller {
     public Map<VBox, Post> getBoxesToPosts() {
         return this.boxesToPosts;
     } //getBoxesToPosts
-
-    /**
-     * Returns the menu controller of this controller
-     *
-     * @return the menu controller of this controller
-     */
-    public MenuController getMenuController() {
-        return this.menuController;
-    } //getMenuController
 
     /**
      * Returns the Reddit post controller of this controller
@@ -118,4 +111,13 @@ public final class Controller {
     public InstagramPostController getInstagramPostController() {
         return this.instagramPostController;
     } //getInstagramPostController
+
+    /**
+     * Returns the menu controller of this controller
+     *
+     * @return the menu controller of this controller
+     */
+    public MenuController getMenuController() {
+        return this.menuController;
+    } //getMenuController
 }

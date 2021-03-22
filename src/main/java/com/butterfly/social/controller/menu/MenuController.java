@@ -1,6 +1,9 @@
 package com.butterfly.social.controller.menu;
 
 import com.butterfly.social.SocialButterflyApplication;
+import com.butterfly.social.controller.instagram.InstagramPostController;
+import com.butterfly.social.controller.reddit.RedditPostController;
+import com.butterfly.social.controller.twitter.TwitterPostController;
 import com.butterfly.social.model.Model;
 import com.butterfly.social.model.instagram.InstagramModel;
 import com.butterfly.social.model.reddit.RedditModel;
@@ -20,6 +23,9 @@ import net.dean.jraw.references.OtherUserReference;
 import java.net.URL;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A controller for the menu of the Social Butterfly application.
@@ -39,31 +45,646 @@ public final class MenuController {
     private final View view;
 
     /**
-     * Constructs a newly allocated {@code MenuController} object with the specified model and view.
+     * The Reddit post controller of this menu controller.
+     */
+    private final RedditPostController redditPostController;
+
+    /**
+     * The Twitter post controller of this menu controller.
+     */
+    private final TwitterPostController twitterPostController;
+
+    /**
+     * The Instagram post controller of this menu controller.
+     */
+    private final InstagramPostController instagramPostController;
+
+    /**
+     * Constructs a newly allocated {@code MenuController} object with the specified model, view, Reddit post
+     * controller, Twitter post controller, and Instagram post controller.
      *
      * @param model the model to be used in construction
      * @param view the view to be used in construction
-     * @throws NullPointerException if the specified model or view is {@code null}
+     * @param redditPostController the Reddit post controller to be used in construction
+     * @param twitterPostController the Twitter post controller to be used in construction
+     * @param instagramPostController the Instagram post controller to be used in construction
+     * @throws NullPointerException if the specified model, view, Reddit post controller, Twitter post controller, or
+     * Instagram post controller is {@code null}
      */
-    private MenuController(Model model, View view) {
+    private MenuController(Model model, View view, RedditPostController redditPostController,
+                           TwitterPostController twitterPostController,
+                           InstagramPostController instagramPostController) {
         Objects.requireNonNull(model, "the specified model is null");
 
         Objects.requireNonNull(view, "the specified view is null");
 
+        Objects.requireNonNull(redditPostController, "the specified Reddit post controller is null");
+
+        Objects.requireNonNull(twitterPostController, "the specified Twitter post controller is null");
+
+        Objects.requireNonNull(instagramPostController, "the specified Instagram post controller is null");
+
         this.model = model;
 
         this.view = view;
+
+        this.redditPostController = redditPostController;
+
+        this.twitterPostController = twitterPostController;
+
+        this.instagramPostController = instagramPostController;
     } //MenuController
 
     /**
-     * Creates, and returns, a {@code MenuController} object using the specified model and view.
+     * Attempts to log the user into their Reddit account.
+     */
+    private void logInToReddit() {
+        RedditModel redditModel;
+        ScheduledExecutorService executorService;
+        int delay = 0;
+        int period = 1;
+
+        redditModel = this.model.getRedditModel();
+
+        if (redditModel != null) {
+            Alert alert;
+            String message = "You are already signed into Reddit!";
+
+            alert = new Alert(Alert.AlertType.ERROR, message);
+
+            alert.show();
+
+            return;
+        } //end if
+
+        redditModel = SocialButterflyApplication.getRedditModel();
+
+        if (redditModel == null) {
+            Alert alert;
+            String message = "You could not be signed into Reddit! Please try again later.";
+
+            alert = new Alert(Alert.AlertType.ERROR, message);
+
+            alert.show();
+
+            return;
+        } //end if
+
+        this.model.setRedditModel(redditModel);
+
+        executorService = this.redditPostController.getExecutorService();
+
+        executorService.scheduleAtFixedRate(this.redditPostController::updatePosts, delay, period, TimeUnit.MINUTES);
+    } //logInToReddit
+
+    /**
+     * Attempts to view the user's Reddit profile.
+     */
+    private void viewRedditProfile() {
+        RedditModel redditModel;
+        Alert alert;
+        String handle;
+        RedditClient client;
+        OtherUserReference reference;
+        String name;
+        Account account;
+        int karma = 0;
+        List<Trophy> trophies;
+        StringBuilder stringBuilder;
+        String trophyString;
+        String profileText;
+        String title = "Social Butterfly";
+        String headerText = "Reddit Profile";
+
+        redditModel = this.model.getRedditModel();
+
+        if (redditModel == null) {
+            String message = "You are not signed into Reddit!";
+
+            alert = new Alert(Alert.AlertType.ERROR, message);
+
+            alert.show();
+
+            return;
+        } //end if
+
+        handle = redditModel.getUsername();
+
+        client = redditModel.getClient();
+
+        reference = client.user(handle);
+
+        name = reference.query()
+                        .getName();
+
+        account = reference.query().getAccount();
+
+        if (account != null) {
+            karma += account.getLinkKarma();
+
+            karma += account.getCommentKarma();
+        } //end if
+
+        trophies = reference.trophies();
+
+        stringBuilder = new StringBuilder();
+
+        trophies.forEach(trophy -> {
+            String trophyName;
+
+            trophyName = trophy.getFullName();
+
+            stringBuilder.append(trophyName);
+
+            stringBuilder.append(",\n");
+        });
+
+        if (stringBuilder.isEmpty()) {
+            trophyString = "None";
+        } else {
+            int length;
+            int startIndex;
+
+            length = stringBuilder.length();
+
+            startIndex = length - 2;
+
+            stringBuilder.delete(startIndex, length);
+
+            trophyString = stringBuilder.toString();
+        } //end if
+
+        profileText = """
+                      Name: %s
+                      Handle: %s
+                      Karma: %d
+                      Trophies: %s""".formatted(name, handle, karma, trophyString);
+
+        alert = new Alert(Alert.AlertType.INFORMATION);
+
+        alert.setTitle(title);
+
+        alert.setHeaderText(headerText);
+
+        alert.setContentText(profileText);
+
+        alert.show();
+    } //viewRedditProfile
+
+    /**
+     * Attempts to log the user into their Twitter account.
+     */
+    private void logInToTwitter() {
+        TwitterModel twitterModel;
+        ScheduledExecutorService executorService;
+        int delay = 0;
+        int period = 1;
+
+        twitterModel = this.model.getTwitterModel();
+
+        if (twitterModel != null) {
+            Alert alert;
+            String message = "You are already signed into Twitter!";
+
+            alert = new Alert(Alert.AlertType.ERROR, message);
+
+            alert.show();
+
+            return;
+        } //end if
+
+        twitterModel = SocialButterflyApplication.getTwitterModel();
+
+        if (twitterModel == null) {
+            Alert alert;
+            String message = "You could not be signed into Twitter! Please try again later.";
+
+            alert = new Alert(Alert.AlertType.ERROR, message);
+
+            alert.show();
+
+            return;
+        } //end if
+
+        this.model.setTwitterModel(twitterModel);
+
+        executorService = this.twitterPostController.getExecutorService();
+
+        executorService.scheduleAtFixedRate(this.twitterPostController::updatePosts, delay, period, TimeUnit.MINUTES);
+    } //logInToTwitter
+
+    /**
+     * Attempts to view the user's Twitter profile.
+     */
+    private void viewTwitterProfile() {
+        TwitterModel twitterModel;
+        Alert alert;
+        TwitterUserProfile profile;
+        String name;
+        String handle;
+        String bio;
+        int followerCount;
+        int followingCount;
+        boolean verified;
+        String location;
+        String profileText;
+        String title = "Social Butterfly";
+        String headerText = "Twitter Profile";
+
+        twitterModel = this.model.getTwitterModel();
+
+        if (twitterModel == null) {
+            String message = "You are not signed into Twitter!";
+
+            alert = new Alert(Alert.AlertType.ERROR, message);
+
+            alert.show();
+
+            return;
+        } //end if
+
+        profile = twitterModel.getRequests()
+                              .getProfile();
+
+        name = profile.getName();
+
+        handle = profile.getHandle();
+
+        bio = profile.getBio();
+
+        followerCount = profile.getFollowerCount();
+
+        followingCount = profile.getFollowingCount();
+
+        verified = profile.isVerified();
+
+        location = profile.getLocation();
+
+        profileText = """
+                      Name: %s
+                      Handle: %s
+                      Bio: %s
+                      Followers: %d
+                      Following: %d
+                      Verified: %b
+                      Location: %s""".formatted(name, handle, bio, followerCount, followingCount, verified, location);
+
+        alert = new Alert(Alert.AlertType.INFORMATION);
+
+        alert.setTitle(title);
+
+        alert.setHeaderText(headerText);
+
+        alert.setContentText(profileText);
+
+        alert.show();
+    } //viewTwitterProfile
+
+    /**
+     * Attempts to log the user into their Instagram account.
+     */
+    private void logInToInstagram() {
+        InstagramModel instagramModel;
+        ScheduledExecutorService executorService;
+        int delay = 0;
+        int period = 1;
+
+        instagramModel = this.model.getInstagramModel();
+
+        if (instagramModel != null) {
+            Alert alert;
+            String message = "You are already signed into Instagram!";
+
+            alert = new Alert(Alert.AlertType.ERROR, message);
+
+            alert.show();
+
+            return;
+        } //end if
+
+        instagramModel = SocialButterflyApplication.getInstagramModel();
+
+        if (instagramModel == null) {
+            Alert alert;
+            String message = "You could not be signed into Instagram! Please try again later.";
+
+            alert = new Alert(Alert.AlertType.ERROR, message);
+
+            alert.show();
+
+            return;
+        } //end if
+
+        this.model.setInstagramModel(instagramModel);
+
+        executorService = this.instagramPostController.getExecutorService();
+
+        executorService.scheduleAtFixedRate(this.instagramPostController::updatePosts, delay, period,
+                                            TimeUnit.MINUTES);
+    } //logInToInstagram
+
+    /**
+     * Attempts to view the user's Instagram profile.
+     */
+    private void viewInstagramProfile() {
+        InstagramModel instagramModel;
+        Alert alert;
+        String name;
+        String handle;
+        boolean verified;
+        boolean privateProfile;
+        String profileText;
+        String title = "Social Butterfly";
+        String headerText = "Instagram Profile";
+
+        instagramModel = this.model.getInstagramModel();
+
+        if (instagramModel == null) {
+            String message = "You are not signed into Instagram!";
+
+            alert = new Alert(Alert.AlertType.ERROR, message);
+
+            alert.show();
+
+            return;
+        } //end if
+
+        name = instagramModel.getFullName();
+
+        handle = instagramModel.getUsername();
+
+        verified = instagramModel.isVerified();
+
+        privateProfile = instagramModel.isPrivate();
+
+        profileText = """
+                      Name: %s
+                      Handle: %s
+                      Verified: %b
+                      Private: %b""".formatted(name, handle, verified, privateProfile);
+
+        alert = new Alert(Alert.AlertType.INFORMATION);
+
+        alert.setTitle(title);
+
+        alert.setHeaderText(headerText);
+
+        alert.setContentText(profileText);
+
+        alert.show();
+    } //viewInstagramProfile
+
+    /**
+     * Switches the user interface to light mode.
+     */
+    private void switchToLightMode() {
+        Scene scene;
+
+        scene = this.view.getScene();
+
+        scene.getStylesheets()
+             .clear();
+    } //switchToLightMode
+
+    /**
+     * Switches the user interface to dark mode.
+     */
+    private void switchToDarkMode() {
+        String fileName = "dark-theme.css";
+        URL url;
+        String externalForm;
+        Scene scene;
+
+        url = MenuController.class.getResource(fileName);
+
+        if (url == null) {
+            Alert alert;
+            String message = "Dark mode could not be enabled! Please try again later.";
+
+            alert = new Alert(Alert.AlertType.ERROR, message);
+
+            alert.show();
+
+            return;
+        } //end if
+
+        externalForm = url.toExternalForm();
+
+        scene = this.view.getScene();
+
+        scene.getStylesheets()
+             .clear();
+
+        scene.getStylesheets()
+             .add(externalForm);
+    } //switchToDarkMode
+
+    /**
+     * Switches the user interface to use a tab pane.
+     */
+    private void switchToTabPane() {
+        VBox mainBox;
+        PostView postView;
+        TabPane tabPane;
+        boolean contains;
+        SplitPane splitPane;
+        VBox redditBox;
+        VBox twitterBox;
+        VBox instagramBox;
+        VBox allBox;
+        ScrollPane redditScrollPane;
+        ScrollPane twitterScrollPane;
+        ScrollPane instagramScrollPane;
+        ScrollPane allScrollPane;
+        Tab redditTab;
+        String redditText = "Reddit";
+        Tab twitterTab;
+        String twitterText = "Twitter";
+        Tab instagramTab;
+        String instagramText = "Instagram";
+        Tab allTab;
+        String allText = "All";
+        Scene scene;
+        MenuView menuView;
+        MenuBar menuBar;
+
+        mainBox = this.view.getMainBox();
+
+        postView = this.view.getPostView();
+
+        tabPane = postView.getTabPane();
+
+        contains = mainBox.getChildren()
+                          .contains(tabPane);
+
+        if (contains) {
+            return;
+        } //end if
+
+        mainBox.getChildren()
+               .clear();
+
+        splitPane = postView.getSplitPane();
+
+        splitPane.getItems()
+                 .clear();
+
+        redditBox = postView.getRedditBox();
+
+        twitterBox = postView.getTwitterBox();
+
+        instagramBox = postView.getInstagramBox();
+
+        allBox = postView.getAllBox();
+
+        redditScrollPane = new ScrollPane(redditBox);
+
+        twitterScrollPane = new ScrollPane(twitterBox);
+
+        instagramScrollPane = new ScrollPane(instagramBox);
+
+        allScrollPane = new ScrollPane(allBox);
+
+        redditTab = new Tab(redditText);
+
+        redditTab.setClosable(false);
+
+        redditTab.setContent(redditScrollPane);
+
+        twitterTab = new Tab(twitterText);
+
+        twitterTab.setClosable(false);
+
+        twitterTab.setContent(twitterScrollPane);
+
+        instagramTab = new Tab(instagramText);
+
+        instagramTab.setClosable(false);
+
+        instagramTab.setContent(instagramScrollPane);
+
+        allTab = new Tab(allText);
+
+        allTab.setClosable(false);
+
+        allTab.setContent(allScrollPane);
+
+        scene = this.view.getScene();
+
+        tabPane.getTabs()
+               .addAll(redditTab, twitterTab, instagramTab, allTab);
+
+        tabPane.prefWidthProperty()
+               .bind(scene.widthProperty());
+
+        tabPane.prefHeightProperty()
+               .bind(scene.heightProperty());
+
+        menuView = this.view.getMenuView();
+
+        menuBar = menuView.getMenuBar();
+
+        mainBox.getChildren()
+               .addAll(menuBar, tabPane);
+    } //switchToTabPane
+
+    /**
+     * Switches the user interface to use a split pane.
+     */
+    private void switchToSplitPane() {
+        VBox mainBox;
+        PostView postView;
+        SplitPane splitPane;
+        boolean contains;
+        TabPane tabPane;
+        VBox redditBox;
+        VBox twitterBox;
+        VBox instagramBox;
+        ScrollPane redditScrollPane;
+        ScrollPane twitterScrollPane;
+        ScrollPane instagramScrollPane;
+        double position0;
+        double position1;
+        Scene scene;
+        MenuView menuView;
+        MenuBar menuBar;
+
+        mainBox = this.view.getMainBox();
+
+        postView = this.view.getPostView();
+
+        splitPane = postView.getSplitPane();
+
+        contains = mainBox.getChildren()
+                          .contains(splitPane);
+
+        if (contains) {
+            return;
+        } //end if
+
+        mainBox.getChildren()
+               .clear();
+
+        tabPane = postView.getTabPane();
+
+        tabPane.getTabs()
+               .clear();
+
+        redditBox = postView.getRedditBox();
+
+        twitterBox = postView.getTwitterBox();
+
+        instagramBox = postView.getInstagramBox();
+
+        redditScrollPane = new ScrollPane(redditBox);
+
+        twitterScrollPane = new ScrollPane(twitterBox);
+
+        instagramScrollPane = new ScrollPane(instagramBox);
+
+        splitPane.getItems()
+                 .addAll(redditScrollPane, twitterScrollPane, instagramScrollPane);
+
+        position0 = 1.0 / 3.0;
+
+        position1 = 2.0 / 3.0;
+
+        splitPane.setDividerPositions(position0, position1);
+
+        scene = this.view.getScene();
+
+        splitPane.prefWidthProperty()
+                 .bind(scene.widthProperty());
+
+        splitPane.prefHeightProperty()
+                 .bind(scene.heightProperty());
+
+        menuView = this.view.getMenuView();
+
+        menuBar = menuView.getMenuBar();
+
+        mainBox.getChildren()
+               .addAll(menuBar, splitPane);
+    } //switchToSplitPane
+
+    /**
+     * Creates, and returns, a {@code MenuController} object using the specified model, view, Reddit post controller,
+     * Twitter post controller, and Instagram post controller.
      *
      * @param model the model to be used in the operation
      * @param view the view to be used in the operation
-     * @return a {@code MenuController} object using the specified model and view
-     * @throws NullPointerException if the specified model or view is {@code null}
+     * @param redditPostController the Reddit post controller to be used in construction
+     * @param twitterPostController the Twitter post controller to be used in construction
+     * @param instagramPostController the Instagram post controller to be used in construction
+     * @return a {@code MenuController} object using the specified model, view, Reddit post controller, Twitter post
+     * controller, and Instagram post controller
+     * @throws NullPointerException if the specified model, view, Reddit post controller, Twitter post controller, or
+     * Instagram post controller is {@code null}
      */
-    public static MenuController createMenuController(Model model, View view) {
+    public static MenuController createMenuController(Model model, View view,
+                                                      RedditPostController redditPostController,
+                                                      TwitterPostController twitterPostController,
+                                                      InstagramPostController instagramPostController) {
         MenuController controller;
         MenuView menuView;
         MenuItem redditLogInMenuItem;
@@ -77,7 +698,8 @@ public final class MenuController {
         RadioMenuItem tabRadioMenuItem;
         RadioMenuItem splitRadioMenuItem;
 
-        controller = new MenuController(model, view);
+        controller = new MenuController(model, view, redditPostController, twitterPostController,
+                                        instagramPostController);
 
         menuView = controller.view.getMenuView();
 
@@ -101,475 +723,26 @@ public final class MenuController {
 
         splitRadioMenuItem = menuView.getSplitRadioMenuItem();
 
-        redditLogInMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
-            RedditModel redditModel;
+        redditLogInMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.logInToReddit());
 
-            redditModel = controller.model.getRedditModel();
+        redditProfileMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.viewRedditProfile());
 
-            if (redditModel == null) {
-                redditModel = SocialButterflyApplication.getRedditModel();
+        twitterLogInMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.logInToTwitter());
 
-                if (redditModel == null) {
-                    Alert alert;
-                    String message = "You could not be signed into Reddit! Please try again later.";
+        twitterProfileMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.viewTwitterProfile());
 
-                    alert = new Alert(Alert.AlertType.ERROR, message);
+        instagramLogInMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.logInToInstagram());
 
-                    alert.show();
+        instagramProfileMenuItem.addEventHandler(ActionEvent.ACTION,
+                                                 (actionEvent) -> controller.viewInstagramProfile());
 
-                    return;
-                } //end if
+        lightRadioMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.switchToLightMode());
 
-                controller.model.setRedditModel(redditModel);
-            } //end if
-        });
+        darkRadioMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.switchToDarkMode());
 
-        redditProfileMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
-            RedditModel redditModel;
-            String handle;
-            RedditClient client;
-            OtherUserReference reference;
-            String name;
-            Account account;
-            int karma = 0;
-            List<Trophy> trophies;
-            StringBuilder stringBuilder;
-            String trophyString;
-            String profileText;
-            Alert alert;
-            String title = "Social Butterfly";
-            String headerText = "Reddit Profile";
+        tabRadioMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.switchToTabPane());
 
-            redditModel = controller.model.getRedditModel();
-
-            if (redditModel == null) {
-                return;
-            } //end if
-
-            handle = redditModel.getUsername();
-
-            client = redditModel.getClient();
-
-            reference = client.user(handle);
-
-            name = reference.query()
-                            .getName();
-
-            account = reference.query().getAccount();
-
-            if (account != null) {
-                karma += account.getLinkKarma();
-
-                karma += account.getCommentKarma();
-            } //end if
-
-            trophies = reference.trophies();
-
-            stringBuilder = new StringBuilder();
-
-            trophies.forEach(trophy -> {
-                String trophyName;
-
-                trophyName = trophy.getFullName();
-
-                stringBuilder.append(trophyName);
-
-                stringBuilder.append(",\n");
-            });
-
-            if (stringBuilder.isEmpty()) {
-                trophyString = "None";
-            } else {
-                int length;
-                int startIndex;
-
-                length = stringBuilder.length();
-
-                startIndex = length - 2;
-
-                stringBuilder.delete(startIndex, length);
-
-                trophyString = stringBuilder.toString();
-            } //end if
-
-            profileText = """
-                          Name: %s
-                          Handle: %s
-                          Karma: %d
-                          Trophies: %s""".formatted(name, handle, karma, trophyString);
-
-            alert = new Alert(Alert.AlertType.INFORMATION);
-
-            alert.setTitle(title);
-
-            alert.setHeaderText(headerText);
-
-            alert.setContentText(profileText);
-
-            alert.show();
-        });
-
-        twitterLogInMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
-            TwitterModel twitterModel;
-
-            twitterModel = controller.model.getTwitterModel();
-
-            if (twitterModel == null) {
-                twitterModel = SocialButterflyApplication.getTwitterModel();
-
-                if (twitterModel == null) {
-                    Alert alert;
-                    String message = "You could not be signed into Twitter! Please try again later.";
-
-                    alert = new Alert(Alert.AlertType.ERROR, message);
-
-                    alert.show();
-
-                    return;
-                } //end if
-
-                controller.model.setTwitterModel(twitterModel);
-            } //end if
-        });
-
-        twitterProfileMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
-            TwitterModel twitterModel;
-            TwitterUserProfile profile;
-            String name;
-            String handle;
-            String bio;
-            int followerCount;
-            int followingCount;
-            boolean verified;
-            String location;
-            String profileText;
-            Alert alert;
-            String title = "Social Butterfly";
-            String headerText = "Twitter Profile";
-
-            twitterModel = controller.model.getTwitterModel();
-
-            if (twitterModel == null) {
-                return;
-            } //end if
-
-            profile = twitterModel.getRequests()
-                                  .getProfile();
-
-            name = profile.getName();
-
-            handle = profile.getHandle();
-
-            bio = profile.getBio();
-
-            followerCount = profile.getFollowerCount();
-
-            followingCount = profile.getFollowingCount();
-
-            verified = profile.isVerified();
-
-            location = profile.getLocation();
-
-            profileText = """
-                          Name: %s
-                          Handle: %s
-                          Bio: %s
-                          Followers: %d
-                          Following: %d
-                          Verified: %b
-                          Location: %s""".formatted(name, handle, bio, followerCount, followingCount, verified,
-                                                    location);
-
-            alert = new Alert(Alert.AlertType.INFORMATION);
-
-            alert.setTitle(title);
-
-            alert.setHeaderText(headerText);
-
-            alert.setContentText(profileText);
-
-            alert.show();
-        });
-
-        instagramLogInMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
-            InstagramModel instagramModel;
-
-            instagramModel = controller.model.getInstagramModel();
-
-            if (instagramModel == null) {
-                instagramModel = SocialButterflyApplication.getInstagramModel();
-
-                if (instagramModel == null) {
-                    Alert alert;
-                    String message = "You could not be signed into Instagram! Please try again later.";
-
-                    alert = new Alert(Alert.AlertType.ERROR, message);
-
-                    alert.show();
-
-                    return;
-                } //end if
-
-                controller.model.setInstagramModel(instagramModel);
-            } //end if
-        });
-
-        instagramProfileMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
-            InstagramModel instagramModel;
-            String name;
-            String handle;
-            boolean verified;
-            boolean privateProfile;
-            String profileText;
-            Alert alert;
-            String title = "Social Butterfly";
-            String headerText = "Instagram Profile";
-
-            instagramModel = controller.model.getInstagramModel();
-
-            if (instagramModel == null) {
-                return;
-            } //end if
-
-            name = instagramModel.getFullName();
-
-            handle = instagramModel.getUsername();
-
-            verified = instagramModel.isVerified();
-
-            privateProfile = instagramModel.isPrivate();
-
-            profileText = """
-                          Name: %s
-                          Handle: %s
-                          Verified: %b
-                          Private: %b""".formatted(name, handle, verified, privateProfile);
-
-            alert = new Alert(Alert.AlertType.INFORMATION);
-
-            alert.setTitle(title);
-
-            alert.setHeaderText(headerText);
-
-            alert.setContentText(profileText);
-
-            alert.show();
-        });
-
-        lightRadioMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
-            Scene scene;
-
-            scene = view.getScene();
-
-            scene.getStylesheets()
-                 .clear();
-        });
-
-        darkRadioMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
-            String fileName = "dark-theme.css";
-            URL url;
-            String externalForm;
-            Scene scene;
-
-            url = MenuController.class.getResource(fileName);
-
-            if (url == null) {
-                Alert alert;
-                String message = "Dark mode could not be enabled! Please try again later.";
-
-                alert = new Alert(Alert.AlertType.ERROR, message);
-
-                alert.show();
-
-                return;
-            } //end if
-
-            externalForm = url.toExternalForm();
-
-            scene = view.getScene();
-
-            scene.getStylesheets()
-                 .clear();
-
-            scene.getStylesheets()
-                 .add(externalForm);
-        });
-
-        tabRadioMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
-            VBox mainBox;
-            PostView postView;
-            TabPane tabPane;
-            boolean contains;
-            SplitPane splitPane;
-            VBox redditBox;
-            VBox twitterBox;
-            VBox instagramBox;
-            VBox allBox;
-            ScrollPane redditScrollPane;
-            ScrollPane twitterScrollPane;
-            ScrollPane instagramScrollPane;
-            ScrollPane allScrollPane;
-            Tab redditTab;
-            String redditText = "Reddit";
-            Tab twitterTab;
-            String twitterText = "Twitter";
-            Tab instagramTab;
-            String instagramText = "Instagram";
-            Tab allTab;
-            String allText = "All";
-            Scene scene;
-            MenuBar menuBar;
-
-            mainBox = view.getMainBox();
-
-            postView = view.getPostView();
-
-            tabPane = postView.getTabPane();
-
-            contains = mainBox.getChildren()
-                              .contains(tabPane);
-
-            if (contains) {
-                return;
-            } //end if
-
-            mainBox.getChildren()
-                   .clear();
-
-            splitPane = postView.getSplitPane();
-
-            splitPane.getItems()
-                     .clear();
-
-            redditBox = postView.getRedditBox();
-
-            twitterBox = postView.getTwitterBox();
-
-            instagramBox = postView.getInstagramBox();
-
-            allBox = postView.getAllBox();
-
-            redditScrollPane = new ScrollPane(redditBox);
-
-            twitterScrollPane = new ScrollPane(twitterBox);
-
-            instagramScrollPane = new ScrollPane(instagramBox);
-
-            allScrollPane = new ScrollPane(allBox);
-
-            redditTab = new Tab(redditText);
-
-            redditTab.setClosable(false);
-
-            redditTab.setContent(redditScrollPane);
-
-            twitterTab = new Tab(twitterText);
-
-            twitterTab.setClosable(false);
-
-            twitterTab.setContent(twitterScrollPane);
-
-            instagramTab = new Tab(instagramText);
-
-            instagramTab.setClosable(false);
-
-            instagramTab.setContent(instagramScrollPane);
-
-            allTab = new Tab(allText);
-
-            allTab.setClosable(false);
-
-            allTab.setContent(allScrollPane);
-
-            scene = view.getScene();
-
-            tabPane.getTabs()
-                   .addAll(redditTab, twitterTab, instagramTab, allTab);
-
-            tabPane.prefWidthProperty()
-                   .bind(scene.widthProperty());
-
-            tabPane.prefHeightProperty()
-                   .bind(scene.heightProperty());
-
-            menuBar = menuView.getMenuBar();
-
-            mainBox.getChildren()
-                   .addAll(menuBar, tabPane);
-        });
-
-        splitRadioMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
-            VBox mainBox;
-            PostView postView;
-            SplitPane splitPane;
-            boolean contains;
-            TabPane tabPane;
-            VBox redditBox;
-            VBox twitterBox;
-            VBox instagramBox;
-            ScrollPane redditScrollPane;
-            ScrollPane twitterScrollPane;
-            ScrollPane instagramScrollPane;
-            double position0;
-            double position1;
-            Scene scene;
-            MenuBar menuBar;
-
-            mainBox = view.getMainBox();
-
-            postView = view.getPostView();
-
-            splitPane = postView.getSplitPane();
-
-            contains = mainBox.getChildren()
-                              .contains(splitPane);
-
-            if (contains) {
-                return;
-            } //end if
-
-            mainBox.getChildren()
-                   .clear();
-
-            tabPane = postView.getTabPane();
-
-            tabPane.getTabs()
-                   .clear();
-
-            redditBox = postView.getRedditBox();
-
-            twitterBox = postView.getTwitterBox();
-
-            instagramBox = postView.getInstagramBox();
-
-            redditScrollPane = new ScrollPane(redditBox);
-
-            twitterScrollPane = new ScrollPane(twitterBox);
-
-            instagramScrollPane = new ScrollPane(instagramBox);
-
-            splitPane.getItems()
-                     .addAll(redditScrollPane, twitterScrollPane, instagramScrollPane);
-
-            position0 = 1.0 / 3.0;
-
-            position1 = 2.0 / 3.0;
-
-            splitPane.setDividerPositions(position0, position1);
-
-            scene = view.getScene();
-
-            splitPane.prefWidthProperty()
-                     .bind(scene.widthProperty());
-
-            splitPane.prefHeightProperty()
-                     .bind(scene.heightProperty());
-
-            menuBar = menuView.getMenuBar();
-
-            mainBox.getChildren()
-                   .addAll(menuBar, splitPane);
-        });
+        splitRadioMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.switchToSplitPane());
 
         return controller;
     } //createMenuController

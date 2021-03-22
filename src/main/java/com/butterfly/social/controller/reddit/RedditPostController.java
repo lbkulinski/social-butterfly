@@ -341,7 +341,7 @@ public final class RedditPostController {
     /**
      * Updates the posts of this Reddit post controller.
      */
-    private void updatePosts() {
+    public void updatePosts() {
         RedditModel redditModel;
         RedditClient client;
         DefaultPaginator<Submission> paginator;
@@ -446,14 +446,6 @@ public final class RedditPostController {
      */
     public static RedditPostController createRedditPostController(Model model, View view, Map<VBox, Post> boxesToPosts,
                                                                   Lock allBoxLock) {
-        RedditPostController controller;
-        int delay = 0;
-        int period = 1;
-
-        controller = new RedditPostController(model, view, boxesToPosts, allBoxLock);
-
-        controller.executorService.scheduleAtFixedRate(controller::updatePosts, delay, period, TimeUnit.MINUTES);
-
-        return controller;
+        return new RedditPostController(model, view, boxesToPosts, allBoxLock);
     } //createRedditPostController
 }

@@ -19,6 +19,7 @@ import java.awt.*;
 import java.io.*;
 import java.net.URI;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -251,6 +252,7 @@ public final class SocialButterflyApplication extends Application {
         View view;
         Lock allBoxLock;
         Controller controller;
+        TwitterModel twitterModel;
         Scene scene;
         String title = "Social Butterfly";
         int width = 500;
@@ -264,18 +266,33 @@ public final class SocialButterflyApplication extends Application {
 
         controller = new Controller(model, view, allBoxLock);
 
+        twitterModel = model.getTwitterModel();
+
+        if (twitterModel != null) {
+            TwitterPostController twitterPostController;
+            ScheduledExecutorService executorService;
+            int delay = 0;
+            int period = 1;
+
+            twitterPostController = controller.getTwitterPostController();
+
+            executorService = twitterPostController.getExecutorService();
+
+            executorService.scheduleAtFixedRate(twitterPostController::updatePosts, delay, period, TimeUnit.MINUTES);
+        } //end if
+
         primaryStage.setOnCloseRequest((windowEvent) -> {
-            TwitterModel twitterModel;
+            TwitterModel currentTwitterModel;
             RedditPostController redditPostController;
             TwitterPostController twitterPostController;
             ScheduledExecutorService executorService;
             InstagramPostController instagramPostController;
 
-            twitterModel = model.getTwitterModel();
+            currentTwitterModel = model.getTwitterModel();
 
-            if (twitterModel != null) {
+            if (currentTwitterModel != null) {
                 try (var outputStream = new ObjectOutputStream(new FileOutputStream("twitter-model.ser"))) {
-                    outputStream.writeObject(twitterModel);
+                    outputStream.writeObject(currentTwitterModel);
                 } catch (IOException e) {
                     e.printStackTrace();
                 } //end try catch

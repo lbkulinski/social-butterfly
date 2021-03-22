@@ -551,7 +551,7 @@ public final class InstagramPostController {
     /**
      * Updates the posts of this Instagram post controller.
      */
-    private void updatePosts() {
+    public void updatePosts() {
         InstagramModel instagramModel;
         IGClient client;
         Iterable<FeedTimelineResponse> iterable;
@@ -674,14 +674,6 @@ public final class InstagramPostController {
     public static InstagramPostController createInstagramPostController(Model model, View view,
                                                                         Map<VBox, Post> boxesToPosts,
                                                                         Lock allBoxLock) {
-        InstagramPostController controller;
-        int delay = 0;
-        int period = 1;
-
-        controller = new InstagramPostController(model, view, boxesToPosts, allBoxLock);
-
-        controller.executorService.scheduleAtFixedRate(controller::updatePosts, delay, period, TimeUnit.MINUTES);
-
-        return controller;
+        return new InstagramPostController(model, view, boxesToPosts, allBoxLock);
     } //createInstagramPostController
 }

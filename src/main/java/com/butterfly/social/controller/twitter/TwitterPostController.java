@@ -444,7 +444,7 @@ public final class TwitterPostController {
     /**
      * Updates the posts of this Twitter post controller.
      */
-    private void updatePosts() {
+    public void updatePosts() {
         TwitterModel twitterModel;
         Twitter twitter;
         Paging paging;
@@ -546,14 +546,6 @@ public final class TwitterPostController {
      */
     public static TwitterPostController createTwitterPostController(Model model, View view,
                                                                     Map<VBox, Post> boxesToPosts, Lock allBoxLock) {
-        TwitterPostController controller;
-        int delay = 0;
-        int period = 1;
-
-        controller = new TwitterPostController(model, view, boxesToPosts, allBoxLock);
-
-        controller.executorService.scheduleAtFixedRate(controller::updatePosts, delay, period, TimeUnit.MINUTES);
-
-        return controller;
+        return new TwitterPostController(model, view, boxesToPosts, allBoxLock);
     } //createTwitterPostController
 }
