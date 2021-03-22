@@ -1,5 +1,6 @@
 package com.butterfly.social.controller.instagram;
 
+import com.butterfly.social.controller.Post;
 import com.butterfly.social.model.Model;
 import com.butterfly.social.model.instagram.InstagramModel;
 import com.butterfly.social.view.PostView;
@@ -497,16 +498,20 @@ public final class InstagramPostController {
     } //createPostBox
 
     /**
-     * Creates, and returns, an {@code InstagramPostController} object using the specified model, view, and all box
-     * lock.
+     * Creates, and returns, an {@code InstagramPostController} object using the specified model, view, all box lock,
+     * and map from boxes to posts.
      *
      * @param model the model to be used in the operation
      * @param view the view to be used in the operation
      * @param allBoxLock the all box lock to be used in the operation
-     * @return an {@code InstagramPostController} object using the specified model, view, and all box lock
-     * @throws NullPointerException if the specified model, view, or all box lock is {@code null}
+     * @param boxesToPosts the map from boxes to posts to be used in the operation
+     * @return an {@code InstagramPostController} object using the specified model, view, all box lock, and map from
+     * boxes to posts
+     * @throws NullPointerException if the specified model, view, all box lock, or map from boxes to posts is
+     * {@code null}
      */
-    public static InstagramPostController createInstagramPostController(Model model, View view, Lock allBoxLock) {
+    public static InstagramPostController createInstagramPostController(Model model, View view, Lock allBoxLock,
+                                                                        Map<VBox, Post> boxesToPosts) {
         InstagramPostController controller;
         PostView postView;
         Button refreshButton;
@@ -516,6 +521,8 @@ public final class InstagramPostController {
         Map<String, TimelineMedia> idsToMedia;
 
         Objects.requireNonNull(allBoxLock, "the specified all box lock is null");
+
+        Objects.requireNonNull(boxesToPosts, "the specified map from boxes to posts is null");
 
         controller = new InstagramPostController(model, view);
 
@@ -591,6 +598,7 @@ public final class InstagramPostController {
             String id;
             VBox vBox;
             VBox vBoxCopy;
+            InstagramPost post;
 
             comparator = Comparator.<TimelineMedia>comparingLong((media -> media.getCaption()
                                                                                 .getCreated_at_utc()))
@@ -630,6 +638,12 @@ public final class InstagramPostController {
                         nodeCopies.add(vBoxCopy);
 
                         nodeCopies.add(new Separator());
+
+                        post = new InstagramPost(media);
+
+                        boxesToPosts.put(vBox, post);
+
+                        boxesToPosts.put(vBoxCopy, post);
                     } //end if
                 } //end for
 

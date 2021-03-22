@@ -1,5 +1,6 @@
 package com.butterfly.social.controller.twitter;
 
+import com.butterfly.social.controller.Post;
 import com.butterfly.social.model.Model;
 import com.butterfly.social.model.twitter.TwitterModel;
 import com.butterfly.social.view.PostView;
@@ -419,15 +420,20 @@ public final class TwitterPostController {
     } //createPostBox
 
     /**
-     * Creates, and returns, a {@code TwitterPostController} object using the specified model, view, and all box lock.
+     * Creates, and returns, a {@code TwitterPostController} object using the specified model, view, all box lock, and
+     * map from boxes to posts.
      *
      * @param model the model to be used in the operation
      * @param view the view to be used in the operation
      * @param allBoxLock the all box lock to be used in the operation
-     * @return a {@code TwitterPostController} object using the specified model, view, and all box lock
-     * @throws NullPointerException if the specified model, view, or all box lock is {@code null}
+     * @param boxesToPosts the map from boxes to posts to be used in the operation
+     * @return a {@code TwitterPostController} object using the specified model, view, all box lock, and map from boxes
+     * to posts
+     * @throws NullPointerException if the specified model, view, all box lock, or map from boxes to posts is
+     * {@code null}
      */
-    public static TwitterPostController createTwitterPostController(Model model, View view, Lock allBoxLock) {
+    public static TwitterPostController createTwitterPostController(Model model, View view, Lock allBoxLock,
+                                                                    Map<VBox, Post> boxesToPosts) {
         TwitterPostController controller;
         PostView postView;
         Button refreshButton;
@@ -438,6 +444,8 @@ public final class TwitterPostController {
         TwitterListener twitterListener;
 
         Objects.requireNonNull(allBoxLock, "the specified all box lock is null");
+
+        Objects.requireNonNull(boxesToPosts, "the specified map from boxes to posts is null");
 
         controller = new TwitterPostController(model, view);
 
@@ -527,6 +535,7 @@ public final class TwitterPostController {
             long id;
             VBox vBox;
             VBox vBoxCopy;
+            TwitterPost post;
 
             comparator = Comparator.comparing(Status::getCreatedAt)
                                    .reversed();
@@ -561,6 +570,12 @@ public final class TwitterPostController {
                         nodeCopies.add(vBoxCopy);
 
                         nodeCopies.add(new Separator());
+
+                        post = new TwitterPost(status);
+
+                        boxesToPosts.put(vBox, post);
+
+                        boxesToPosts.put(vBoxCopy, post);
                     } //end if
                 } //end for
 

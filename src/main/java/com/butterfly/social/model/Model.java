@@ -43,6 +43,14 @@ public final class Model {
     } //Model
 
     /**
+     * Constructs a newly allocated {@code Model} object with a default Reddit model, Twitter model, and Instagram
+     * model of {@code null}.
+     */
+    public Model() {
+        this(null, null, null);
+    } //Model
+
+    /**
      * Returns the Reddit model of this model
      *
      * @return the Reddit model of this model

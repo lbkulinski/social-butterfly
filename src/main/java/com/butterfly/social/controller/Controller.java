@@ -6,8 +6,10 @@ import com.butterfly.social.controller.reddit.RedditPostController;
 import com.butterfly.social.controller.twitter.TwitterPostController;
 import com.butterfly.social.model.Model;
 import com.butterfly.social.view.View;
-
+import javafx.scene.layout.VBox;
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 
 /**
@@ -17,6 +19,11 @@ import java.util.concurrent.locks.Lock;
  * @version March 21, 2021
  */
 public final class Controller {
+    /**
+     * The map from boxes to posts of this controller.
+     */
+    private final Map<VBox, Post> boxesToPosts;
+
     /**
      * The menu controller of this controller.
      */
@@ -52,14 +59,28 @@ public final class Controller {
 
         Objects.requireNonNull(allBoxLock, "the specified all box lock is null");
 
+        this.boxesToPosts = new ConcurrentHashMap<>();
+
         this.menuController = MenuController.createMenuController(model, view);
 
-        this.redditPostController = RedditPostController.createRedditPostController(model, view, allBoxLock);
+        this.redditPostController = RedditPostController.createRedditPostController(model, view, allBoxLock,
+                                                                                    this.boxesToPosts);
 
-        this.twitterPostController = TwitterPostController.createTwitterPostController(model, view, allBoxLock);
+        this.twitterPostController = TwitterPostController.createTwitterPostController(model, view, allBoxLock,
+                                                                                       this.boxesToPosts);
 
-        this.instagramPostController = InstagramPostController.createInstagramPostController(model, view, allBoxLock);
+        this.instagramPostController = InstagramPostController.createInstagramPostController(model, view, allBoxLock,
+                                                                                             this.boxesToPosts);
     } //Controller
+
+    /**
+     * Returns the map from boxes to posts of this controller.
+     *
+     * @return the map from boxes to posts of this controller
+     */
+    public Map<VBox, Post> getBoxesToPosts() {
+        return this.boxesToPosts;
+    } //getBoxesToPosts
 
     /**
      * Returns the menu controller of this controller

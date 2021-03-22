@@ -217,115 +217,26 @@ public final class SocialButterflyApplication extends Application {
      * @return the model of this application
      */
     private Model getModel() {
-        Alert redditAlert;
-        String redditMessage = "Would you like to log into Reddit?";
-        ButtonType redditResult;
-        RedditModel redditModel;
+        Model model;
         File file;
         String twitterFileName = "twitter-model.ser";
-        TwitterModel readTwitterModel = null;
-        String title = "Social Butterfly";
-        ButtonType twitterResult = null;
-        TwitterModel twitterModel;
-        Alert instagramAlert;
-        String instagramMessage = "Would you like to log into Instagram?";
-        ButtonType instagramResult;
-        InstagramModel instagramModel;
-        Model model;
+        TwitterModel twitterModel = null;
 
-        redditAlert = new Alert(Alert.AlertType.CONFIRMATION, redditMessage, ButtonType.YES, ButtonType.NO);
-
-        redditAlert.setTitle(title);
-
-        redditAlert.showAndWait();
-
-        redditResult = redditAlert.getResult();
-
-        if (redditResult == ButtonType.YES) {
-            redditModel = SocialButterflyApplication.getRedditModel();
-
-            if (redditModel == null) {
-                String message;
-                Alert errorAlert;
-
-                message = "Error: Could not sign into Reddit! Please try again later.";
-
-                errorAlert = new Alert(Alert.AlertType.ERROR, message);
-
-                errorAlert.showAndWait();
-            } //end if
-        } else {
-            redditModel = null;
-        } //end if
+        model = new Model();
 
         file = new File(twitterFileName);
 
         if (file.exists()) {
             try (ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(file))) {
-                readTwitterModel = (TwitterModel) inputStream.readObject();
+                twitterModel = (TwitterModel) inputStream.readObject();
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
             } //end try catch
         } //end if
 
-        if (readTwitterModel == null) {
-            Alert twitterAlert;
-            String twitterMessage = "Would you like to log into Twitter?";
-
-            twitterAlert = new Alert(Alert.AlertType.CONFIRMATION, twitterMessage, ButtonType.YES, ButtonType.NO);
-
-            twitterAlert.setTitle(title);
-
-            twitterAlert.showAndWait();
-
-            twitterResult = twitterAlert.getResult();
-
-            if (twitterResult == ButtonType.YES) {
-                twitterModel = SocialButterflyApplication.getTwitterModel();
-            } else {
-                twitterModel = null;
-            } //end if
-        } else {
-            twitterModel = readTwitterModel;
+        if (twitterModel != null) {
+            model.setTwitterModel(twitterModel);
         } //end if
-
-        if ((twitterModel == null) && (twitterResult == ButtonType.YES)) {
-            String message;
-            Alert errorAlert;
-
-            message = "Error: Could not sign into Twitter! Please try again later.";
-
-            errorAlert = new Alert(Alert.AlertType.ERROR, message);
-
-            errorAlert.showAndWait();
-        } //end if
-
-        instagramAlert = new Alert(Alert.AlertType.CONFIRMATION, instagramMessage, ButtonType.YES, ButtonType.NO);
-
-        instagramAlert.setTitle(title);
-
-        instagramAlert.showAndWait();
-
-        instagramResult = instagramAlert.getResult();
-
-        if (instagramResult == ButtonType.YES) {
-            instagramModel = SocialButterflyApplication.getInstagramModel();
-
-            if (instagramModel == null) {
-                String message;
-                Alert errorAlert;
-
-                message = "Error: Could not sign into Instagram! Please try again later.";
-
-                errorAlert = new Alert(Alert.AlertType.ERROR, message);
-
-                errorAlert.showAndWait();
-            } //end if
-        } else {
-            instagramModel = null;
-        } //end if
-
-        model = new Model(redditModel, twitterModel, instagramModel);
 
         return model;
     } //getModel

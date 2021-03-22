@@ -1,5 +1,6 @@
 package com.butterfly.social.controller.reddit;
 
+import com.butterfly.social.controller.Post;
 import com.butterfly.social.model.Model;
 import com.butterfly.social.model.reddit.RedditModel;
 import com.butterfly.social.view.PostView;
@@ -316,15 +317,20 @@ public final class RedditPostController {
     } //createPostBox
 
     /**
-     * Creates, and returns, a {@code RedditPostController} object using the specified model, view, and all box lock.
+     * Creates, and returns, a {@code RedditPostController} object using the specified model, view, all box lock, and
+     * map from boxes to posts.
      *
      * @param model the model to be used in the operation
      * @param view the view to be used in the operation
      * @param allBoxLock the all box lock to be used in the operation
-     * @return a {@code RedditPostController} object using the specified model, view, and all box lock
-     * @throws NullPointerException if the specified model, view, or all box lock is {@code null}
+     * @param boxesToPosts the map from boxes to posts to be used in the operation
+     * @return a {@code RedditPostController} object using the specified model, view, all box lock, and map from boxes
+     * to posts
+     * @throws NullPointerException if the specified model, view, all box lock, or map from boxes to posts is
+     * {@code null}
      */
-    public static RedditPostController createRedditPostController(Model model, View view, Lock allBoxLock) {
+    public static RedditPostController createRedditPostController(Model model, View view, Lock allBoxLock,
+                                                                  Map<VBox, Post> boxesToPosts) {
         RedditPostController controller;
         PostView postView;
         Button refreshButton;
@@ -332,6 +338,10 @@ public final class RedditPostController {
         VBox allBox;
         Map<String, Submission> idsToSubmissions;
         Set<String> ids;
+
+        Objects.requireNonNull(allBoxLock, "the specified all box lock is null");
+
+        Objects.requireNonNull(boxesToPosts, "the specified map from boxes to posts is null");
 
         controller = new RedditPostController(model, view);
 
@@ -406,6 +416,7 @@ public final class RedditPostController {
             String id;
             VBox vBox;
             VBox vBoxCopy;
+            RedditPost post;
 
             comparator = Comparator.comparing(Submission::getCreated)
                                    .reversed();
@@ -440,6 +451,12 @@ public final class RedditPostController {
                         nodeCopies.add(vBoxCopy);
 
                         nodeCopies.add(new Separator());
+
+                        post = new RedditPost(submission);
+
+                        boxesToPosts.put(vBox, post);
+
+                        boxesToPosts.put(vBoxCopy, post);
                     } //end if
                 } //end for
 
