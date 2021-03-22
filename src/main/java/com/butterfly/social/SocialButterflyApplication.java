@@ -20,6 +20,7 @@ import twitter4j.TwitterException;
 import java.awt.*;
 import java.io.*;
 import java.net.URI;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -270,7 +271,7 @@ public final class SocialButterflyApplication extends Application {
             RedditPostController redditPostController;
             Thread redditThread;
             TwitterPostController twitterPostController;
-            Thread twitterThread;
+            ScheduledExecutorService executorService;
             InstagramPostController instagramPostController;
             Thread instagramThread;
 
@@ -282,7 +283,7 @@ public final class SocialButterflyApplication extends Application {
 
             twitterPostController = controller.getTwitterPostController();
 
-            twitterThread = twitterPostController.getBackgroundThread();
+            executorService = twitterPostController.getExecutorService();
 
             instagramPostController = controller.getInstagramPostController();
 
@@ -300,15 +301,11 @@ public final class SocialButterflyApplication extends Application {
                 redditThread.interrupt();
             } //end if
 
-            if (twitterThread != null) {
-                twitterThread.interrupt();
-            } //end if
+            executorService.shutdown();
 
             if (instagramThread != null) {
                 instagramThread.interrupt();
             } //end if
-
-            System.exit(0);
         });
 
         scene = view.getScene();

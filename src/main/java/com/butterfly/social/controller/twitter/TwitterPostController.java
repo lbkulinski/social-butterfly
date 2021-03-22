@@ -5,7 +5,7 @@ import com.butterfly.social.model.Model;
 import com.butterfly.social.model.twitter.TwitterModel;
 import com.butterfly.social.view.PostView;
 import com.butterfly.social.view.View;
-import javafx.event.ActionEvent;
+import javafx.application.Platform;
 import javafx.scene.CacheHint;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -27,8 +27,10 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoField;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * A controller for Twitter posts of the Social Butterfly application.
@@ -37,11 +39,6 @@ import java.util.concurrent.locks.ReentrantLock;
  * @version March 21, 2021
  */
 public final class TwitterPostController {
-    /**
-     * The lock of this Twitter post controller.
-     */
-    private static final Lock lock;
-
     /**
      * The model of this Twitter post controller.
      */
@@ -53,41 +50,59 @@ public final class TwitterPostController {
     private final View view;
 
     /**
-     * The background thread of this Twitter post controller.
+     * The map from boxes to posts of this Twitter post controller.
      */
-    private Thread backgroundThread;
-
-    static {
-        lock = new ReentrantLock();
-    } //static
+    private final Map<VBox, Post> boxesToPosts;
 
     /**
-     * Constructs a newly allocated {@code TwitterPostController} object with the specified model and view.
+     * The all box lock of this Twitter post controller.
+     */
+    private final Lock allBoxLock;
+
+    /**
+     * The executor service of this Twitter post controller.
+     */
+    private final ScheduledExecutorService executorService;
+
+    /**
+     * Constructs a newly allocated {@code TwitterPostController} object with the specified model, view, map from boxes
+     * to posts, and all box lock.
      *
      * @param model the model to be used in construction
      * @param view the view to be used in construction
-     * @throws NullPointerException if the specified model or view is {@code null}
+     * @param boxesToPosts the map from boxes to posts to be used in construction
+     * @param allBoxLock the all box lock to be used in construction
+     * @throws NullPointerException if the specified model, view, map from boxes to posts, or all box lock is
+     * {@code null}
      */
-    private TwitterPostController(Model model, View view) {
+    private TwitterPostController(Model model, View view, Map<VBox, Post> boxesToPosts, Lock allBoxLock) {
         Objects.requireNonNull(model, "the specified Twitter model is null");
 
         Objects.requireNonNull(view, "the specified view is null");
+
+        Objects.requireNonNull(boxesToPosts, "the specified map from boxes to posts is null");
+
+        Objects.requireNonNull(allBoxLock, "the specified all box lock is null");
 
         this.model = model;
 
         this.view = view;
 
-        this.backgroundThread = null;
+        this.boxesToPosts = boxesToPosts;
+
+        this.allBoxLock = allBoxLock;
+
+        this.executorService = Executors.newSingleThreadScheduledExecutor();
     } //TwitterPostController
 
     /**
-     * Returns the background thread of this Twitter post controller.
+     * Returns the executor service of this Twitter post controller.
      *
-     * @return the background thread of this Twitter post controller
+     * @return the executor service of this Twitter post controller
      */
-    public Thread getBackgroundThread() {
-        return this.backgroundThread;
-    } //getBackgroundThread
+    public ScheduledExecutorService getExecutorService() {
+        return this.executorService;
+    } //getExecutorService
 
     /**
      * Returns the video node for the specified media entity.
@@ -420,182 +435,125 @@ public final class TwitterPostController {
     } //createPostBox
 
     /**
-     * Creates, and returns, a {@code TwitterPostController} object using the specified model, view, all box lock, and
-     * map from boxes to posts.
-     *
-     * @param model the model to be used in the operation
-     * @param view the view to be used in the operation
-     * @param allBoxLock the all box lock to be used in the operation
-     * @param boxesToPosts the map from boxes to posts to be used in the operation
-     * @return a {@code TwitterPostController} object using the specified model, view, all box lock, and map from boxes
-     * to posts
-     * @throws NullPointerException if the specified model, view, all box lock, or map from boxes to posts is
-     * {@code null}
+     * Updates the posts of this Twitter post controller.
      */
-    public static TwitterPostController createTwitterPostController(Model model, View view, Lock allBoxLock,
-                                                                    Map<VBox, Post> boxesToPosts) {
-        TwitterPostController controller;
+    private void updatePosts() {
+        TwitterModel twitterModel;
+        Twitter twitter;
+        Paging paging;
+        int count = 200;
+        List<Status> statuses;
+        Set<Long> ids;
+        List<Node> nodes;
+        List<Node> nodeCopies;
+        long id;
+        VBox vBox;
+        VBox vBoxCopy;
+        TwitterPost post;
         PostView postView;
-        Button refreshButton;
         VBox twitterBox;
         VBox allBox;
-        Set<Long> ids;
-        Map<Long, Status> idsToStatuses;
-        TwitterListener twitterListener;
 
-        Objects.requireNonNull(allBoxLock, "the specified all box lock is null");
+        twitterModel = this.model.getTwitterModel();
 
-        Objects.requireNonNull(boxesToPosts, "the specified map from boxes to posts is null");
+        if (twitterModel == null) {
+            return;
+        } //end if
 
-        controller = new TwitterPostController(model, view);
+        twitter = twitterModel.getTwitter();
 
-        postView = controller.view.getPostView();
+        paging = new Paging();
 
-        refreshButton = postView.getRefreshButton();
+        paging.setCount(count);
+
+        try {
+            statuses = twitter.getHomeTimeline(paging);
+        } catch (TwitterException e) {
+            e.printStackTrace();
+
+            return;
+        } //end try catch
+
+        ids = new HashSet<>();
+
+        nodes = new ArrayList<>();
+
+        nodeCopies = new ArrayList<>();
+
+        for (Status status : statuses) {
+            id = status.getId();
+
+            if (!ids.contains(id)) {
+                ids.add(id);
+
+                vBox = this.createBox(status, false);
+
+                vBoxCopy = this.createBox(status, true);
+
+                nodes.add(vBox);
+
+                nodes.add(new Separator());
+
+                nodeCopies.add(vBoxCopy);
+
+                nodeCopies.add(new Separator());
+
+                post = new TwitterPost(status);
+
+                this.boxesToPosts.put(vBox, post);
+
+                this.boxesToPosts.put(vBoxCopy, post);
+            } //end if
+        } //end for
+
+        postView = this.view.getPostView();
 
         twitterBox = postView.getTwitterBox();
 
         allBox = postView.getAllBox();
 
-        ids = new HashSet<>();
+        Platform.runLater(() -> twitterBox.getChildren()
+                                          .addAll(0, nodes));
 
-        idsToStatuses = new HashMap<>();
-
-        twitterListener = new TwitterAdapter() {
-            @Override
-            public void gotHomeTimeline(ResponseList<Status> statuses) {
-                long id;
-
-                lock.lock();
-
-                try {
-                    for (Status status : statuses) {
-                        id = status.getId();
-
-                        idsToStatuses.put(id, status);
-                    } //end for
-                } finally {
-                    lock.unlock();
-                } //end try finally
-            } //gotHomeTimeline
-        };
-
-        controller.backgroundThread = new Thread(() -> {
-            TwitterModel twitterModel;
-            Twitter twitter;
-            AsyncTwitterFactory factory;
-            AsyncTwitter asyncTwitter;
-            Paging paging;
-            int count = 200;
-            int amount = 60_000;
-
-            twitterModel = controller.model.getTwitterModel();
-
-            while (twitterModel == null) {
-                try {
-                    Thread.sleep(amount);
-                } catch (InterruptedException e) {
-                    return;
-                } //end try catch
-
-                twitterModel = controller.model.getTwitterModel();
-            } //end while
-
-            twitter = twitterModel.getTwitter();
-
-            factory = new AsyncTwitterFactory();
-
-            asyncTwitter = factory.getInstance(twitter);
-
-            asyncTwitter.addListener(twitterListener);
-
-            paging = new Paging();
-
-            paging.setCount(count);
-
-            while (true) {
-                asyncTwitter.getHomeTimeline(paging);
-
-                try {
-                    Thread.sleep(amount);
-                } catch (InterruptedException e) {
-                    return;
-                } //end try catch
-            } //end while
-        });
-
-        controller.backgroundThread.start();
-
-        refreshButton.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
-            Comparator<Status> comparator;
-            Collection<Status> values;
-            Set<Status> statuses;
-            List<Node> nodes;
-            List<Node> nodeCopies;
-            long id;
-            VBox vBox;
-            VBox vBoxCopy;
-            TwitterPost post;
-
-            comparator = Comparator.comparing(Status::getCreatedAt)
-                                   .reversed();
-
-            lock.lock();
-
-            try {
-                values = idsToStatuses.values();
-
-                statuses = new TreeSet<>(comparator);
-
-                statuses.addAll(values);
-
-                nodes = new ArrayList<>();
-
-                nodeCopies = new ArrayList<>();
-
-                for (Status status : statuses) {
-                    id = status.getId();
-
-                    if (!ids.contains(id)) {
-                        ids.add(id);
-
-                        vBox = controller.createBox(status, false);
-
-                        vBoxCopy = controller.createBox(status, true);
-
-                        nodes.add(vBox);
-
-                        nodes.add(new Separator());
-
-                        nodeCopies.add(vBoxCopy);
-
-                        nodeCopies.add(new Separator());
-
-                        post = new TwitterPost(status);
-
-                        boxesToPosts.put(vBox, post);
-
-                        boxesToPosts.put(vBoxCopy, post);
-                    } //end if
-                } //end for
-
-                idsToStatuses.clear();
-            } finally {
-                lock.unlock();
-            } //end try finally
-
-            twitterBox.getChildren()
-                      .addAll(0, nodes);
-
-            allBoxLock.lock();
+        Platform.runLater(() -> {
+            this.allBoxLock.lock();
 
             try {
                 allBox.getChildren()
                       .addAll(0, nodeCopies);
             } finally {
-                allBoxLock.unlock();
+                this.allBoxLock.unlock();
             } //end try finally
         });
+    } //updatePosts
+
+    /**
+     * Creates, and returns, a {@code TwitterPostController} object using the specified model, view, map from boxes to
+     * posts, and all box lock.
+     *
+     * @param model the model to be used in the operation
+     * @param view the view to be used in the operation
+     * @param boxesToPosts the map from boxes to posts to be used in the operation
+     * @param allBoxLock the all box lock to be used in the operation
+     * @return a {@code TwitterPostController} object using the specified model, view, map from boxes to posts, and all
+     * box lock
+     * @throws NullPointerException if the specified model, view, map from boxes to posts, or all box lock is
+     * {@code null}
+     */
+    public static TwitterPostController createTwitterPostController(Model model, View view,
+                                                                    Map<VBox, Post> boxesToPosts, Lock allBoxLock) {
+        TwitterPostController controller;
+        ScheduledExecutorService executorService;
+        int delay = 0;
+        int period = 1;
+
+        Objects.requireNonNull(boxesToPosts, "the specified map from boxes to posts is null");
+
+        Objects.requireNonNull(allBoxLock, "the specified all box lock is null");
+
+        controller = new TwitterPostController(model, view, boxesToPosts, allBoxLock);
+
+        controller.executorService.scheduleAtFixedRate(controller::updatePosts, delay, period, TimeUnit.MINUTES);
 
         return controller;
     } //createTwitterPostController
