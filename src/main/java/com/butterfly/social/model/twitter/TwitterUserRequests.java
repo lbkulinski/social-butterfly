@@ -3,21 +3,35 @@ package com.butterfly.social.model.twitter;
 import java.io.Serializable;
 import twitter4j.Twitter;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.Iterator;
+
+import twitter4j.AsyncTwitter;
+import twitter4j.AsyncTwitterFactory;
+import twitter4j.Paging;
+import twitter4j.ResponseList;
 import twitter4j.Status;
 import twitter4j.TwitterException;
 import twitter4j.User;
+import twitter4j.DirectMessage;
+import twitter4j.DirectMessageList;
+
 import java.net.URI;
 import java.net.URISyntaxException;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
 public final class TwitterUserRequests implements Serializable {
+    Thread backgroundDMThread;
     private Twitter twitter;
+    private AsyncTwitter asyncTwitter;
+    private AsyncTwitterFactory factory;
     private TwitterUserProfile profile;
 
     public TwitterUserRequests() {
         this.twitter = null;
         this.profile = null;
+        factory = new AsyncTwitterFactory();
     } //TwitterUserRequests
 
     public void setTwitter(Twitter twitter) throws TwitterException {
@@ -48,4 +62,36 @@ public final class TwitterUserRequests implements Serializable {
 
         return result.toString();
     } //timelineToString
+
+    public List<DirectMessage> getDirectMessages() throws TwitterException {
+        /*
+        asyncTwitter = factory.getInstance(twitter);
+        this.backgroundDMThread = new Thread(() -> {
+            Paging paging;
+            int count = 200;
+            int amount = 60_000;
+
+            paging = new Paging();
+
+            paging.setCount(count);
+
+            while (true) {
+                asyncTwitter.getDirectMessages(paging);
+                try {
+                    Thread.sleep(amount);
+                } catch (InterruptedException e) {
+                    return;
+                } //end try catch
+            } //end while
+        });
+        backgroundDMThread.start();
+        */
+        DirectMessageList responses = twitter.getDirectMessages(20);
+        List<DirectMessage> messages = new ArrayList<DirectMessage>();
+        Iterator<DirectMessage> iterator = responses.iterator();
+        while(iterator.hasNext()) {
+            messages.add(iterator.next());
+        }
+        return messages;
+    }
 }
