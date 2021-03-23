@@ -47,6 +47,8 @@ public final class InstagramModel implements Serializable {
         return this.client.getSelfProfile().is_verified();
     }
 
+    public void setBio(String newBio) { this.client.actions().account().setBio(newBio); }
+
 
     public static InstagramModel createInstagramModel(String username, String password) {
         InstagramModel instagramModel;

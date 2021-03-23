@@ -434,6 +434,41 @@ public final class MenuController {
         alert.show();
     } //viewInstagramProfile
 
+    private void editInstagramBio() {
+        InstagramModel instagramModel;
+        Alert alert;
+        String title = "Social Butterfly";
+        String headerText = "Enter your new bio ";
+        String newBio;
+        TextInputDialog bioInputDialog;
+
+        instagramModel = this.model.getInstagramModel();
+
+        if (instagramModel == null) {
+            String message = "You are not signed into Instagram!";
+
+            alert = new Alert(Alert.AlertType.ERROR, message);
+
+            alert.show();
+
+            return;
+        } //end if
+
+        bioInputDialog = new TextInputDialog();
+
+        bioInputDialog.setTitle(title);
+
+        bioInputDialog.setHeaderText(headerText);
+
+        bioInputDialog.showAndWait();
+
+        newBio = bioInputDialog.getResult();
+
+        if (newBio != null) {
+            instagramModel.setBio(newBio);
+        }
+    } //editInstagramBio
+
     /**
      * Switches the user interface to light mode.
      */
@@ -693,6 +728,7 @@ public final class MenuController {
         MenuItem twitterProfileMenuItem;
         MenuItem instagramLogInMenuItem;
         MenuItem instagramProfileMenuItem;
+        MenuItem instagramBioMenuItem;
         RadioMenuItem lightRadioMenuItem;
         RadioMenuItem darkRadioMenuItem;
         RadioMenuItem tabRadioMenuItem;
@@ -715,6 +751,8 @@ public final class MenuController {
 
         instagramProfileMenuItem = menuView.getInstagramProfileMenuItem();
 
+        instagramBioMenuItem = menuView.getInstagramBioMenuItem();
+
         lightRadioMenuItem = menuView.getLightRadioMenuItem();
 
         darkRadioMenuItem = menuView.getDarkRadioMenuItem();
@@ -735,6 +773,8 @@ public final class MenuController {
 
         instagramProfileMenuItem.addEventHandler(ActionEvent.ACTION,
                                                  (actionEvent) -> controller.viewInstagramProfile());
+
+        instagramBioMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.editInstagramBio());
 
         lightRadioMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.switchToLightMode());
 
