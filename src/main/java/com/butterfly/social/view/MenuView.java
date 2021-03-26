@@ -45,6 +45,11 @@ public final class MenuView {
     private final MenuItem instagramBioMenuItem;
 
     /**
+     * The Instagram search menu item of this menu view.
+     */
+    private final MenuItem instagramSearchMenuItem;
+
+    /**
      * The light radio menu item of this menu view.
      */
     private final RadioMenuItem lightRadioMenuItem;
@@ -96,6 +101,7 @@ public final class MenuView {
         String logInText = "Log In";
         String profileText = "View Profile";
         String editBioText = "Edit Bio";
+        String searchUsersText = "Search For Users";
         String lightText = "Light";
         String darkText = "Dark";
         String tabText = "Tab";
@@ -120,6 +126,8 @@ public final class MenuView {
 
         this.instagramBioMenuItem = new MenuItem(editBioText);
 
+        this.instagramSearchMenuItem = new MenuItem(searchUsersText);
+
         this.lightRadioMenuItem = new RadioMenuItem(lightText);
 
         this.darkRadioMenuItem = new RadioMenuItem(darkText);
@@ -133,7 +141,7 @@ public final class MenuView {
         this.twitterMenu = new Menu(twitterText, null, this.twitterLogInMenuItem, this.twitterProfileMenuItem);
 
         this.instagramMenu = new Menu(instagramText, null, this.instagramLogInMenuItem, this.instagramProfileMenuItem,
-                                    this.instagramBioMenuItem);
+                                    this.instagramBioMenuItem, this.instagramSearchMenuItem);
 
         separator = new SeparatorMenuItem();
 
@@ -204,6 +212,15 @@ public final class MenuView {
      */
     public MenuItem getInstagramBioMenuItem() {
         return this.instagramBioMenuItem;
+    } //getInstagramBioMenuItem
+
+    /**
+     * Returns the Instagram search menu item of this menu view.
+     *
+     * @return the Instagram search menu item of this menu view
+     */
+    public MenuItem getInstagramSearchMenuItem() {
+        return this.instagramSearchMenuItem;
     } //getInstagramBioMenuItem
 
     /**

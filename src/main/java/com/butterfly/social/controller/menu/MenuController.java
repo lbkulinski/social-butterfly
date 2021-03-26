@@ -12,6 +12,7 @@ import com.butterfly.social.model.twitter.TwitterUserProfile;
 import com.butterfly.social.view.MenuView;
 import com.butterfly.social.view.PostView;
 import com.butterfly.social.view.View;
+import com.github.instagram4j.instagram4j.responses.users.UsersSearchResponse;
 import javafx.event.ActionEvent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -23,9 +24,7 @@ import net.dean.jraw.references.OtherUserReference;
 import java.net.URL;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /**
  * A controller for the menu of the Social Butterfly application.
@@ -434,6 +433,9 @@ public final class MenuController {
         alert.show();
     } //viewInstagramProfile
 
+    /**
+     * Edits the user's Instagram bio.
+     */
     private void editInstagramBio() {
         InstagramModel instagramModel;
         Alert alert;
@@ -468,6 +470,75 @@ public final class MenuController {
             instagramModel.setBio(newBio);
         }
     } //editInstagramBio
+
+    /**
+     * Attempts to search for other users on Instagram.
+     */
+    private void searchUsersOnInstagram() {
+        InstagramModel instagramModel;
+        Alert alert;
+        String title = "Social Butterfly";
+        String headerText = "Enter a username to search for ";
+        String resultHeaderText = "Usernames found similar to ";
+        String searchUser;
+        String searchResults = "";
+        TextInputDialog userInputDialog;
+
+        instagramModel = this.model.getInstagramModel();
+
+        if (instagramModel == null) {
+            String message = "You are not signed into Instagram!";
+
+            alert = new Alert(Alert.AlertType.ERROR, message);
+
+            alert.show();
+
+            return;
+        } //end if
+
+        userInputDialog = new TextInputDialog();
+
+        userInputDialog.setTitle(title);
+
+        userInputDialog.setHeaderText(headerText);
+
+        userInputDialog.showAndWait();
+
+        searchUser = userInputDialog.getResult();
+
+        if (searchUser.isBlank() || searchUser.isEmpty()) {
+            return;
+        }
+
+        UsersSearchResponse searchResponse = null;
+        try {
+            searchResponse = instagramModel.searchForUsers(searchUser).get();
+        } catch (InterruptedException e) {
+            resultHeaderText = "No results found";
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            resultHeaderText = "No results found";
+            e.printStackTrace();
+        }
+
+        if (searchResponse != null) {
+            for (int i = 0; (i < 10) && (i < searchResponse.getNum_results()); i++) {
+                searchResults += searchResponse.getUsers().get(i).getUsername() + "\n";
+            }
+        }
+
+        alert = new Alert(Alert.AlertType.INFORMATION);
+
+        alert.setTitle(title);
+
+        resultHeaderText += searchUser;
+
+        alert.setHeaderText(resultHeaderText);
+
+        alert.setContentText(searchResults);
+
+        alert.show();
+    } //searchUsersOnInstagram
 
     /**
      * Switches the user interface to light mode.
@@ -729,6 +800,7 @@ public final class MenuController {
         MenuItem instagramLogInMenuItem;
         MenuItem instagramProfileMenuItem;
         MenuItem instagramBioMenuItem;
+        MenuItem instagramSearchMenuItem;
         RadioMenuItem lightRadioMenuItem;
         RadioMenuItem darkRadioMenuItem;
         RadioMenuItem tabRadioMenuItem;
@@ -753,6 +825,8 @@ public final class MenuController {
 
         instagramBioMenuItem = menuView.getInstagramBioMenuItem();
 
+        instagramSearchMenuItem = menuView.getInstagramSearchMenuItem();
+
         lightRadioMenuItem = menuView.getLightRadioMenuItem();
 
         darkRadioMenuItem = menuView.getDarkRadioMenuItem();
@@ -775,6 +849,8 @@ public final class MenuController {
                                                  (actionEvent) -> controller.viewInstagramProfile());
 
         instagramBioMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.editInstagramBio());
+
+        instagramSearchMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.searchUsersOnInstagram());
 
         lightRadioMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.switchToLightMode());
 

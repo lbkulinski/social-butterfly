@@ -2,11 +2,13 @@ package com.butterfly.social.model.instagram;
 
 import com.github.instagram4j.instagram4j.IGClient;
 import com.github.instagram4j.instagram4j.exceptions.IGLoginException;
+import com.github.instagram4j.instagram4j.responses.users.UsersSearchResponse;
 import com.github.instagram4j.instagram4j.utils.IGChallengeUtils;
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.Scanner;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 
 public final class InstagramModel implements Serializable {
     private IGClient client;
@@ -48,6 +50,8 @@ public final class InstagramModel implements Serializable {
     }
 
     public void setBio(String newBio) { this.client.actions().account().setBio(newBio); }
+
+    public CompletableFuture<UsersSearchResponse> searchForUsers(String searchUser) { return this.client.actions().search().searchUser(searchUser); }
 
 
     public static InstagramModel createInstagramModel(String username, String password) {
