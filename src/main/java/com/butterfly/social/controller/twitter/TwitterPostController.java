@@ -37,7 +37,7 @@ import java.util.concurrent.locks.Lock;
  * A controller for Twitter posts of the Social Butterfly application.
  *
  * @author Logan Kulinski, lbk@purdue.edu
- * @version March 26, 2021
+ * @version March 27, 2021
  */
 public final class TwitterPostController {
     /**
@@ -483,14 +483,14 @@ public final class TwitterPostController {
     } //createRetweetMenuItem
 
     /**
-     * Handles a mouse click on the specified box at the location of the specified x coordinate and y coordinate.
+     * Displays a context menu on the specified box at the location of the specified x coordinate and y coordinate.
      *
      * @param box the box to be used in the operation
      * @param x the x coordinate to be used in the operation
      * @param y the y coordinate to be used in the operation
      * @throws NullPointerException if the specified box is {@code null}
      */
-    private void handleMouseClick(VBox box, double x, double y) {
+    private void displayContextMenu(VBox box, double x, double y) {
         Post post;
         TwitterPost twitterPost;
         Status status;
@@ -539,7 +539,7 @@ public final class TwitterPostController {
         contextMenu = new ContextMenu(menuItem0, menuItem1);
 
         contextMenu.show(box, x, y);
-    } //handleMouseClick
+    } //displayContextMenu
 
     /**
      * Returns a box for the specified status.
@@ -650,7 +650,7 @@ public final class TwitterPostController {
 
             screenY = contextMenuEvent.getScreenY();
 
-            this.handleMouseClick(vBox, screenX, screenY);
+            this.displayContextMenu(vBox, screenX, screenY);
         });
 
         return vBox;
