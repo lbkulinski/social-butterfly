@@ -6,6 +6,7 @@ import com.butterfly.social.model.twitter.TwitterModel;
 import com.butterfly.social.view.PostView;
 import com.butterfly.social.view.View;
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
 import javafx.scene.CacheHint;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -21,6 +22,7 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
 import twitter4j.*;
+import twitter4j.api.FavoritesResources;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.LocalDateTime;
@@ -29,14 +31,13 @@ import java.time.temporal.ChronoField;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 
 /**
  * A controller for Twitter posts of the Social Butterfly application.
  *
  * @author Logan Kulinski, lbk@purdue.edu
- * @version March 22, 2021
+ * @version March 26, 2021
  */
 public final class TwitterPostController {
     /**
@@ -338,6 +339,209 @@ public final class TwitterPostController {
     } //getMediaAccordion
 
     /**
+     * Returns a remove favorite menu item using the specified favorites resources, ID, and box.
+     *
+     * @param favoritesResources the favorites resources to be used in the operation
+     * @param id the ID to be used in the operation
+     * @param box the box to be used in the operation
+     * @return a remove favorite menu item using the specified favorites resources, ID, and box
+     * @throws NullPointerException if the specified favorites resources or box is {@code null}
+     */
+    private MenuItem createRemoveFavoriteMenuItem(FavoritesResources favoritesResources, long id, VBox box) {
+        MenuItem removeFavoriteMenuItem;
+
+        Objects.requireNonNull(favoritesResources, "the specified favorites resources is null");
+
+        Objects.requireNonNull(box, "the specified box is null");
+
+        removeFavoriteMenuItem = new MenuItem("Remove Favorite");
+
+        removeFavoriteMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
+            Status newStatus;
+            TwitterPost newTwitterPost;
+
+            try {
+                newStatus = favoritesResources.destroyFavorite(id);
+
+                newTwitterPost = new TwitterPost(newStatus);
+
+                this.boxesToPosts.put(box, newTwitterPost);
+            } catch (TwitterException e) {
+                e.printStackTrace();
+            } //end try catch
+        });
+
+        return removeFavoriteMenuItem;
+    } //createRemoveFavoriteMenuItem
+
+    /**
+     * Returns a favorite menu item using the specified favorites resources, ID, and box.
+     *
+     * @param favoritesResources the favorites resources to be used in the operation
+     * @param id the ID to be used in the operation
+     * @param box the box to be used in the operation
+     * @return a favorite menu item using the specified favorites resources, ID, and box
+     * @throws NullPointerException if the specified favorites resources or box is {@code null}
+     */
+    private MenuItem createFavoriteMenuItem(FavoritesResources favoritesResources, long id, VBox box) {
+        MenuItem favoriteMenuItem;
+
+        Objects.requireNonNull(favoritesResources, "the specified favorites resources is null");
+
+        Objects.requireNonNull(box, "the specified box is null");
+
+        favoriteMenuItem = new MenuItem("Favorite");
+
+        favoriteMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
+            Status newStatus;
+            TwitterPost newTwitterPost;
+
+            try {
+                newStatus = favoritesResources.createFavorite(id);
+
+                newTwitterPost = new TwitterPost(newStatus);
+
+                this.boxesToPosts.put(box, newTwitterPost);
+            } catch (TwitterException e) {
+                e.printStackTrace();
+            } //end try catch
+        });
+
+        return favoriteMenuItem;
+    } //createFavoriteMenuItem
+
+    /**
+     * Returns a remove retweet menu item using the specified Twitter, ID, and box.
+     *
+     * @param twitter the Twitter to be used in the operation
+     * @param id the ID to be used in the operation
+     * @param box the box to be used in the operation
+     * @return a remove retweet menu item using the specified Twitter, ID, and box
+     * @throws NullPointerException if the specified Twitter or box is {@code null}
+     */
+    private MenuItem createRemoveRetweetMenuItem(Twitter twitter, long id, VBox box) {
+        MenuItem removeRetweetMenuItem;
+
+        Objects.requireNonNull(twitter, "the specified Twitter is null");
+
+        Objects.requireNonNull(box, "the specified box is null");
+
+        removeRetweetMenuItem = new MenuItem("Remove Retweet");
+
+        removeRetweetMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
+            Status newStatus;
+            TwitterPost newTwitterPost;
+
+            try {
+                newStatus = twitter.unRetweetStatus(id);
+
+                newTwitterPost = new TwitterPost(newStatus);
+
+                this.boxesToPosts.put(box, newTwitterPost);
+            } catch (TwitterException e) {
+                e.printStackTrace();
+            } //end try catch
+        });
+
+        return removeRetweetMenuItem;
+    } //createRemoveRetweetMenuItem
+
+    /**
+     * Returns a retweet menu item using the specified Twitter, ID, and box.
+     *
+     * @param twitter the Twitter to be used in the operation
+     * @param id the ID to be used in the operation
+     * @param box the box to be used in the operation
+     * @return a retweet menu item using the specified Twitter, ID, and box
+     * @throws NullPointerException if the specified Twitter or box is {@code null}
+     */
+    private MenuItem createRetweetMenuItem(Twitter twitter, long id, VBox box) {
+        MenuItem retweetMenuItem;
+
+        Objects.requireNonNull(twitter, "the specified Twitter is null");
+
+        Objects.requireNonNull(box, "the specified box is null");
+
+        retweetMenuItem = new MenuItem("Retweet");
+
+        retweetMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
+            Status newStatus;
+            TwitterPost newTwitterPost;
+
+            try {
+                newStatus = twitter.retweetStatus(id);
+
+                newTwitterPost = new TwitterPost(newStatus);
+
+                this.boxesToPosts.put(box, newTwitterPost);
+            } catch (TwitterException e) {
+                e.printStackTrace();
+            } //end try catch
+        });
+
+        return retweetMenuItem;
+    } //createRetweetMenuItem
+
+    /**
+     * Handles a mouse click on the specified box at the location of the specified x coordinate and y coordinate.
+     *
+     * @param box the box to be used in the operation
+     * @param x the x coordinate to be used in the operation
+     * @param y the y coordinate to be used in the operation
+     * @throws NullPointerException if the specified box is {@code null}
+     */
+    private void handleMouseClick(VBox box, double x, double y) {
+        Post post;
+        TwitterPost twitterPost;
+        Status status;
+        long id;
+        TwitterModel twitterModel;
+        Twitter twitter;
+        FavoritesResources favoritesResources;
+        MenuItem menuItem0;
+        MenuItem menuItem1;
+        ContextMenu contextMenu;
+
+        Objects.requireNonNull(box, "the specified box is null");
+
+        post = this.boxesToPosts.get(box);
+
+        if (post == null) {
+            return;
+        } else if (!(post instanceof TwitterPost)) {
+            throw new IllegalStateException("a box is mapped to the wrong post type");
+        } //end if
+
+        twitterPost = (TwitterPost) post;
+
+        status = twitterPost.getStatus();
+
+        id = status.getId();
+
+        twitterModel = this.model.getTwitterModel();
+
+        twitter = twitterModel.getTwitter();
+
+        favoritesResources = twitter.favorites();
+
+        if (status.isFavorited()) {
+            menuItem0 = this.createRemoveFavoriteMenuItem(favoritesResources, id, box);
+        } else {
+            menuItem0 = this.createFavoriteMenuItem(favoritesResources, id, box);
+        } //end if
+
+        if (status.isRetweeted()) {
+            menuItem1 = this.createRemoveRetweetMenuItem(twitter, id, box);
+        } else {
+            menuItem1 = this.createRetweetMenuItem(twitter, id, box);
+        } //end if
+
+        contextMenu = new ContextMenu(menuItem0, menuItem1);
+
+        contextMenu.show(box, x, y);
+    } //handleMouseClick
+
+    /**
      * Returns a box for the specified status.
      *
      * @param status the status to be used in the operation
@@ -437,6 +641,17 @@ public final class TwitterPostController {
 
             vBox = new VBox(nameLabel, text, accordion, dateTimeLabel);
         } //end if
+
+        vBox.setOnContextMenuRequested((contextMenuEvent) -> {
+            double screenX;
+            double screenY;
+
+            screenX = contextMenuEvent.getScreenX();
+
+            screenY = contextMenuEvent.getScreenY();
+
+            this.handleMouseClick(vBox, screenX, screenY);
+        });
 
         return vBox;
     } //createPostBox
