@@ -50,6 +50,11 @@ public final class MenuView {
     private final MenuItem instagramSearchMenuItem;
 
     /**
+     * The Instagram profile picture menu item of this menu view.
+     */
+    private final MenuItem instagramProfilePictureItem;
+
+    /**
      * The light radio menu item of this menu view.
      */
     private final RadioMenuItem lightRadioMenuItem;
@@ -102,6 +107,7 @@ public final class MenuView {
         String profileText = "View Profile";
         String editBioText = "Edit Bio";
         String searchUsersText = "Search For Users";
+        String profilePictureText = "Set Profile Picture";
         String lightText = "Light";
         String darkText = "Dark";
         String tabText = "Tab";
@@ -128,6 +134,8 @@ public final class MenuView {
 
         this.instagramSearchMenuItem = new MenuItem(searchUsersText);
 
+        this.instagramProfilePictureItem = new MenuItem(profilePictureText);
+
         this.lightRadioMenuItem = new RadioMenuItem(lightText);
 
         this.darkRadioMenuItem = new RadioMenuItem(darkText);
@@ -141,7 +149,7 @@ public final class MenuView {
         this.twitterMenu = new Menu(twitterText, null, this.twitterLogInMenuItem, this.twitterProfileMenuItem);
 
         this.instagramMenu = new Menu(instagramText, null, this.instagramLogInMenuItem, this.instagramProfileMenuItem,
-                                    this.instagramBioMenuItem, this.instagramSearchMenuItem);
+                                    this.instagramBioMenuItem, this.instagramSearchMenuItem, this.instagramProfilePictureItem);
 
         separator = new SeparatorMenuItem();
 
@@ -221,6 +229,15 @@ public final class MenuView {
      */
     public MenuItem getInstagramSearchMenuItem() {
         return this.instagramSearchMenuItem;
+    } //getInstagramBioMenuItem
+
+    /**
+     * Returns the Instagram profile picture menu item of this menu view.
+     *
+     * @return the Instagram profile picture menu item of this menu view
+     */
+    public MenuItem getInstagramProfilePictureMenuItem() {
+        return this.instagramProfilePictureItem;
     } //getInstagramBioMenuItem
 
     /**

@@ -541,6 +541,13 @@ public final class MenuController {
     } //searchUsersOnInstagram
 
     /**
+     * Allows users
+     */
+    private void setInstagramProfilePicture() {
+
+    }
+
+    /**
      * Switches the user interface to light mode.
      */
     private void switchToLightMode() {
@@ -801,6 +808,7 @@ public final class MenuController {
         MenuItem instagramProfileMenuItem;
         MenuItem instagramBioMenuItem;
         MenuItem instagramSearchMenuItem;
+        MenuItem instagramProfilePictureItem;
         RadioMenuItem lightRadioMenuItem;
         RadioMenuItem darkRadioMenuItem;
         RadioMenuItem tabRadioMenuItem;
@@ -827,6 +835,8 @@ public final class MenuController {
 
         instagramSearchMenuItem = menuView.getInstagramSearchMenuItem();
 
+        instagramProfilePictureItem = menuView.getInstagramProfilePictureMenuItem();
+
         lightRadioMenuItem = menuView.getLightRadioMenuItem();
 
         darkRadioMenuItem = menuView.getDarkRadioMenuItem();
@@ -851,6 +861,8 @@ public final class MenuController {
         instagramBioMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.editInstagramBio());
 
         instagramSearchMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.searchUsersOnInstagram());
+
+        instagramProfilePictureItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.setInstagramProfilePicture());
 
         lightRadioMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.switchToLightMode());
 
