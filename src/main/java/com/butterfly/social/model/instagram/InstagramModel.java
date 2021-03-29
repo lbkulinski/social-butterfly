@@ -4,6 +4,8 @@ import com.github.instagram4j.instagram4j.IGClient;
 import com.github.instagram4j.instagram4j.exceptions.IGLoginException;
 import com.github.instagram4j.instagram4j.responses.users.UsersSearchResponse;
 import com.github.instagram4j.instagram4j.utils.IGChallengeUtils;
+
+import java.io.File;
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.Scanner;
@@ -52,6 +54,10 @@ public final class InstagramModel implements Serializable {
     public void setBio(String newBio) { this.client.actions().account().setBio(newBio); }
 
     public CompletableFuture<UsersSearchResponse> searchForUsers(String searchUser) { return this.client.actions().search().searchUser(searchUser); }
+
+    public void setProfilePicture(File newProfilePicture) {
+        this.client.actions().account().setProfilePicture(newProfilePicture);
+    }
 
 
     public static InstagramModel createInstagramModel(String username, String password) {
