@@ -2,11 +2,17 @@ package com.butterfly.social.model.instagram;
 
 import com.github.instagram4j.instagram4j.IGClient;
 import com.github.instagram4j.instagram4j.exceptions.IGLoginException;
+import com.github.instagram4j.instagram4j.models.user.Profile;
+import com.github.instagram4j.instagram4j.requests.IGGetRequest;
+import com.github.instagram4j.instagram4j.requests.direct.DirectInboxRequest;
+import com.github.instagram4j.instagram4j.responses.direct.DirectInboxResponse;
 import com.github.instagram4j.instagram4j.utils.IGChallengeUtils;
 import java.io.Serializable;
+import java.util.List;
 import java.util.Objects;
 import java.util.Scanner;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 
 public final class InstagramModel implements Serializable {
     private IGClient client;
@@ -45,6 +51,19 @@ public final class InstagramModel implements Serializable {
 
     public boolean isVerified() {
         return this.client.getSelfProfile().is_verified();
+    }
+
+    public List<String> getDirectMessages() {
+        DirectInboxRequest dmRequest = new DirectInboxRequest();
+        DirectInboxResponse dmResponse = dmRequest.execute(this.client).join();
+        dmResponse.getInbox().getThreads().forEach(thread -> {
+            String threadID = thread.getThread_id();
+            String threadTitle = thread.getThread_title();
+            List<Profile> profiles = thread.getUsers();
+            thread.getItems();
+
+        });
+        return null;
     }
 
 

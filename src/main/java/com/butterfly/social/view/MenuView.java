@@ -20,6 +20,11 @@ public final class MenuView {
     private final MenuItem redditProfileMenuItem;
 
     /**
+     * The Reddit messages menu item of this menu view.
+     */
+    private final MenuItem redditMessagesMenuItem;
+
+    /**
      * The Twitter log in menu item of this menu view.
      */
     private final MenuItem twitterLogInMenuItem;
@@ -30,6 +35,11 @@ public final class MenuView {
     private final MenuItem twitterProfileMenuItem;
 
     /**
+     * The Twitter messages menu item of this menu view.
+     */
+    private final MenuItem twitterMessagesMenuItem;
+
+    /**
      * The Instagram log in menu item of this menu view.
      */
     private final MenuItem instagramLogInMenuItem;
@@ -38,6 +48,11 @@ public final class MenuView {
      * The Instagram profile menu item of this menu view.
      */
     private final MenuItem instagramProfileMenuItem;
+
+    /**
+     * The Instagram messages menu item of this menu view.
+     */
+    private final MenuItem instagramMessagesMenuItem;
 
     /**
      * The light radio menu item of this menu view.
@@ -90,6 +105,7 @@ public final class MenuView {
     private MenuView() {
         String logInText = "Log In";
         String profileText = "View Profile";
+        String messagesText = "Direct Messages";
         String lightText = "Light";
         String darkText = "Dark";
         String tabText = "Tab";
@@ -104,13 +120,19 @@ public final class MenuView {
 
         this.redditProfileMenuItem = new MenuItem(profileText);
 
+        this.redditMessagesMenuItem = new MenuItem(messagesText);
+
         this.twitterLogInMenuItem = new MenuItem(logInText);
 
         this.twitterProfileMenuItem = new MenuItem(profileText);
 
+        this.twitterMessagesMenuItem = new MenuItem(messagesText);
+
         this.instagramLogInMenuItem = new MenuItem(logInText);
 
         this.instagramProfileMenuItem = new MenuItem(profileText);
+
+        this.instagramMessagesMenuItem = new MenuItem(messagesText);
 
         this.lightRadioMenuItem = new RadioMenuItem(lightText);
 
@@ -120,11 +142,11 @@ public final class MenuView {
 
         this.splitRadioMenuItem = new RadioMenuItem(splitText);
 
-        this.redditMenu = new Menu(redditText, null, this.redditLogInMenuItem, this.redditProfileMenuItem);
+        this.redditMenu = new Menu(redditText, null, this.redditLogInMenuItem, this.redditProfileMenuItem, this.redditMessagesMenuItem);
 
-        this.twitterMenu = new Menu(twitterText, null, this.twitterLogInMenuItem, this.twitterProfileMenuItem);
+        this.twitterMenu = new Menu(twitterText, null, this.twitterLogInMenuItem, this.twitterProfileMenuItem, this.twitterMessagesMenuItem);
 
-        this.instagramMenu = new Menu(instagramText, null, this.instagramLogInMenuItem, this.instagramProfileMenuItem);
+        this.instagramMenu = new Menu(instagramText, null, this.instagramLogInMenuItem, this.instagramProfileMenuItem, this.instagramMessagesMenuItem);
 
         separator = new SeparatorMenuItem();
 
@@ -153,6 +175,15 @@ public final class MenuView {
     } //getRedditProfileMenuItem
 
     /**
+     * Returns the Reddit messages menu item of this menu view.
+     *
+     * @return the Reddit messages menu item of this menu view
+     */
+    public MenuItem getRedditMessagesMenuItem() {
+        return this.redditMessagesMenuItem;
+    } //getRedditMessagesMenuItem
+
+    /**
      * Returns the Twitter log in menu item of this menu view.
      *
      * @return the Twitter log in menu item of this menu view
@@ -171,6 +202,15 @@ public final class MenuView {
     } //getTwitterProfileMenuItem
 
     /**
+     * Returns the Twitter messages menu item of this menu view.
+     *
+     * @return the Twitter messages menu item of this menu view
+     */
+    public MenuItem getTwitterMessagesMenuItem() {
+        return this.twitterMessagesMenuItem;
+    } //getTwitterMessagesMenuItem
+
+    /**
      * Returns the Instagram log in menu item of this menu view.
      *
      * @return the Instagram log in menu item of this menu view
@@ -187,6 +227,15 @@ public final class MenuView {
     public MenuItem getInstagramProfileMenuItem() {
         return this.instagramProfileMenuItem;
     } //getInstagramProfileMenuItem
+
+    /**
+     * Returns the Instagram messages menu item of this menu view.
+     *
+     * @return the Instagram messages menu item of this menu view
+     */
+    public MenuItem getInstagramMessagesMenuItem() {
+        return this.instagramMessagesMenuItem;
+    } //getInstagramMessagesMenuItem
 
     /**
      * Returns the light radio menu item of this menu view.
