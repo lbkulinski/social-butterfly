@@ -11,6 +11,7 @@ import twitter4j.AsyncTwitterFactory;
 import twitter4j.Paging;
 import twitter4j.ResponseList;
 import twitter4j.Status;
+import twitter4j.StatusUpdate;
 import twitter4j.TwitterException;
 import twitter4j.User;
 import twitter4j.DirectMessage;
@@ -18,6 +19,8 @@ import twitter4j.DirectMessageList;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Scanner;
+
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
@@ -93,5 +96,88 @@ public final class TwitterUserRequests implements Serializable {
             messages.add(iterator.next());
         }
         return messages;
+    }
+
+    Status postTweet(StatusUpdate statusUpdate) throws TwitterException {
+        /** Posts a new tweet to the user's account containing
+         * the information in statusUpdate. If a replytostatusid
+         * is included in statusUpdate, this tweet will be added
+         * as a reply to the specified tweet.
+         *
+         * @return status object that is created with the text
+         * paramater
+         */
+        Status status = twitter.updateStatus(statusUpdate);
+        return status;
+    }
+
+    Status favoriteTweet(long id) throws TwitterException {
+        /** Favorites the status specified by the id
+         *  paramater.
+         *
+         * @return the favorited status
+         */
+        Status status = twitter.createFavorite(id);
+        return status;
+    }
+
+    String getTweetInformation(long id) throws TwitterException {
+        /** Obtains information about the status specified
+         * by the id paramter.
+         *
+         * @return information about the status
+         */
+        Status status = twitter.showStatus(id);
+        StringBuilder sb = new StringBuilder();
+        sb.append("Name: ");
+        sb.append(status.getUser().getName());
+        sb.append("\nScreen Name: ");
+        sb.append(status.getUser().getScreenName());
+
+        return sb.toString();
+    }
+
+    DirectMessage sendDirectMessage(long id, String message) throws TwitterException {
+        /** Sends a message containing the text @param message
+         * to the user specified by id.
+         *
+         * @return DirectMessage object
+         */
+        DirectMessage directMessage = twitter.sendDirectMessage(id, message);
+        return directMessage;
+    }
+
+    DirectMessage sendDirectMessage(String screenName, String message) throws TwitterException {
+        /** Sends a message containing the text @param message
+         * to the user specified by screenname.
+         *
+         * @return DirectMessage object
+         */
+        DirectMessage directMessage = twitter.sendDirectMessage(screenName, message);
+        return directMessage;
+    }
+
+    public static void main(String[] args) throws TwitterException {
+        /* Setup twitter model */
+        TwitterModel user = new TwitterModel();
+        String url = user.getAuth().getURL();
+        System.out.println(url);
+
+        Scanner in = new Scanner(System.in);
+        String pin = in.nextLine();
+        user.getAuth().handlePIN(pin);
+        user.initializeRequests();
+
+        StatusUpdate statusUpdate = new StatusUpdate("test tweet");
+        Status status = user.getRequests().postTweet(statusUpdate);  // Test posting a tweet
+        user.getRequests().favoriteTweet(status.getId());            // Test liking a tweet
+        StatusUpdate statusUpdateReply = new StatusUpdate("test reply");
+        statusUpdateReply.setInReplyToStatusId(status.getId());
+        user.getRequests().postTweet(statusUpdateReply);             // Test replying to a tweet
+
+        System.out.println(user.getRequests().getTweetInformation(status.getId())); // Test getting user info from a tweet
+
+
+        user.getRequests().sendDirectMessage("JonFreier", "hello"); // Test sending a direct message
     }
 }
