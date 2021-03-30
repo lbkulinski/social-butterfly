@@ -541,8 +541,13 @@ public final class MenuController {
         alert.show();
     } //searchUsersOnInstagram
 
-    private void viewInstagramSavedPosts() {
-        
+    public Scene getAllSavedPostsScene() {
+        this.instagramPostController.updateSavedPosts();
+        this.redditPostController.updateSavedPosts();
+        VBox temp = new VBox();
+        temp.getChildren().addAll(this.instagramPostController.getAllSavedBox().getChildren());
+        temp.getChildren().addAll(this.redditPostController.getAllSavedBox().getChildren());
+        return new Scene(temp, 500, 300);
     }
 
     /**
@@ -820,6 +825,7 @@ public final class MenuController {
         RadioMenuItem darkRadioMenuItem;
         RadioMenuItem tabRadioMenuItem;
         RadioMenuItem splitRadioMenuItem;
+        MenuItem allSavedPostsRadioMenuItem;
 
         controller = new MenuController(model, view, redditPostController, twitterPostController,
                                         instagramPostController);
@@ -855,6 +861,8 @@ public final class MenuController {
         tabRadioMenuItem = menuView.getTabRadioMenuItem();
 
         splitRadioMenuItem = menuView.getSplitRadioMenuItem();
+
+        allSavedPostsRadioMenuItem = menuView.getAllSavedPostsRadioMenuItem();
 
         redditLogInMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.logInToReddit());
 
@@ -898,6 +906,15 @@ public final class MenuController {
         tabRadioMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.switchToTabPane());
 
         splitRadioMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.switchToSplitPane());
+
+        allSavedPostsRadioMenuItem.addEventHandler(ActionEvent.ACTION, (actionevent) -> {
+
+            Scene scene = controller.getAllSavedPostsScene();
+            Stage stage = new Stage();
+            stage.setScene(scene);
+            stage.setTitle("Saved Posts");
+            stage.show();
+        });
 
         return controller;
     } //createMenuController

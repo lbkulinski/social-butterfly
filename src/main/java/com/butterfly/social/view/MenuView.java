@@ -82,6 +82,8 @@ public final class MenuView {
      */
     private final RadioMenuItem splitRadioMenuItem;
 
+    private final MenuItem allSavedPostsRadioMenuItem;
+
     /**
      * The Reddit menu of this menu view.
      */
@@ -156,6 +158,8 @@ public final class MenuView {
         this.tabRadioMenuItem = new RadioMenuItem(tabText);
 
         this.splitRadioMenuItem = new RadioMenuItem(splitText);
+        
+        this.allSavedPostsRadioMenuItem = new MenuItem(savedPostsText);
 
         this.redditMenu = new Menu(redditText, null, this.redditLogInMenuItem, this.redditProfileMenuItem, this.redditSavedPostsMenuItem);
 
@@ -167,7 +171,7 @@ public final class MenuView {
         separator = new SeparatorMenuItem();
 
         this.viewMenu = new Menu(viewText, null, this.lightRadioMenuItem, this.darkRadioMenuItem, separator,
-                                 this.tabRadioMenuItem, this.splitRadioMenuItem);
+                                 this.tabRadioMenuItem, this.splitRadioMenuItem, this.allSavedPostsRadioMenuItem);
 
         this.menuBar = new MenuBar(this.redditMenu, this.twitterMenu, this.instagramMenu, this.viewMenu);
     } //MenuView
@@ -306,6 +310,10 @@ public final class MenuView {
     public RadioMenuItem getSplitRadioMenuItem() {
         return this.splitRadioMenuItem;
     } //getSplitRadioMenuItem
+
+    public MenuItem getAllSavedPostsRadioMenuItem() {
+        return this.allSavedPostsRadioMenuItem;
+    }
 
     /**
      * Returns the Reddit menu of this menu view.

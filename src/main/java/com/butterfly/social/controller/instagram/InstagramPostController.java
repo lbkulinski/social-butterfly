@@ -75,6 +75,9 @@ public final class InstagramPostController {
      */
     private final ScheduledExecutorService executorService;
 
+    private VBox allSavedBox;
+
+
     /**
      * Constructs a newly allocated {@code InstagramPostController} object with the specified model, view, map from
      * boxes to posts, and all box lock.
@@ -105,6 +108,8 @@ public final class InstagramPostController {
 
         this.boxesToPosts = boxesToPosts;
 
+        this.allSavedBox = new VBox();
+
         this.allBoxLock = allBoxLock;
 
         this.executorService = Executors.newSingleThreadScheduledExecutor();
@@ -118,6 +123,11 @@ public final class InstagramPostController {
     public ScheduledExecutorService getExecutorService() {
         return this.executorService;
     } //getExecutorService
+
+    public VBox getAllSavedBox() {
+        //updateSavedPosts();
+        return this.allSavedBox;
+    }
 
     /**
      * Determines whether or not the specified media is an ad.
@@ -578,20 +588,21 @@ public final class InstagramPostController {
         for (TimelineMedia media : feedItems) {
             id = media.getId();
 
+            vBox = this.createBox(media, false);
+
+            vBoxCopy = this.createBox(media, true);
+
+            nodes.add(vBox);
+
+            nodes.add(new Separator());
+
+            nodeCopies.add(vBoxCopy);
+
+            nodeCopies.add(new Separator());
+
             if (!this.savedIds.contains(id)) {
                 this.savedIds.add(id);
-
-                vBox = this.createBox(media, false);
-
-                vBoxCopy = this.createBox(media, true);
-
-                nodes.add(vBox);
-
-                nodes.add(new Separator());
-
-                nodeCopies.add(vBoxCopy);
-
-                nodeCopies.add(new Separator());
+                this.ids.add(id);
 
                 post = new InstagramPost(media);
 
@@ -602,9 +613,13 @@ public final class InstagramPostController {
         } //end for
 
         instagramBox = new VBox();
+        if(this.allSavedBox == null) {
+            this.allSavedBox = new VBox();
+        }
 
-        Platform.runLater(() -> instagramBox.getChildren()
-                                            .addAll(0, nodes));
+        instagramBox.getChildren().addAll(0, nodes);
+
+        allSavedBox.getChildren().addAll(0, nodeCopies);
 
         Scene scene = new Scene(instagramBox, 500, 300);
 

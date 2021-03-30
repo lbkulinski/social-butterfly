@@ -70,6 +70,12 @@ public final class RedditPostController {
      */
     private final Lock allBoxLock;
 
+    private VBox allSavedBox;
+
+    private List<Node> savedNodes;
+
+    private List<Node> savedNodesCopy;
+
     /**
      * The executor service of this Reddit post controller.
      */
@@ -107,6 +113,12 @@ public final class RedditPostController {
 
         this.allBoxLock = allBoxLock;
 
+        this.allSavedBox = null;
+
+        this.savedNodes = new ArrayList<>();
+
+        this.savedNodesCopy = new ArrayList<>();
+
         this.executorService = Executors.newSingleThreadScheduledExecutor();
     } //RedditPostController
 
@@ -118,6 +130,10 @@ public final class RedditPostController {
     public ScheduledExecutorService getExecutorService() {
         return this.executorService;
     } //getExecutorService
+
+    public VBox getAllSavedBox() {
+        return this.allSavedBox;
+    }
 
     /**
      * Returns a media accordion for the specified submission.
@@ -343,7 +359,7 @@ public final class RedditPostController {
     } //createPostBox
 
     /**
-     * Updates the posts of this Reddit post controller.
+     * Updates the saved posts of this Reddit post controller.
      */
     public Scene updateSavedPosts() {
         RedditModel redditModel;
@@ -372,24 +388,23 @@ public final class RedditPostController {
         nodeCopies = new ArrayList<>();
 
         List<PublicContribution> listing = redditModel.getSavedPosts();
-
         for (PublicContribution pc : listing) {
             id = pc.getId();
             Submission submission = client.submission(id).inspect();
+            vBox = this.createBox(submission, false);
+
+            vBoxCopy = this.createBox(submission, true);
+
+            nodes.add(vBox);
+
+            nodes.add(new Separator());
+
+            nodeCopies.add(vBoxCopy);
+
+            nodeCopies.add(new Separator());
+
             if (!this.savedIds.contains(id)) {
                 this.savedIds.add(id);
-
-                vBox = this.createBox(submission, false);
-
-                vBoxCopy = this.createBox(submission, true);
-
-                nodes.add(vBox);
-
-                nodes.add(new Separator());
-
-                nodeCopies.add(vBoxCopy);
-
-                nodeCopies.add(new Separator());
 
                 post = new RedditPost(submission);
 
@@ -407,7 +422,13 @@ public final class RedditPostController {
 
         redditBox = new VBox();
 
+        if(this.allSavedBox == null) {
+            this.allSavedBox = new VBox();
+        }
+        System.out.println("Nodes size: " + nodes.size());
         redditBox.getChildren().addAll(0, nodes);
+        System.out.println("Nodes COPY size: " + nodeCopies.size());
+        allSavedBox.getChildren().addAll(0, nodeCopies);
 
         Scene scene = new Scene(redditBox, 500, 300);
 
