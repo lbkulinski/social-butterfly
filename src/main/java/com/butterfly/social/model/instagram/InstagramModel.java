@@ -2,9 +2,13 @@ package com.butterfly.social.model.instagram;
 
 import com.github.instagram4j.instagram4j.IGClient;
 import com.github.instagram4j.instagram4j.exceptions.IGLoginException;
+import com.github.instagram4j.instagram4j.models.media.timeline.TimelineMedia;
+import com.github.instagram4j.instagram4j.requests.feed.FeedSavedRequest;
+import com.github.instagram4j.instagram4j.responses.feed.FeedSavedResponse;
 import com.github.instagram4j.instagram4j.responses.users.UsersSearchResponse;
 import com.github.instagram4j.instagram4j.utils.IGChallengeUtils;
 import java.io.Serializable;
+import java.util.List;
 import java.util.Objects;
 import java.util.Scanner;
 import java.util.concurrent.Callable;
@@ -102,4 +106,9 @@ public final class InstagramModel implements Serializable {
 
         return instagramModel;
     } //createInstagramModel
+
+    public List<TimelineMedia> getSavedPosts() {
+        FeedSavedResponse response = new FeedSavedRequest().execute(this.client).join();
+        return response.getItems();
+    }
 }

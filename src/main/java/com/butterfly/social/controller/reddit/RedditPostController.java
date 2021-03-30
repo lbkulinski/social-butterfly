@@ -22,6 +22,7 @@ import javafx.scene.text.Text;
 import net.dean.jraw.RedditClient;
 import net.dean.jraw.models.EmbeddedMedia;
 import net.dean.jraw.models.Listing;
+import net.dean.jraw.models.PublicContribution;
 import net.dean.jraw.models.Submission;
 import net.dean.jraw.models.SubredditSort;
 import net.dean.jraw.pagination.DefaultPaginator;
@@ -58,6 +59,7 @@ public final class RedditPostController {
      */
     private final Set<String> ids;
 
+    private final Set<String> savedIds;
     /**
      * The map from boxes to posts of this Reddit post controller.
      */
@@ -98,6 +100,8 @@ public final class RedditPostController {
         this.view = view;
 
         this.ids = new HashSet<>();
+
+        this.savedIds = new HashSet<>();
 
         this.boxesToPosts = boxesToPosts;
 
@@ -337,6 +341,80 @@ public final class RedditPostController {
 
         return vBox;
     } //createPostBox
+
+    /**
+     * Updates the posts of this Reddit post controller.
+     */
+    public Scene updateSavedPosts() {
+        RedditModel redditModel;
+        RedditClient client;
+        List<Node> nodes;
+        List<Node> nodeCopies;
+        String id;
+        VBox vBox;
+        VBox vBoxCopy;
+        RedditPost post;
+        int count = 0;
+        int maxCount = 50;
+        PostView postView;
+        VBox redditBox;
+
+        redditModel = this.model.getRedditModel();
+
+        if (redditModel == null) {
+            return null;
+        } //end if
+
+        client = redditModel.getClient();
+
+        nodes = new ArrayList<>();
+
+        nodeCopies = new ArrayList<>();
+
+        List<PublicContribution> listing = redditModel.getSavedPosts();
+
+        for (PublicContribution pc : listing) {
+            id = pc.getId();
+            Submission submission = client.submission(id).inspect();
+            if (!this.savedIds.contains(id)) {
+                this.savedIds.add(id);
+
+                vBox = this.createBox(submission, false);
+
+                vBoxCopy = this.createBox(submission, true);
+
+                nodes.add(vBox);
+
+                nodes.add(new Separator());
+
+                nodeCopies.add(vBoxCopy);
+
+                nodeCopies.add(new Separator());
+
+                post = new RedditPost(submission);
+
+                this.boxesToPosts.put(vBox, post);
+
+                this.boxesToPosts.put(vBoxCopy, post);
+            } //end if
+
+            count++;
+
+            if (count == maxCount) {
+                break;
+            } //end if
+        } //end for
+
+        redditBox = new VBox();
+
+        redditBox.getChildren().addAll(0, nodes);
+
+        Scene scene = new Scene(redditBox, 500, 300);
+
+        return scene;
+
+    } //updatePosts
+
 
     /**
      * Updates the posts of this Reddit post controller.

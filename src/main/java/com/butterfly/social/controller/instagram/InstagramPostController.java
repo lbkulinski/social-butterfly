@@ -58,6 +58,8 @@ public final class InstagramPostController {
      */
     private final Set<String> ids;
 
+    private final Set<String> savedIds;
+
     /**
      * The map from boxes to posts of this Instagram post controller.
      */
@@ -98,6 +100,8 @@ public final class InstagramPostController {
         this.view = view;
 
         this.ids = new HashSet<>();
+
+        this.savedIds = new HashSet<>();
 
         this.boxesToPosts = boxesToPosts;
 
@@ -547,6 +551,65 @@ public final class InstagramPostController {
 
         return vBox;
     } //createPostBox
+    
+    public Scene updateSavedPosts() {
+        InstagramModel instagramModel;
+        List<TimelineMedia> feedItems;
+        List<Node> nodes;
+        List<Node> nodeCopies;
+        String id;
+        VBox vBox;
+        VBox vBoxCopy;
+        InstagramPost post;
+        VBox instagramBox;
+
+        instagramModel = this.model.getInstagramModel();
+
+        if (instagramModel == null) {
+            return null;
+        } //end if
+
+        feedItems = instagramModel.getSavedPosts();
+
+        nodes = new ArrayList<>();
+
+        nodeCopies = new ArrayList<>();
+
+        for (TimelineMedia media : feedItems) {
+            id = media.getId();
+
+            if (!this.savedIds.contains(id)) {
+                this.savedIds.add(id);
+
+                vBox = this.createBox(media, false);
+
+                vBoxCopy = this.createBox(media, true);
+
+                nodes.add(vBox);
+
+                nodes.add(new Separator());
+
+                nodeCopies.add(vBoxCopy);
+
+                nodeCopies.add(new Separator());
+
+                post = new InstagramPost(media);
+
+                this.boxesToPosts.put(vBox, post);
+
+                this.boxesToPosts.put(vBoxCopy, post);
+            } //end if
+        } //end for
+
+        instagramBox = new VBox();
+
+        Platform.runLater(() -> instagramBox.getChildren()
+                                            .addAll(0, nodes));
+
+        Scene scene = new Scene(instagramBox, 500, 300);
+
+        return scene;
+    }
 
     /**
      * Updates the posts of this Instagram post controller.

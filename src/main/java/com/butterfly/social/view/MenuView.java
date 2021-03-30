@@ -20,6 +20,12 @@ public final class MenuView {
     private final MenuItem redditProfileMenuItem;
 
     /**
+     * The Reddit saved posts menu item of this menu view.
+     */
+
+    private final MenuItem redditSavedPostsMenuItem;
+
+    /**
      * The Twitter log in menu item of this menu view.
      */
     private final MenuItem twitterLogInMenuItem;
@@ -53,6 +59,8 @@ public final class MenuView {
      * The Instagram profile picture menu item of this menu view.
      */
     private final MenuItem instagramProfilePictureItem;
+
+    private final MenuItem instagramSavedPostsMenuItem;
 
     /**
      * The light radio menu item of this menu view.
@@ -105,6 +113,7 @@ public final class MenuView {
     private MenuView() {
         String logInText = "Log In";
         String profileText = "View Profile";
+        String savedPostsText = "Saved Posts";
         String editBioText = "Edit Bio";
         String searchUsersText = "Search For Users";
         String profilePictureText = "Set Profile Picture";
@@ -122,6 +131,8 @@ public final class MenuView {
 
         this.redditProfileMenuItem = new MenuItem(profileText);
 
+        this.redditSavedPostsMenuItem = new MenuItem(savedPostsText);
+
         this.twitterLogInMenuItem = new MenuItem(logInText);
 
         this.twitterProfileMenuItem = new MenuItem(profileText);
@@ -129,6 +140,8 @@ public final class MenuView {
         this.instagramLogInMenuItem = new MenuItem(logInText);
 
         this.instagramProfileMenuItem = new MenuItem(profileText);
+
+        this.instagramSavedPostsMenuItem = new MenuItem(savedPostsText);
 
         this.instagramBioMenuItem = new MenuItem(editBioText);
 
@@ -144,12 +157,12 @@ public final class MenuView {
 
         this.splitRadioMenuItem = new RadioMenuItem(splitText);
 
-        this.redditMenu = new Menu(redditText, null, this.redditLogInMenuItem, this.redditProfileMenuItem);
+        this.redditMenu = new Menu(redditText, null, this.redditLogInMenuItem, this.redditProfileMenuItem, this.redditSavedPostsMenuItem);
 
         this.twitterMenu = new Menu(twitterText, null, this.twitterLogInMenuItem, this.twitterProfileMenuItem);
 
         this.instagramMenu = new Menu(instagramText, null, this.instagramLogInMenuItem, this.instagramProfileMenuItem,
-                                    this.instagramBioMenuItem, this.instagramSearchMenuItem, this.instagramProfilePictureItem);
+                                    this.instagramBioMenuItem, this.instagramSearchMenuItem, this.instagramProfilePictureItem, this.instagramSavedPostsMenuItem);
 
         separator = new SeparatorMenuItem();
 
@@ -176,6 +189,15 @@ public final class MenuView {
     public MenuItem getRedditProfileMenuItem() {
         return this.redditProfileMenuItem;
     } //getRedditProfileMenuItem
+
+    /**
+     * Returns the Reddit saved posts menu item of this menu view.
+     *
+     * @return the Reddit saved posts menu item of this menu view
+     */
+    public MenuItem getRedditSavedPostsMenuItem() {
+        return this.redditSavedPostsMenuItem;
+    } //getRedditSavedPostsMenuItem
 
     /**
      * Returns the Twitter log in menu item of this menu view.
@@ -239,6 +261,15 @@ public final class MenuView {
     public MenuItem getInstagramProfilePictureMenuItem() {
         return this.instagramProfilePictureItem;
     } //getInstagramBioMenuItem
+
+    /**
+     * Returns the Instagram saved posts menu item of this menu view.
+     *
+     * @return the Instagram saved posts menu item of this menu view
+     */
+    public MenuItem getInstagramSavedPostsMenuItem() {
+        return this.instagramSavedPostsMenuItem;
+    } //getInstagramSavedPostsMenuItem
 
     /**
      * Returns the light radio menu item of this menu view.

@@ -4,8 +4,16 @@ import net.dean.jraw.RedditClient;
 import net.dean.jraw.http.NetworkAdapter;
 import net.dean.jraw.http.OkHttpNetworkAdapter;
 import net.dean.jraw.http.UserAgent;
+import net.dean.jraw.models.Listing;
+import net.dean.jraw.models.PublicContribution;
+import net.dean.jraw.models.UserHistorySort;
 import net.dean.jraw.oauth.Credentials;
 import net.dean.jraw.oauth.OAuthHelper;
+import net.dean.jraw.pagination.DefaultPaginator;
+import net.dean.jraw.references.PublicContributionReference;
+
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Objects;
 
 public final class RedditModel {
@@ -31,6 +39,22 @@ public final class RedditModel {
     public String getUsername() {
         return this.username;
     } //getUsername
+
+    public List<PublicContribution> getSavedPosts() {
+        DefaultPaginator<PublicContribution<?>> build = this.client
+                .me().history("saved").limit(100).sorting(UserHistorySort.NEW).build();
+        List<PublicContribution> output = new LinkedList<>();
+        try {
+            Listing<PublicContribution<?>> savedItems = build.next();
+            output.addAll(savedItems);
+            if (savedItems.isEmpty()) {
+                return null;
+            }
+        } catch (Exception ste) {
+            ste.printStackTrace();
+        }
+        return output;
+    }
 
     public static RedditModel createRedditModel(String username, String password, String clientId,
                                                 String clientSecret) {

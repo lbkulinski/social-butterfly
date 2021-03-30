@@ -17,6 +17,7 @@ import javafx.event.ActionEvent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 import net.dean.jraw.RedditClient;
 import net.dean.jraw.models.Account;
 import net.dean.jraw.models.Trophy;
@@ -540,6 +541,10 @@ public final class MenuController {
         alert.show();
     } //searchUsersOnInstagram
 
+    private void viewInstagramSavedPosts() {
+        
+    }
+
     /**
      * Allows users
      */
@@ -802,6 +807,7 @@ public final class MenuController {
         MenuView menuView;
         MenuItem redditLogInMenuItem;
         MenuItem redditProfileMenuItem;
+        MenuItem redditSavedPostsMenuItem;
         MenuItem twitterLogInMenuItem;
         MenuItem twitterProfileMenuItem;
         MenuItem instagramLogInMenuItem;
@@ -809,6 +815,7 @@ public final class MenuController {
         MenuItem instagramBioMenuItem;
         MenuItem instagramSearchMenuItem;
         MenuItem instagramProfilePictureItem;
+        MenuItem instagramSavedPostsMenuItem;
         RadioMenuItem lightRadioMenuItem;
         RadioMenuItem darkRadioMenuItem;
         RadioMenuItem tabRadioMenuItem;
@@ -822,6 +829,8 @@ public final class MenuController {
         redditLogInMenuItem = menuView.getRedditLogInMenuItem();
 
         redditProfileMenuItem = menuView.getRedditProfileMenuItem();
+
+        redditSavedPostsMenuItem = menuView.getRedditSavedPostsMenuItem();
 
         twitterLogInMenuItem = menuView.getTwitterLogInMenuItem();
 
@@ -837,6 +846,8 @@ public final class MenuController {
 
         instagramProfilePictureItem = menuView.getInstagramProfilePictureMenuItem();
 
+        instagramSavedPostsMenuItem = menuView.getInstagramSavedPostsMenuItem();
+
         lightRadioMenuItem = menuView.getLightRadioMenuItem();
 
         darkRadioMenuItem = menuView.getDarkRadioMenuItem();
@@ -848,6 +859,14 @@ public final class MenuController {
         redditLogInMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.logInToReddit());
 
         redditProfileMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.viewRedditProfile());
+
+        redditSavedPostsMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
+            Scene scene = redditPostController.updateSavedPosts();
+            Stage stage = new Stage();
+            stage.setScene(scene);
+            stage.setTitle("Saved Posts");
+            stage.show();
+        });
 
         twitterLogInMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.logInToTwitter());
 
@@ -863,6 +882,14 @@ public final class MenuController {
         instagramSearchMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.searchUsersOnInstagram());
 
         instagramProfilePictureItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.setInstagramProfilePicture());
+
+        instagramSavedPostsMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
+            Scene scene = instagramPostController.updateSavedPosts();
+            Stage stage = new Stage();
+            stage.setScene(scene);
+            stage.setTitle("Saved Posts");
+            stage.show();
+        });
 
         lightRadioMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.switchToLightMode());
 
