@@ -98,7 +98,7 @@ public final class TwitterUserRequests implements Serializable {
         return messages;
     }
 
-    Status postTweet(StatusUpdate statusUpdate) throws TwitterException {
+    public Status postTweet(StatusUpdate statusUpdate) throws TwitterException {
         /** Posts a new tweet to the user's account containing
          * the information in statusUpdate. If a replytostatusid
          * is included in statusUpdate, this tweet will be added
@@ -111,7 +111,7 @@ public final class TwitterUserRequests implements Serializable {
         return status;
     }
 
-    Status favoriteTweet(long id) throws TwitterException {
+    public Status favoriteTweet(long id) throws TwitterException {
         /** Favorites the status specified by the id
          *  paramater.
          *
@@ -121,23 +121,22 @@ public final class TwitterUserRequests implements Serializable {
         return status;
     }
 
-    String getTweetInformation(long id) throws TwitterException {
+    public String getTweetInformation(long id) throws TwitterException {
         /** Obtains information about the status specified
          * by the id paramter.
          *
          * @return information about the status
          */
         Status status = twitter.showStatus(id);
-        StringBuilder sb = new StringBuilder();
-        sb.append("Name: ");
-        sb.append(status.getUser().getName());
-        sb.append("\nScreen Name: ");
-        sb.append(status.getUser().getScreenName());
 
-        return sb.toString();
+        String sb = "Name: " +
+                status.getUser().getName() +
+                "\nScreen Name: " +
+                status.getUser().getScreenName();
+        return sb;
     }
 
-    DirectMessage sendDirectMessage(long id, String message) throws TwitterException {
+    public DirectMessage sendDirectMessage(long id, String message) throws TwitterException {
         /** Sends a message containing the text @param message
          * to the user specified by id.
          *
@@ -147,7 +146,7 @@ public final class TwitterUserRequests implements Serializable {
         return directMessage;
     }
 
-    DirectMessage sendDirectMessage(String screenName, String message) throws TwitterException {
+    public DirectMessage sendDirectMessage(String screenName, String message) throws TwitterException {
         /** Sends a message containing the text @param message
          * to the user specified by screenname.
          *
