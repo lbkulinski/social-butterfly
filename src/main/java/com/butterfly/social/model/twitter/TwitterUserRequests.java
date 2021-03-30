@@ -129,11 +129,11 @@ public final class TwitterUserRequests implements Serializable {
          */
         Status status = twitter.showStatus(id);
 
-        String sb = "Name: " +
+        String s = "Name: " +
                 status.getUser().getName() +
                 "\nScreen Name: " +
                 status.getUser().getScreenName();
-        return sb;
+        return s;
     }
 
     public DirectMessage sendDirectMessage(long id, String message) throws TwitterException {

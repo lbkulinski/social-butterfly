@@ -1,8 +1,11 @@
 package com.butterfly.social.model.instagram;
 
 import com.github.instagram4j.instagram4j.IGClient;
+import com.github.instagram4j.instagram4j.models.media.timeline.TimelineMedia;
 import com.github.instagram4j.instagram4j.requests.direct.DirectInboxRequest;
 import com.github.instagram4j.instagram4j.requests.direct.DirectPendingInboxRequest;
+import com.github.instagram4j.instagram4j.requests.direct.DirectThreadsBroadcastRequest;
+import com.github.instagram4j.instagram4j.requests.feed.FeedTimelineRequest;
 import com.github.instagram4j.instagram4j.requests.media.MediaActionRequest;
 import com.github.instagram4j.instagram4j.requests.media.MediaCommentRequest;
 import com.github.instagram4j.instagram4j.responses.IGResponse;
@@ -71,9 +74,17 @@ public class InstagramUserRequests {
         return response.getStatus().equals("ok");
     }
 
-    public void sendDirectMessage(String message) {
-        DirectInboxResponse directInboxResponse = new DirectInboxRequest().execute(igClient).join();
-
+    public String getPostAuthorInformation(TimelineMedia timelineMedia) {
+        /** Obtains the user information for the post specified by
+         * timelineMedia.
+         *
+         * @return the username and full name of the post author
+         */
+        String s = "Name: " +
+                timelineMedia.getUser().getFull_name() +
+                "\nScreen Name: " +
+                timelineMedia.getUser().getUsername();
+        return s;
     }
 
     public static void main(String[] args) {
@@ -87,9 +98,8 @@ public class InstagramUserRequests {
         userRequests.comment(id, "My first comment!");                      // Test replying to a post
         userRequests.like(id);                                                      // Test liking a post
 
-
-
-        System.out.println("here");
-        userRequests.sendDirectMessage("message");
+        new FeedTimelineRequest().execute(instagramModel.getClient()).thenAccept(res -> {
+            res.getFeed_items().forEach(item -> System.out.println(userRequests.getPostAuthorInformation(item)));  // Test getting user information from a post
+        }).join();
     }
 }
