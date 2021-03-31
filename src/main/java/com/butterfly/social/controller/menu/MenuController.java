@@ -18,10 +18,13 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import javafx.stage.FileChooser;
 import net.dean.jraw.RedditClient;
 import net.dean.jraw.models.Account;
 import net.dean.jraw.models.Trophy;
 import net.dean.jraw.references.OtherUserReference;
+
+import java.io.File;
 import java.net.URL;
 import java.util.List;
 import java.util.Objects;
@@ -554,7 +557,18 @@ public final class MenuController {
      * Allows users
      */
     private void setInstagramProfilePicture() {
+        FileChooser fileChooser = new FileChooser();
+        InstagramModel instagramModel;
 
+        instagramModel = this.model.getInstagramModel();
+
+        fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("Image Files", "*.jpg", "*.png"));
+
+        File selectedFile = fileChooser.showOpenDialog(null);
+
+        if (selectedFile != null) {
+            instagramModel.setProfilePicture(selectedFile);
+        }
     }
 
     /**
