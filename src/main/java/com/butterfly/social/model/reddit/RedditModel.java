@@ -13,6 +13,13 @@ import net.dean.jraw.pagination.DefaultPaginator;
 import net.dean.jraw.references.PublicContributionReference;
 
 import java.util.LinkedList;
+import net.dean.jraw.models.Message;
+import net.dean.jraw.oauth.Credentials;
+import net.dean.jraw.oauth.OAuthHelper;
+import net.dean.jraw.pagination.BarebonesPaginator;
+
+import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -91,4 +98,24 @@ public final class RedditModel {
 
         return redditModel;
     } //createRedditModel
+
+    public List<Message> getDirectMessages() {
+        if(this.client == null) {
+            return null;
+        }
+        BarebonesPaginator<Message> unread = this.client.me().inbox().iterate("messages").build();
+
+        List<Message> messages = new ArrayList<Message>();
+
+        Listing<Message> page = unread.next();
+        if(page.isEmpty()) {
+            System.out.println("Page is empty!");
+        }
+        for(Message m : page.getChildren()) {
+            messages.add(m);
+            System.out.println("Message in unread page");
+        }
+
+        return messages;
+    }
 }

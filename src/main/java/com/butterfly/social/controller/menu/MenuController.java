@@ -23,12 +23,18 @@ import net.dean.jraw.RedditClient;
 import net.dean.jraw.models.Account;
 import net.dean.jraw.models.Trophy;
 import net.dean.jraw.references.OtherUserReference;
-
 import java.io.File;
+import net.dean.jraw.models.Message;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.*;
+import twitter4j.DirectMessage;
+import twitter4j.User;
+import java.util.Date;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 
 /**
  * A controller for the menu of the Social Butterfly application.
@@ -827,10 +833,13 @@ public final class MenuController {
         MenuItem redditLogInMenuItem;
         MenuItem redditProfileMenuItem;
         MenuItem redditSavedPostsMenuItem;
+        MenuItem redditMessagesMenuItem;
         MenuItem twitterLogInMenuItem;
         MenuItem twitterProfileMenuItem;
+        MenuItem twitterMessagesMenuItem;
         MenuItem instagramLogInMenuItem;
         MenuItem instagramProfileMenuItem;
+        MenuItem instagramMessagesMenuItem;
         MenuItem instagramBioMenuItem;
         MenuItem instagramSearchMenuItem;
         MenuItem instagramProfilePictureItem;
@@ -852,13 +861,19 @@ public final class MenuController {
 
         redditSavedPostsMenuItem = menuView.getRedditSavedPostsMenuItem();
 
+        redditMessagesMenuItem = menuView.getRedditMessagesMenuItem();
+
         twitterLogInMenuItem = menuView.getTwitterLogInMenuItem();
 
         twitterProfileMenuItem = menuView.getTwitterProfileMenuItem();
 
+        twitterMessagesMenuItem = menuView.getTwitterMessagesMenuItem();
+
         instagramLogInMenuItem = menuView.getInstagramLogInMenuItem();
 
         instagramProfileMenuItem = menuView.getInstagramProfileMenuItem();
+
+        instagramMessagesMenuItem = menuView.getInstagramMessagesMenuItem();
 
         instagramBioMenuItem = menuView.getInstagramBioMenuItem();
 
@@ -890,9 +905,103 @@ public final class MenuController {
             stage.show();
         });
 
+        redditMessagesMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
+            RedditModel redditModel = controller.model.getRedditModel();
+            Alert alert;
+            String title = "Social Butterfly";
+            String headerText = "Direct Messages";
+            String message = "";
+            List<Message> messages = redditModel.getDirectMessages();
+            for(Message m : messages) {
+                Date date = m.getCreated();
+                DateFormat dateFormat = new SimpleDateFormat("mm-dd-yyyy hh:mm");
+
+                String author = m.getAuthor();
+                String messageBody = m.getBody();
+                String strDate = dateFormat.format(date);
+                String subject = m.getSubject();
+                String dest = m.getDest();
+                String temp = """
+                              Sent: %s
+                              From: %s
+                              To: %s
+                              Subject: %s
+                              Message: %s
+                              --------------------
+                              """.formatted(strDate, author, dest, subject, messageBody);
+                System.out.println(temp);
+                message += temp;
+            }
+            alert = new Alert(Alert.AlertType.INFORMATION);
+
+            alert.setTitle(title);
+
+            alert.setHeaderText(headerText);
+
+            alert.setContentText(message);
+
+            alert.show();
+        });
+
         twitterLogInMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.logInToTwitter());
 
         twitterProfileMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.viewTwitterProfile());
+
+        twitterMessagesMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
+            TwitterModel twitterModel;
+            Alert alert;
+            String title = "Social Butterfly";
+            String headerText = "Direct Messages";
+            twitterModel = controller.model.getTwitterModel();
+            try{
+                List<DirectMessage> messages = twitterModel.getRequests().getDirectMessages();
+                String messagesText = "";
+                for (int i = 0; i < messages.size(); i++) {
+                    DirectMessage dm = messages.get(i);
+                    User sender = twitterModel.getTwitter().users().showUser(dm.getSenderId());
+                    User recipient = twitterModel.getTwitter().users().showUser(dm.getRecipientId());
+                    Date date = dm.getCreatedAt();
+                    DateFormat dateFormat = new SimpleDateFormat("mm-dd-yyyy hh:mm");  
+
+                    String senderScreenName = sender.getScreenName();
+                    String recipientScreenName = recipient.getScreenName();
+                    String strDate = dateFormat.format(date);
+                    String message = dm.getText();
+
+                    String temp = """
+                                  Sent: %s
+                                  Sender: %s
+                                  Recipient: %s
+                                  Message: %s
+                                  --------------------
+                                  """.formatted(strDate, senderScreenName, recipientScreenName, message);
+                    
+                    messagesText += temp;
+                }
+                alert = new Alert(Alert.AlertType.INFORMATION);
+
+                alert.setTitle(title);
+
+                alert.setHeaderText(headerText);
+
+                alert.setContentText(messagesText);
+
+                alert.show();
+            } catch (Exception te) {
+                //handle exception
+                alert = new Alert(Alert.AlertType.ERROR);
+
+                alert.setTitle(title);
+
+                alert.setHeaderText(headerText);
+
+                alert.setContentText("Error: Couldn't load DM data!\n" + te.getStackTrace());
+
+                alert.show();
+            }
+
+            
+        });
 
         instagramLogInMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.logInToInstagram());
 
@@ -911,6 +1020,10 @@ public final class MenuController {
             stage.setScene(scene);
             stage.setTitle("Saved Posts");
             stage.show();
+        });
+
+        instagramMessagesMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
+            
         });
 
         lightRadioMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.switchToLightMode());

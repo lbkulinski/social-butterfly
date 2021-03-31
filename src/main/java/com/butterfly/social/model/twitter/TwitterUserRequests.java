@@ -90,10 +90,9 @@ public final class TwitterUserRequests implements Serializable {
         backgroundDMThread.start();
         */
         DirectMessageList responses = twitter.getDirectMessages(20);
-        List<DirectMessage> messages = new ArrayList<DirectMessage>();
-        Iterator<DirectMessage> iterator = responses.iterator();
-        while(iterator.hasNext()) {
-            messages.add(iterator.next());
+        ArrayList<DirectMessage> messages = new ArrayList<DirectMessage>();
+        for (int i = 0; i < responses.size(); i++) {
+            messages.add(responses.get(i));
         }
         return messages;
     }

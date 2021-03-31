@@ -6,6 +6,10 @@ import com.github.instagram4j.instagram4j.models.media.timeline.TimelineMedia;
 import com.github.instagram4j.instagram4j.requests.feed.FeedSavedRequest;
 import com.github.instagram4j.instagram4j.responses.feed.FeedSavedResponse;
 import com.github.instagram4j.instagram4j.responses.users.UsersSearchResponse;
+import com.github.instagram4j.instagram4j.models.user.Profile;
+import com.github.instagram4j.instagram4j.requests.IGGetRequest;
+import com.github.instagram4j.instagram4j.requests.direct.DirectInboxRequest;
+import com.github.instagram4j.instagram4j.responses.direct.DirectInboxResponse;
 import com.github.instagram4j.instagram4j.utils.IGChallengeUtils;
 
 import java.io.File;
@@ -61,6 +65,19 @@ public final class InstagramModel implements Serializable {
 
     public void setProfilePicture(File newProfilePicture) {
         this.client.actions().account().setProfilePicture(newProfilePicture);
+    }
+    
+    public List<String> getDirectMessages() {
+        DirectInboxRequest dmRequest = new DirectInboxRequest();
+        DirectInboxResponse dmResponse = dmRequest.execute(this.client).join();
+        dmResponse.getInbox().getThreads().forEach(thread -> {
+            String threadID = thread.getThread_id();
+            String threadTitle = thread.getThread_title();
+            List<Profile> profiles = thread.getUsers();
+            thread.getItems();
+
+        });
+        return null;
     }
 
 
