@@ -554,8 +554,13 @@ public final class MenuController {
         this.instagramPostController.updateSavedPosts();
         this.redditPostController.updateSavedPosts();
         VBox temp = new VBox();
-        temp.getChildren().addAll(this.instagramPostController.getAllSavedBox().getChildren());
-        temp.getChildren().addAll(this.redditPostController.getAllSavedBox().getChildren());
+        if(this.instagramPostController.getAllSavedBox() != null) {
+            temp.getChildren().addAll(this.instagramPostController.getAllSavedBox().getChildren());
+        }
+        if(this.redditPostController.getAllSavedBox() != null) {
+            temp.getChildren().addAll(this.redditPostController.getAllSavedBox().getChildren());
+        }
+        
         return new Scene(temp, 500, 300);
     }
 
