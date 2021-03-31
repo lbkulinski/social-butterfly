@@ -849,6 +849,8 @@ public final class MenuController {
         MenuItem instagramSearchMenuItem;
         MenuItem instagramProfilePictureItem;
         MenuItem instagramSavedPostsMenuItem;
+        MenuItem timeSortMenuItem;
+        MenuItem popularitySortMenuItem;
         RadioMenuItem lightRadioMenuItem;
         RadioMenuItem darkRadioMenuItem;
         RadioMenuItem tabRadioMenuItem;
@@ -887,6 +889,10 @@ public final class MenuController {
         instagramProfilePictureItem = menuView.getInstagramProfilePictureMenuItem();
 
         instagramSavedPostsMenuItem = menuView.getInstagramSavedPostsMenuItem();
+
+        timeSortMenuItem = menuView.getTimeSortMenuItem();
+
+        popularitySortMenuItem = menuView.getPopularitySortMenuItem();
 
         lightRadioMenuItem = menuView.getLightRadioMenuItem();
 
@@ -1046,6 +1052,24 @@ public final class MenuController {
             stage.setScene(scene);
             stage.setTitle("Saved Posts");
             stage.show();
+        });
+
+        timeSortMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
+            controller.redditPostController.sortByTime = true;
+            controller.instagramPostController.sortByTime = true;
+            controller.twitterPostController.sortByTime = true;
+            controller.redditPostController.updatePosts();
+            controller.instagramPostController.updatePosts();
+            controller.twitterPostController.updatePosts();
+        });
+
+        popularitySortMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
+            controller.redditPostController.sortByTime = false;
+            controller.instagramPostController.sortByTime = false;
+            controller.twitterPostController.sortByTime = false;
+            controller.redditPostController.updatePosts();
+            controller.instagramPostController.updatePosts();
+            controller.twitterPostController.updatePosts();
         });
 
         return controller;

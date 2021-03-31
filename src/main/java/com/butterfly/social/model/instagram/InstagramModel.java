@@ -66,7 +66,7 @@ public final class InstagramModel implements Serializable {
     public void setProfilePicture(File newProfilePicture) {
         this.client.actions().account().setProfilePicture(newProfilePicture);
     }
-    
+
     public List<String> getDirectMessages() {
         DirectInboxRequest dmRequest = new DirectInboxRequest();
         DirectInboxResponse dmResponse = dmRequest.execute(this.client).join();
@@ -78,6 +78,12 @@ public final class InstagramModel implements Serializable {
 
         });
         return null;
+    }
+
+    public void savePost(String id) {
+        this.client.actions().timeline();
+        TimelineMedia media = new TimelineMedia();
+        media.get("save");
     }
 
 

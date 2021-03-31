@@ -11,6 +11,7 @@ import com.github.instagram4j.instagram4j.models.media.VideoVersionsMeta;
 import com.github.instagram4j.instagram4j.models.media.timeline.*;
 import com.github.instagram4j.instagram4j.responses.feed.FeedTimelineResponse;
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
 import javafx.scene.CacheHint;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -76,6 +77,8 @@ public final class InstagramPostController {
     private final ScheduledExecutorService executorService;
 
     private VBox allSavedBox;
+
+    public boolean sortByTime = true;
 
 
     /**
@@ -466,6 +469,51 @@ public final class InstagramPostController {
         return accordion;
     } //getMediaAccordion
 
+    private void displayContextMenu(VBox box, double x, double y) {
+        Post post;
+        InstagramPost instagramPost;
+        TimelineMedia media;
+        String id;
+        InstagramModel instagramModel;
+        instagramModel = this.model.getInstagramModel();
+        //RedditClient client;
+        IGClient client = instagramModel.getClient();
+        //FavoritesResources favoritesResources;
+        MenuItem save;
+        ContextMenu contextMenu;
+
+        Objects.requireNonNull(box, "the specified box is null");
+
+        post = this.boxesToPosts.get(box);
+
+        if (post == null) {
+            return;
+        } else if (!(post instanceof InstagramPost)) {
+            throw new IllegalStateException("a box is mapped to the wrong post type");
+        } //end if
+
+        instagramPost = (InstagramPost) post;
+
+        media = instagramPost.getMedia();
+
+        id = media.getId();
+
+        client = instagramModel.getClient();
+
+        //favoritesResources = twitter.favorites();
+
+        save = new MenuItem("Save Post");
+
+        save.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
+            //save tweet
+            instagramModel.savePost(id);
+        });
+
+        contextMenu = new ContextMenu(save);
+
+        contextMenu.show(box, x, y);
+    } //displayContextMenu
+
     /**
      * Returns a box for the specified media.
      *
@@ -660,9 +708,17 @@ public final class InstagramPostController {
                          .timeline()
                          .feed();
 
-        comparator = Comparator.<TimelineMedia>comparingLong(media -> media.getCaption()
-                                                                           .getCreated_at_utc())
-                               .reversed();
+        if(sortByTime) {
+            comparator = Comparator.<TimelineMedia>comparingLong(media -> media.getCaption()
+            .getCreated_at_utc())
+            .reversed();
+        }
+        else {
+            comparator = Comparator.<TimelineMedia>comparingLong(media -> media.getCaption()
+            .getComment_like_count())
+            .reversed();
+        }
+
 
         mediaSet = new TreeSet<>(comparator);
 

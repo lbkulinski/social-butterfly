@@ -70,6 +70,8 @@ public final class TwitterPostController {
      */
     private final ScheduledExecutorService executorService;
 
+    public boolean sortByTime = true;
+
     /**
      * Constructs a newly allocated {@code TwitterPostController} object with the specified model, view, map from boxes
      * to posts, and all box lock.
@@ -698,6 +700,15 @@ public final class TwitterPostController {
         nodes = new ArrayList<>();
 
         nodeCopies = new ArrayList<>();
+
+        if(!sortByTime) {
+            // sort by popularity
+            Collections.sort(statuses, new Comparator<Status>() {
+                public int compare(Status s1, Status s2) {
+                    return Integer.valueOf(s2.getFavoriteCount()).compareTo(Integer.valueOf(s1.getFavoriteCount()));
+                }
+            });
+        }
 
         for (Status status : statuses) {
             id = status.getId();

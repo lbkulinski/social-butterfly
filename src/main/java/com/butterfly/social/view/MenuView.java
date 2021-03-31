@@ -97,6 +97,10 @@ public final class MenuView {
 
     private final MenuItem allSavedPostsRadioMenuItem;
 
+    private final MenuItem timeSortMenuItem;
+
+    private final MenuItem popularitySortMenuItem;
+
     /**
      * The Reddit menu of this menu view.
      */
@@ -116,6 +120,11 @@ public final class MenuView {
      * The view menu of this menu view.
      */
     private final Menu viewMenu;
+
+    /**
+     * The sort menu of this menu view.
+     */
+    private final Menu sortMenu;
 
     /**
      * The menu bar of this menu view.
@@ -141,6 +150,9 @@ public final class MenuView {
         String twitterText = "Twitter";
         String instagramText = "Instagram";
         String viewText = "View";
+        String sortText = "Sort By";
+        String timeText = "Time";
+        String popularityText = "Popularity";
         SeparatorMenuItem separator;
 
         this.redditLogInMenuItem = new MenuItem(logInText);
@@ -169,6 +181,10 @@ public final class MenuView {
         this.instagramProfilePictureItem = new MenuItem(profilePictureText);
         this.instagramMessagesMenuItem = new MenuItem(messagesText);
 
+        this.timeSortMenuItem = new MenuItem(timeText);
+
+        this.popularitySortMenuItem = new MenuItem(popularityText);
+
         this.lightRadioMenuItem = new RadioMenuItem(lightText);
 
         this.darkRadioMenuItem = new RadioMenuItem(darkText);
@@ -191,7 +207,9 @@ public final class MenuView {
         this.viewMenu = new Menu(viewText, null, this.lightRadioMenuItem, this.darkRadioMenuItem, separator,
                                  this.tabRadioMenuItem, this.splitRadioMenuItem, this.allSavedPostsRadioMenuItem);
 
-        this.menuBar = new MenuBar(this.redditMenu, this.twitterMenu, this.instagramMenu, this.viewMenu);
+        this.sortMenu = new Menu(sortText, null, this.timeSortMenuItem, this.popularitySortMenuItem);
+
+        this.menuBar = new MenuBar(this.redditMenu, this.twitterMenu, this.instagramMenu, this.viewMenu, this.sortMenu);
     } //MenuView
 
     /**
@@ -319,6 +337,24 @@ public final class MenuView {
     public MenuItem getInstagramMessagesMenuItem() {
         return this.instagramMessagesMenuItem;
     } //getInstagramMessagesMenuItem
+
+    /**
+     * Returns the time sort menu item of this menu view.
+     *
+     * @return the time sort menu item of this menu view
+     */
+    public MenuItem getTimeSortMenuItem() {
+        return this.timeSortMenuItem;
+    } //getTimeSortMenuItem
+
+    /**
+     * Returns the popularity sort menu item of this menu view.
+     *
+     * @return the popularity sort menu item of this menu view
+     */
+    public MenuItem getPopularitySortMenuItem() {
+        return this.popularitySortMenuItem;
+    } //getPopularitySortMenuItem
 
     /**
      * Returns the light radio menu item of this menu view.

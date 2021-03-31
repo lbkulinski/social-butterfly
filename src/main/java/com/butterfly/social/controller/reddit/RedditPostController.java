@@ -6,6 +6,7 @@ import com.butterfly.social.model.reddit.RedditModel;
 import com.butterfly.social.view.PostView;
 import com.butterfly.social.view.View;
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
 import javafx.scene.CacheHint;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -75,6 +76,8 @@ public final class RedditPostController {
     private List<Node> savedNodes;
 
     private List<Node> savedNodesCopy;
+
+    public boolean sortByTime = true;
 
     /**
      * The executor service of this Reddit post controller.
@@ -248,6 +251,51 @@ public final class RedditPostController {
         return accordion;
     } //getMediaAccordion
 
+    private void displayContextMenu(VBox box, double x, double y) {
+        Post post;
+        RedditPost redditPost;
+        Submission submission;
+        String id;
+        RedditModel redditModel;
+        RedditClient client;
+        //FavoritesResources favoritesResources;
+        MenuItem save;
+        ContextMenu contextMenu;
+
+        Objects.requireNonNull(box, "the specified box is null");
+
+        post = this.boxesToPosts.get(box);
+
+        if (post == null) {
+            return;
+        } else if (!(post instanceof RedditPost)) {
+            throw new IllegalStateException("a box is mapped to the wrong post type");
+        } //end if
+
+        redditPost = (RedditPost) post;
+
+        submission = redditPost.getSubmission();
+
+        id = submission.getId();
+
+        redditModel = this.model.getRedditModel();
+
+        client = redditModel.getClient();
+
+        //favoritesResources = twitter.favorites();
+
+        save = new MenuItem("Save Post");
+
+        save.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
+            //save tweet
+            redditModel.savePost(id);
+        });
+
+        contextMenu = new ContextMenu(save);
+
+        contextMenu.show(box, x, y);
+    } //displayContextMenu
+
     /**
      * Returns a box for the specified submission.
      *
@@ -354,6 +402,17 @@ public final class RedditPostController {
 
             vBox = new VBox(titleText, nameLabel, text, accordion, dateTimeLabel);
         } //end if
+
+        vBox.setOnContextMenuRequested((contextMenuEvent) -> {
+            double screenX;
+            double screenY;
+
+            screenX = contextMenuEvent.getScreenX();
+
+            screenY = contextMenuEvent.getScreenY();
+
+            this.displayContextMenu(vBox, screenX, screenY);
+        });
 
         return vBox;
     } //createPostBox
@@ -464,11 +523,20 @@ public final class RedditPostController {
         } //end if
 
         client = redditModel.getClient();
+        
+        if(sortByTime) {
+            paginator = client.frontPage()
+            .sorting(SubredditSort.NEW)
+            .limit(limit)
+            .build();
+        }
+        else {
+            paginator = client.frontPage()
+            .sorting(SubredditSort.TOP)
+            .limit(limit)
+            .build();
+        }
 
-        paginator = client.frontPage()
-                          .sorting(SubredditSort.NEW)
-                          .limit(limit)
-                          .build();
 
         nodes = new ArrayList<>();
 

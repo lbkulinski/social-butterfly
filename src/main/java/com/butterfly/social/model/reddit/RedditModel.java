@@ -63,6 +63,10 @@ public final class RedditModel {
         return output;
     }
 
+    public void savePost(String id) {
+        this.client.submission(id).save();
+    }
+
     public static RedditModel createRedditModel(String username, String password, String clientId,
                                                 String clientSecret) {
         RedditModel redditModel;
