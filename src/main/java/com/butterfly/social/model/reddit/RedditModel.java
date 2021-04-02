@@ -1,6 +1,7 @@
 package com.butterfly.social.model.reddit;
 
 import net.dean.jraw.RedditClient;
+import net.dean.jraw.RedditException;
 import net.dean.jraw.http.NetworkAdapter;
 import net.dean.jraw.http.OkHttpNetworkAdapter;
 import net.dean.jraw.http.UserAgent;
@@ -9,6 +10,7 @@ import net.dean.jraw.models.PublicContribution;
 import net.dean.jraw.models.UserHistorySort;
 import net.dean.jraw.oauth.Credentials;
 import net.dean.jraw.oauth.OAuthHelper;
+import net.dean.jraw.references.UserReference;
 import net.dean.jraw.pagination.DefaultPaginator;
 import net.dean.jraw.references.PublicContributionReference;
 
@@ -102,6 +104,18 @@ public final class RedditModel {
 
         return redditModel;
     } //createRedditModel
+
+    public boolean followRedditUser(String username) {
+        boolean success = true;
+        try {
+            this.client.subreddit("u_" + username).subscribe();
+            success = true;
+        }catch (RedditException e) {
+            e.printStackTrace();
+            success = false;
+        }
+        return success;
+    }
 
     public List<Message> getDirectMessages() {
         if(this.client == null) {

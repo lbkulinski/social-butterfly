@@ -844,4 +844,8 @@ public final class InstagramPostController {
                                                                         Lock allBoxLock) {
         return new InstagramPostController(model, view, boxesToPosts, allBoxLock);
     } //createInstagramPostController
+
+    public Map<VBox, Post> getBoxesToPosts() {
+        return this.boxesToPosts;
+    }
 }

@@ -1,6 +1,7 @@
 package com.butterfly.social.controller.menu;
 
 import com.butterfly.social.SocialButterflyApplication;
+import com.butterfly.social.controller.Post;
 import com.butterfly.social.controller.instagram.InstagramPostController;
 import com.butterfly.social.controller.reddit.RedditPostController;
 import com.butterfly.social.controller.twitter.TwitterPostController;
@@ -9,25 +10,39 @@ import com.butterfly.social.model.instagram.InstagramModel;
 import com.butterfly.social.model.reddit.RedditModel;
 import com.butterfly.social.model.twitter.TwitterModel;
 import com.butterfly.social.model.twitter.TwitterUserProfile;
+import com.butterfly.social.model.twitter.TwitterUserRequests;
 import com.butterfly.social.view.MenuView;
 import com.butterfly.social.view.PostView;
 import com.butterfly.social.view.View;
 import com.github.instagram4j.instagram4j.responses.direct.DirectInboxResponse;
 import com.github.instagram4j.instagram4j.responses.users.UsersSearchResponse;
+import javafx.beans.Observable;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import com.github.instagram4j.instagram4j.requests.direct.DirectInboxRequest;
 import javafx.event.ActionEvent;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.stage.FileChooser;
+import javafx.stage.Popup;
+import jdk.dynalink.NoSuchDynamicMethodException;
 import net.dean.jraw.RedditClient;
-import net.dean.jraw.models.Account;
-import net.dean.jraw.models.Trophy;
+import net.dean.jraw.models.*;
 import net.dean.jraw.references.OtherUserReference;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import net.dean.jraw.models.Message;
 import java.net.URL;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.stream.Collectors;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -154,6 +169,7 @@ public final class MenuController {
     private void viewRedditProfile() {
         RedditModel redditModel;
         Alert alert;
+        Popup profile;
         String handle;
         RedditClient client;
         OtherUserReference reference;
@@ -161,9 +177,10 @@ public final class MenuController {
         Account account;
         int karma = 0;
         List<Trophy> trophies;
+        List<ImageView> trophyURLs;
         StringBuilder stringBuilder;
         String trophyString;
-        String profileText;
+        Text profileText;
         String title = "Social Butterfly";
         String headerText = "Reddit Profile";
 
@@ -200,6 +217,8 @@ public final class MenuController {
 
         stringBuilder = new StringBuilder();
 
+        trophyURLs = new ArrayList<>();
+
         trophies.forEach(trophy -> {
             String trophyName;
 
@@ -208,6 +227,11 @@ public final class MenuController {
             stringBuilder.append(trophyName);
 
             stringBuilder.append(",\n");
+
+            if (trophy.getIcon70() != null) {
+                System.out.println("hey: " + trophy.getIcon70());
+                trophyURLs.add(new ImageView(new Image(trophy.getIcon70())));
+            }
         });
 
         if (stringBuilder.isEmpty()) {
@@ -225,13 +249,16 @@ public final class MenuController {
             trophyString = stringBuilder.toString();
         } //end if
 
-        profileText = """
+        profileText = new Text("""
                       Name: %s
+                      
                       Handle: %s
+                      
                       Karma: %d
-                      Trophies: %s""".formatted(name, handle, karma, trophyString);
+                      
+                      Trophies: %s""".formatted(name, handle, karma, trophyString));
 
-        alert = new Alert(Alert.AlertType.INFORMATION);
+        /* alert = new Alert(Alert.AlertType.INFORMATION);
 
         alert.setTitle(title);
 
@@ -239,9 +266,146 @@ public final class MenuController {
 
         alert.setContentText(profileText);
 
-        alert.show();
+        alert.show(); */
+        Stage redditProfile = new Stage();
+        redditProfile.setTitle("Reddit Profile");
+        VBox vBox = new VBox(profileText);
+        vBox.getChildren().addAll(trophyURLs);
+        Scene scene = new Scene(vBox,500,500);
+        redditProfile.setScene(scene);
+        redditProfile.show();
     } //viewRedditProfile
 
+    /**
+     * Attempts to follow a reddit user specified by the user logged in
+     */
+    private void followRedditUser() {
+        RedditModel redditModel;
+        Alert alert;
+        String title = "Social Butterfly";
+        String headerText = "Enter the username of the account you wish to follow ";
+        String searchUser;
+        TextInputDialog userInputDialog;
+
+        redditModel = this.model.getRedditModel();
+
+        if (redditModel == null) {
+            String message = "You are not signed into Reddit!";
+
+            alert = new Alert(Alert.AlertType.ERROR, message);
+
+            alert.show();
+
+            return;
+        } //end if
+
+        userInputDialog = new TextInputDialog();
+
+        userInputDialog.setTitle(title);
+
+        userInputDialog.setHeaderText(headerText);
+
+        userInputDialog.showAndWait();
+
+        searchUser = userInputDialog.getResult();
+
+        if (searchUser.isBlank() || searchUser.isEmpty()) {
+            return;
+        }
+
+        boolean followed = redditModel.followRedditUser(searchUser);
+
+        alert = new Alert(Alert.AlertType.INFORMATION);
+
+        alert.setTitle(title);
+
+        if (followed == false) {
+            alert.setHeaderText("There was a problem following that user");
+        }
+        else {
+            alert.setHeaderText("Successfully followed!");
+        }
+        alert.show();
+    }
+    /**
+     * Attempts to log the user out of their Reddit account.
+     */
+    private void logoutReddit() {
+        RedditModel redditModel;
+        Alert alert;
+        String title = "Social Butterfly";
+        redditModel = this.model.getRedditModel();
+        if (redditModel == null) {
+            String message = "You are not signed into Reddit!";
+            alert = new Alert(Alert.AlertType.ERROR, message);
+
+            alert.show();
+
+            return;
+        }
+        this.redditPostController.clearRedditFeed();
+
+        //this.redditPostController.getExecutorService().shutdownNow();
+
+        this.model.setRedditModel(null);
+
+        ObservableList<VBox> insta = (ObservableList) this.view.getPostView().getInstagramBox().getChildren();
+        ObservableList<VBox> twitter = (ObservableList) this.view.getPostView().getTwitterBox().getChildren();
+
+        Map<VBox, Post> twitterMap = this.twitterPostController.getBoxesToPosts();
+        Map<VBox, Post> instaMap = this.instagramPostController.getBoxesToPosts();
+
+        //ObservableList<VBox> instaClone = FXCollections.checkedObservableList(insta);
+        //ObservableList<VBox> twitterClone = FXCollections.observableArrayList(twitter);
+
+        /*for(VBox node : insta) {
+            try {
+                (Observable) node.clone();
+            }catch (NoSuchDynamicMethodException e)
+        }*/
+        System.out.println("MAP TWI "   + twitterMap);
+        System.out.println("MAP IN "    + instaMap);
+        //System.out.println("INSTA OBV LIST "    +insta);
+        //System.out.println("TWITTER OBV LIST " + twitter);
+        ArrayList<VBox> instaClone = new ArrayList<>(instaMap.keySet());
+        System.out.println("LKASJDNFKAJSDF: "+ instaClone);
+        ArrayList<VBox> twitterClone = new ArrayList<>(twitterMap.keySet());
+        System.out.println("sadjKLSAJDNFLKSAJDNF "+ twitterClone);
+        ArrayList<VBox> copyT = new ArrayList<>();
+        ArrayList<VBox> copyI = new ArrayList<>();
+        ArrayList<VBox> copyT2 = new ArrayList<>();
+        ArrayList<VBox> copyI2 = new ArrayList<>();
+
+        for(int i = 0; i < twitter.size() - 1; i++) {
+            copyT.add(new VBox(twitter.get(i)));
+            copyT2.add(new VBox(twitter.get(i)));
+        }
+        for(int i = 0; i < insta.size() - 1; i++) {
+            copyI.add(new VBox(insta.get(i)));
+            copyI2.add(new VBox(insta.get(i)));
+        }
+
+        System.out.println("CopyT 1 "+ copyT.get(0));
+        System.out.println("CopyI 1 "+ copyI.get(0));
+        System.out.println("insta2 obs "+copyI2.get(0));
+        System.out.println("twitter2 obs "+copyT2.get(0));
+        this.view.getPostView().getAllBox().getChildren().addAll(copyI2);
+
+        this.view.getPostView().getAllBox().getChildren().addAll(copyT2);
+
+        this.view.getPostView().getTwitterBox().getChildren().addAll(copyT);
+
+        this.view.getPostView().getInstagramBox().getChildren().addAll(copyI);
+
+        alert = new Alert(Alert.AlertType.INFORMATION);
+
+        alert.setTitle(title);
+
+        alert.setContentText("Successfully logged out!");
+
+        alert.show();
+
+    }
     /**
      * Attempts to log the user into their Twitter account.
      */
@@ -351,6 +515,57 @@ public final class MenuController {
         alert.show();
     } //viewTwitterProfile
 
+    /**
+     * Attempts to follow a user specified by the user logged in
+     */
+
+    private void followTwitterUser() {
+        TwitterModel twitterModel;
+        Alert alert;
+        String title = "Social Butterfly";
+        String headerText = "Enter the username of the account you wish to follow ";
+        String searchUser;
+        TextInputDialog userInputDialog;
+
+        twitterModel = this.model.getTwitterModel();
+
+        if (twitterModel == null) {
+            String message = "You are not signed into Twitter!";
+
+            alert = new Alert(Alert.AlertType.ERROR, message);
+
+            alert.show();
+
+            return;
+        } //end if
+
+        userInputDialog = new TextInputDialog();
+
+        userInputDialog.setTitle(title);
+
+        userInputDialog.setHeaderText(headerText);
+
+        userInputDialog.showAndWait();
+
+        searchUser = userInputDialog.getResult();
+
+        if (searchUser.isBlank() || searchUser.isEmpty()) {
+            return;
+        }
+        boolean success = twitterModel.getRequests().followTwitterUser(searchUser);
+
+        alert = new Alert(Alert.AlertType.INFORMATION);
+
+        alert.setTitle(title);
+
+        if(success == false) {
+            alert.setHeaderText("Could not follow user");
+        }
+        else {
+            alert.setHeaderText("User successfully followed!");
+        }
+        alert.show();
+    }
     /**
      * Attempts to log the user into their Instagram account.
      */
@@ -586,6 +801,72 @@ public final class MenuController {
         if (selectedFile != null) {
             instagramModel.setProfilePicture(selectedFile);
         }
+    }
+
+    private void followInstagramUser() {
+        InstagramModel instagramModel;
+        Alert alert;
+        String title = "Social Butterfly";
+        String headerText = "Enter the username of the account you wish to follow ";
+        String searchResults = "";
+        String searchUser;
+        TextInputDialog userInputDialog;
+
+        instagramModel = this.model.getInstagramModel();
+
+        if (instagramModel == null) {
+            String message = "You are not signed into Instagram!";
+
+            alert = new Alert(Alert.AlertType.ERROR, message);
+
+            alert.show();
+
+            return;
+        } //end if
+
+        userInputDialog = new TextInputDialog();
+
+        userInputDialog.setTitle(title);
+
+        userInputDialog.setHeaderText(headerText);
+
+        userInputDialog.showAndWait();
+
+        searchUser = userInputDialog.getResult();
+
+        if (searchUser.isBlank() || searchUser.isEmpty()) {
+            return;
+        }
+        UsersSearchResponse searchResponse = null;
+        try {
+            searchResponse = instagramModel.searchForUsers(searchUser).get();
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
+
+        if (searchResponse != null) {
+            for (int i = 0; (i < 10) && (i < searchResponse.getNum_results()); i++) {
+                searchResults += searchResponse.getUsers().get(i).getUsername() + "\n";
+            }
+        }
+        if(!searchResponse.toString().contains(searchUser)) {
+            String message = "There was a problem following that user";
+            alert = new Alert(Alert.AlertType.ERROR, message);
+            alert.show();
+            return;
+        }
+
+        instagramModel.searchForUsers(searchUser);
+
+        instagramModel.followInstagramProfile(searchUser);
+
+        alert = new Alert(Alert.AlertType.INFORMATION);
+
+        alert.setTitle(title);
+
+        alert.setHeaderText("Successfully followed!");
+
+        alert.show();
     }
 
     /**
@@ -843,6 +1124,11 @@ public final class MenuController {
         MenuView menuView;
         MenuItem redditLogInMenuItem;
         MenuItem redditProfileMenuItem;
+        MenuItem redditFollowUserMenuItem;
+        MenuItem redditLogoutMenuItem;
+        MenuItem twitterLogInMenuItem;
+        MenuItem twitterProfileMenuItem;
+        MenuItem twitterFollowUserMenuItem;
         MenuItem redditSavedPostsMenuItem;
         MenuItem redditMessagesMenuItem;
         MenuItem twitterLogInMenuItem;
@@ -855,6 +1141,7 @@ public final class MenuController {
         MenuItem instagramBioMenuItem;
         MenuItem instagramSearchMenuItem;
         MenuItem instagramProfilePictureItem;
+        MenuItem instagramFollowUserMenuItem;
         MenuItem instagramSavedPostsMenuItem;
         MenuItem timeSortMenuItem;
         MenuItem popularitySortMenuItem;
@@ -873,6 +1160,11 @@ public final class MenuController {
 
         redditProfileMenuItem = menuView.getRedditProfileMenuItem();
 
+
+        redditFollowUserMenuItem = menuView.getRedditFollowUserMenuItem();
+
+        redditLogoutMenuItem = menuView.getRedditLogoutMenuItem();
+
         redditSavedPostsMenuItem = menuView.getRedditSavedPostsMenuItem();
 
         redditMessagesMenuItem = menuView.getRedditMessagesMenuItem();
@@ -880,6 +1172,8 @@ public final class MenuController {
         twitterLogInMenuItem = menuView.getTwitterLogInMenuItem();
 
         twitterProfileMenuItem = menuView.getTwitterProfileMenuItem();
+
+        twitterFollowUserMenuItem = menuView.getTwitterFollowUserMenuItem();
 
         twitterMessagesMenuItem = menuView.getTwitterMessagesMenuItem();
 
@@ -896,6 +1190,8 @@ public final class MenuController {
         instagramSearchMenuItem = menuView.getInstagramSearchMenuItem();
 
         instagramProfilePictureItem = menuView.getInstagramProfilePictureMenuItem();
+
+        instagramFollowUserMenuItem = menuView.getInstagramFollowUserMenuItem();
 
         instagramSavedPostsMenuItem = menuView.getInstagramSavedPostsMenuItem();
 
@@ -917,6 +1213,10 @@ public final class MenuController {
 
         redditProfileMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.viewRedditProfile());
 
+        redditFollowUserMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.followRedditUser());
+
+        redditLogoutMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.logoutReddit());
+        
         redditSavedPostsMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
             Scene scene = redditPostController.updateSavedPosts();
             Stage stage = new Stage();
@@ -973,6 +1273,8 @@ public final class MenuController {
 
         twitterProfileMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.viewTwitterProfile());
 
+        twitterFollowUserMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.followTwitterUser());
+        
         twitterMessagesMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
             TwitterModel twitterModel;
             Alert alert;
@@ -1055,6 +1357,9 @@ public final class MenuController {
 
         instagramProfilePictureItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.setInstagramProfilePicture());
 
+
+        instagramFollowUserMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.followInstagramUser());
+        
         instagramSavedPostsMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
             Scene scene = instagramPostController.updateSavedPosts();
             Stage stage = new Stage();

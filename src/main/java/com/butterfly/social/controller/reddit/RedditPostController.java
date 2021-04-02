@@ -58,13 +58,13 @@ public final class RedditPostController {
     /**
      * The IDs of this Reddit post controller.
      */
-    private final Set<String> ids;
+    private Set<String> ids;
 
     private final Set<String> savedIds;
     /**
      * The map from boxes to posts of this Reddit post controller.
      */
-    private final Map<VBox, Post> boxesToPosts;
+    private Map<VBox, Post> boxesToPosts;
 
     /**
      * The all box lock of this Reddit post controller.
@@ -84,7 +84,7 @@ public final class RedditPostController {
     /**
      * The executor service of this Reddit post controller.
      */
-    private final ScheduledExecutorService executorService;
+    private ScheduledExecutorService executorService;
 
     /**
      * Constructs a newly allocated {@code RedditPostController} object with the specified model, view, map from boxes
@@ -632,4 +632,19 @@ public final class RedditPostController {
                                                                   Lock allBoxLock) {
         return new RedditPostController(model, view, boxesToPosts, allBoxLock);
     } //createRedditPostController
+
+    public void clearRedditFeed() {
+        PostView postView;
+        VBox redditBox;
+        VBox allBox;
+        postView = this.view.getPostView();
+        redditBox = postView.getRedditBox();
+        allBox = postView.getAllBox();
+        redditBox.getChildren().clear();
+        allBox.getChildren().clear();
+        this.boxesToPosts.clear();
+        this.ids.clear();
+        //this.executorService = null;
+        //updatePosts();
+    }
 }
