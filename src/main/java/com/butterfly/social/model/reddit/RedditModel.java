@@ -92,7 +92,7 @@ public final class RedditModel {
 
         networkAdapter = new OkHttpNetworkAdapter(userAgent);
 
-        credentials = Credentials.script(username, password, "GaoCzV0A1aEvMA", "14CAWMVrhheFVi0n5XDgpAAxnZV5Fw");
+        credentials = Credentials.script(username, password, clientId, clientSecret);
 
         client = OAuthHelper.automatic(networkAdapter, credentials);
 
