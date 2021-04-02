@@ -1126,8 +1126,8 @@ public final class MenuController {
         MenuItem redditProfileMenuItem;
         MenuItem redditFollowUserMenuItem;
         MenuItem redditLogoutMenuItem;
-        MenuItem twitterLogInMenuItem;
-        MenuItem twitterProfileMenuItem;
+        //MenuItem twitterLogInMenuItem;
+        //MenuItem twitterProfileMenuItem;
         MenuItem twitterFollowUserMenuItem;
         MenuItem redditSavedPostsMenuItem;
         MenuItem redditMessagesMenuItem;

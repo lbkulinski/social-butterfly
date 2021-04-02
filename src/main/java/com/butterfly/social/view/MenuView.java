@@ -29,6 +29,7 @@ public final class MenuView {
      */
     private final MenuItem redditLogoutMenuItem;
 
+    /**
      * The Reddit saved posts menu item of this menu view.
      */
 
