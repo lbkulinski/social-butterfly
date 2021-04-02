@@ -44,6 +44,8 @@ public final class MenuView {
      */
     private final MenuItem twitterMessagesMenuItem;
 
+    private final MenuItem twitterSavedPostsMenuItem;
+
     /**
      * The Instagram log in menu item of this menu view.
      */
@@ -168,6 +170,8 @@ public final class MenuView {
 
         this.twitterMessagesMenuItem = new MenuItem(messagesText);
 
+        this.twitterSavedPostsMenuItem = new MenuItem(savedPostsText);
+
         this.instagramLogInMenuItem = new MenuItem(logInText);
 
         this.instagramProfileMenuItem = new MenuItem(profileText);
@@ -197,7 +201,7 @@ public final class MenuView {
 
         this.redditMenu = new Menu(redditText, null, this.redditLogInMenuItem, this.redditProfileMenuItem, this.redditSavedPostsMenuItem, this.redditMessagesMenuItem);
 
-        this.twitterMenu = new Menu(twitterText, null, this.twitterLogInMenuItem, this.twitterProfileMenuItem, this.twitterMessagesMenuItem);
+        this.twitterMenu = new Menu(twitterText, null, this.twitterLogInMenuItem, this.twitterProfileMenuItem, this.twitterMessagesMenuItem, this.twitterSavedPostsMenuItem);
 
         this.instagramMenu = new Menu(instagramText, null, this.instagramLogInMenuItem, this.instagramProfileMenuItem,
                                     this.instagramBioMenuItem, this.instagramSearchMenuItem, this.instagramProfilePictureItem, this.instagramSavedPostsMenuItem, this.instagramMessagesMenuItem);
@@ -274,6 +278,10 @@ public final class MenuView {
     public MenuItem getTwitterMessagesMenuItem() {
         return this.twitterMessagesMenuItem;
     } //getTwitterMessagesMenuItem
+
+    public MenuItem getTwitterSavedPostsMenuItem() {
+        return this.twitterSavedPostsMenuItem;
+    }
 
     /**
      * Returns the Instagram log in menu item of this menu view.

@@ -79,6 +79,8 @@ public final class RedditPostController {
 
     public boolean sortByTime = true;
 
+    public boolean updateAll = false;
+
     /**
      * The executor service of this Reddit post controller.
      */
@@ -394,13 +396,21 @@ public final class RedditPostController {
 
         dateTimeLabel.setFont(Font.font("Arial", FontWeight.BOLD, 12));
 
+        format = "%d Upvotes";
+
+        String upvotesString = String.format(format, submission.getScore());
+
+        Label upvotesLabel = new Label(upvotesString);
+
+        upvotesLabel.setFont(Font.font("Arial", FontWeight.BOLD, 12));
+
         if (accordion == null) {
-            vBox = new VBox(titleText, nameLabel, text, dateTimeLabel);
+            vBox = new VBox(titleText, nameLabel, text, dateTimeLabel, upvotesLabel);
         } else {
             accordion.prefWidthProperty()
                      .bind(scene.widthProperty());
 
-            vBox = new VBox(titleText, nameLabel, text, accordion, dateTimeLabel);
+            vBox = new VBox(titleText, nameLabel, text, accordion, dateTimeLabel, upvotesLabel);
         } //end if
 
         vBox.setOnContextMenuRequested((contextMenuEvent) -> {
@@ -542,6 +552,19 @@ public final class RedditPostController {
 
         nodeCopies = new ArrayList<>();
 
+        postView = this.view.getPostView();
+
+        redditBox = postView.getRedditBox();
+
+        allBox = postView.getAllBox();
+
+        if(updateAll) {
+            redditBox.getChildren().clear();
+            this.ids.clear();
+            boxesToPosts.clear();
+            updateAll = false;
+        }
+
         breakLoop:
         for (Listing<Submission> listing : paginator) {
             for (Submission submission : listing) {
@@ -576,12 +599,6 @@ public final class RedditPostController {
                 } //end if
             } //end for
         } //end for
-
-        postView = this.view.getPostView();
-
-        redditBox = postView.getRedditBox();
-
-        allBox = postView.getAllBox();
 
         Platform.runLater(() -> redditBox.getChildren()
                                          .addAll(0, nodes));

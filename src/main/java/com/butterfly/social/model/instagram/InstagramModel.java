@@ -4,11 +4,14 @@ import com.github.instagram4j.instagram4j.IGClient;
 import com.github.instagram4j.instagram4j.exceptions.IGLoginException;
 import com.github.instagram4j.instagram4j.models.media.timeline.TimelineMedia;
 import com.github.instagram4j.instagram4j.requests.feed.FeedSavedRequest;
+import com.github.instagram4j.instagram4j.requests.media.MediaActionRequest;
+import com.github.instagram4j.instagram4j.requests.media.MediaActionRequest.MediaAction;
 import com.github.instagram4j.instagram4j.responses.feed.FeedSavedResponse;
 import com.github.instagram4j.instagram4j.responses.users.UsersSearchResponse;
 import com.github.instagram4j.instagram4j.models.user.Profile;
 import com.github.instagram4j.instagram4j.requests.IGGetRequest;
 import com.github.instagram4j.instagram4j.requests.direct.DirectInboxRequest;
+import com.github.instagram4j.instagram4j.responses.IGResponse;
 import com.github.instagram4j.instagram4j.responses.direct.DirectInboxResponse;
 import com.github.instagram4j.instagram4j.utils.IGChallengeUtils;
 
@@ -82,8 +85,7 @@ public final class InstagramModel implements Serializable {
 
     public void savePost(String id) {
         this.client.actions().timeline();
-        TimelineMedia media = new TimelineMedia();
-        media.get("save");
+        IGResponse ir = new MediaActionRequest(id, MediaAction.SAVE).execute(this.client).join();
     }
 
 

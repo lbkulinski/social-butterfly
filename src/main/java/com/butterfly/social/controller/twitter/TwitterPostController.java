@@ -23,6 +23,11 @@ import javafx.scene.text.Text;
 import javafx.util.Duration;
 import twitter4j.*;
 import twitter4j.api.FavoritesResources;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.LocalDateTime;
@@ -55,6 +60,8 @@ public final class TwitterPostController {
      */
     private final Set<Long> ids;
 
+    private final Set<Long> savedIds;
+
     /**
      * The map from boxes to posts of this Twitter post controller.
      */
@@ -71,6 +78,10 @@ public final class TwitterPostController {
     private final ScheduledExecutorService executorService;
 
     public boolean sortByTime = true;
+
+    public boolean updateAll = false;
+
+    private VBox allSavedBox;
 
     /**
      * Constructs a newly allocated {@code TwitterPostController} object with the specified model, view, map from boxes
@@ -98,12 +109,19 @@ public final class TwitterPostController {
 
         this.ids = new HashSet<>();
 
+        this.savedIds = new HashSet<>();
+
         this.boxesToPosts = boxesToPosts;
 
         this.allBoxLock = allBoxLock;
 
         this.executorService = Executors.newSingleThreadScheduledExecutor();
     } //TwitterPostController
+
+    public VBox getAllSavedBox() {
+        //updateSavedPosts();
+        return this.allSavedBox;
+    }
 
     /**
      * Returns the executor service of this Twitter post controller.
@@ -502,6 +520,7 @@ public final class TwitterPostController {
         FavoritesResources favoritesResources;
         MenuItem menuItem0;
         MenuItem menuItem1;
+        MenuItem save;
         ContextMenu contextMenu;
 
         Objects.requireNonNull(box, "the specified box is null");
@@ -538,7 +557,35 @@ public final class TwitterPostController {
             menuItem1 = this.createRetweetMenuItem(twitter, id, box);
         } //end if
 
-        contextMenu = new ContextMenu(menuItem0, menuItem1);
+        save = new MenuItem("Save Post");
+
+        contextMenu = new ContextMenu(menuItem0, menuItem1, save);
+
+        save.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
+            //save tweet
+            File f = new File("twitter-saved-posts.txt");
+            boolean hasDuplicate = false;
+            try {
+                //f.createNewFile();
+                Scanner scanner = new Scanner(f);
+                FileWriter writer = new FileWriter(f, true);
+                BufferedWriter out = new BufferedWriter(writer);
+                while(scanner.hasNextLine()) {
+                    String tempLine = scanner.nextLine();
+                    if(status.getId() == Long.parseLong(tempLine)) { // if duplicate
+                        hasDuplicate = true;
+                        break;
+                    }
+                }
+                if(!hasDuplicate) {
+                    out.write("" + status.getId() + "\n");
+                }
+                scanner.close();
+                out.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
 
         contextMenu.show(box, x, y);
     } //displayContextMenu
@@ -631,17 +678,25 @@ public final class TwitterPostController {
 
         dateTimeString = String.format(format, month, day, year, hour, minute, amPm);
 
+        format = "%d Retweets\t\t\t\t%d Likes";
+
+        String likesRetweetsString = String.format(format, status.getRetweetCount(), status.getFavoriteCount());
+
+        Label likesRetweetsLabel = new Label(likesRetweetsString);
+
+        likesRetweetsLabel.setFont(Font.font("Arial", FontWeight.BOLD, 12));
+
         dateTimeLabel = new Label(dateTimeString);
 
         dateTimeLabel.setFont(Font.font("Arial", FontWeight.BOLD, 12));
 
         if (accordion == null) {
-            vBox = new VBox(nameLabel, text, dateTimeLabel);
+            vBox = new VBox(nameLabel, text, dateTimeLabel, likesRetweetsLabel);
         } else {
             accordion.prefWidthProperty()
                      .bind(scene.widthProperty());
 
-            vBox = new VBox(nameLabel, text, accordion, dateTimeLabel);
+            vBox = new VBox(nameLabel, text, accordion, dateTimeLabel, likesRetweetsLabel);
         } //end if
 
         vBox.setOnContextMenuRequested((contextMenuEvent) -> {
@@ -657,6 +712,104 @@ public final class TwitterPostController {
 
         return vBox;
     } //createPostBox
+
+        /**
+     * Updates the posts of this Twitter post controller.
+     */
+    public Scene getSavedPosts() {
+        TwitterModel twitterModel;
+        Twitter twitter;
+        List<Status> statuses;
+        List<Node> nodes;
+        List<Node> nodeCopies;
+        long id;
+        VBox vBox;
+        VBox vBoxCopy;
+        TwitterPost post;
+        PostView postView;
+        VBox twitterBox;
+        VBox allBox;
+
+        twitterModel = this.model.getTwitterModel();
+
+        if (twitterModel == null) {
+            return null;
+        } //end if
+
+        twitter = twitterModel.getTwitter();
+
+        nodes = new ArrayList<>();
+
+        nodeCopies = new ArrayList<>();
+
+        postView = this.view.getPostView();
+
+        twitterBox = postView.getTwitterBox();
+
+        allBox = postView.getAllBox();
+
+        String savedPostsFileName = "twitter-saved-posts.txt";
+
+        File file = new File(savedPostsFileName);
+
+        statuses = new ArrayList<Status>();
+
+        try {
+            //file.createNewFile();
+            Scanner scanner = new Scanner(file);
+            while (scanner.hasNextLine()) {
+                String line = scanner.nextLine();
+                line = line.replace("\n", "");
+                Long tempId = Long.parseLong(line);
+                statuses.add(twitter.showStatus(tempId));
+            }
+            scanner.close();
+        } catch (Exception f) {
+            f.printStackTrace();
+        }
+
+        for (Status status : statuses) {
+            id = status.getId();
+
+            vBox = this.createBox(status, false);
+
+            vBoxCopy = this.createBox(status, true);
+
+            nodes.add(vBox);
+
+            nodes.add(new Separator());
+
+            nodeCopies.add(vBoxCopy);
+
+            nodeCopies.add(new Separator());
+
+            if (!this.savedIds.contains(id)) {
+                this.savedIds.add(id);
+                this.ids.add(id);
+
+                post = new TwitterPost(status);
+
+                this.boxesToPosts.put(vBox, post);
+
+                this.boxesToPosts.put(vBoxCopy, post);
+            } //end if
+        } //end for
+
+        VBox savedBox = new VBox();
+
+        if(this.allSavedBox == null) {
+            this.allSavedBox = new VBox();
+        }
+
+        savedBox.getChildren().addAll(0, nodes);
+
+        allSavedBox.getChildren().addAll(0, nodeCopies);
+
+        Scene scene = new Scene(savedBox, 500, 300);
+
+        return scene;
+    } //updatePosts
+
 
     /**
      * Updates the posts of this Twitter post controller.
@@ -710,6 +863,20 @@ public final class TwitterPostController {
             });
         }
 
+        postView = this.view.getPostView();
+
+        twitterBox = postView.getTwitterBox();
+
+        allBox = postView.getAllBox();
+
+        if(updateAll) {
+            //clear data
+            twitterBox.getChildren().clear();
+            this.ids.clear();
+            boxesToPosts.clear();
+            updateAll = false;
+        }
+
         for (Status status : statuses) {
             id = status.getId();
 
@@ -735,12 +902,6 @@ public final class TwitterPostController {
                 this.boxesToPosts.put(vBoxCopy, post);
             } //end if
         } //end for
-
-        postView = this.view.getPostView();
-
-        twitterBox = postView.getTwitterBox();
-
-        allBox = postView.getAllBox();
 
         Platform.runLater(() -> twitterBox.getChildren()
                                           .addAll(0, nodes));

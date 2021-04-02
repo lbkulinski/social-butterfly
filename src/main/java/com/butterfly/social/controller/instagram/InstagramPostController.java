@@ -9,7 +9,14 @@ import com.github.instagram4j.instagram4j.IGClient;
 import com.github.instagram4j.instagram4j.models.media.ImageVersionsMeta;
 import com.github.instagram4j.instagram4j.models.media.VideoVersionsMeta;
 import com.github.instagram4j.instagram4j.models.media.timeline.*;
+import com.github.instagram4j.instagram4j.requests.direct.DirectInboxRequest;
+import com.github.instagram4j.instagram4j.requests.media.MediaActionRequest;
+import com.github.instagram4j.instagram4j.requests.media.MediaActionRequest.MediaAction;
+import com.github.instagram4j.instagram4j.responses.IGResponse;
+import com.github.instagram4j.instagram4j.responses.direct.DirectInboxResponse;
 import com.github.instagram4j.instagram4j.responses.feed.FeedTimelineResponse;
+import com.github.instagram4j.instagram4j.responses.media.MediaResponse;
+
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.scene.CacheHint;
@@ -79,6 +86,8 @@ public final class InstagramPostController {
     private VBox allSavedBox;
 
     public boolean sortByTime = true;
+
+    public boolean updateAll = false;
 
 
     /**
@@ -598,14 +607,33 @@ public final class InstagramPostController {
 
         dateTimeLabel.setFont(Font.font("Arial", FontWeight.BOLD, 12));
 
+        format = "%d Likes";
+
+        String likesString = String.format(format, media.getLike_count());
+
+        Label likesLabel = new Label(likesString);
+
+        likesLabel.setFont(Font.font("Arial", FontWeight.BOLD, 12));
+
         if (accordion == null) {
-            vBox = new VBox(nameLabel, text, dateTimeLabel);
+            vBox = new VBox(nameLabel, text, dateTimeLabel, likesLabel);
         } else {
             accordion.prefWidthProperty()
                      .bind(scene.widthProperty());
 
-            vBox = new VBox(nameLabel, text, accordion, dateTimeLabel);
+            vBox = new VBox(nameLabel, text, accordion, dateTimeLabel, likesLabel);
         } //end if
+
+        vBox.setOnContextMenuRequested((contextMenuEvent) -> {
+            double screenX;
+            double screenY;
+
+            screenX = contextMenuEvent.getScreenX();
+
+            screenY = contextMenuEvent.getScreenY();
+
+            this.displayContextMenu(vBox, screenX, screenY);
+        });
 
         return vBox;
     } //createPostBox
@@ -635,7 +663,7 @@ public final class InstagramPostController {
 
         for (TimelineMedia media : feedItems) {
             id = media.getId();
-
+            
             vBox = this.createBox(media, false);
 
             vBoxCopy = this.createBox(media, true);
@@ -714,13 +742,25 @@ public final class InstagramPostController {
             .reversed();
         }
         else {
-            comparator = Comparator.<TimelineMedia>comparingLong(media -> media.getCaption()
-            .getComment_like_count())
+            comparator = Comparator.<TimelineMedia>comparingLong(media -> media.getLike_count())
             .reversed();
         }
 
 
         mediaSet = new TreeSet<>(comparator);
+
+        postView = this.view.getPostView();
+
+        instagramBox = postView.getInstagramBox();
+
+        allBox = postView.getAllBox();
+
+        if(updateAll) {
+            instagramBox.getChildren().clear();
+            this.ids.clear();
+            boxesToPosts.clear();
+            updateAll = false;
+        }
 
         breakLoop:
         for (FeedTimelineResponse response : iterable) {
@@ -770,12 +810,6 @@ public final class InstagramPostController {
                 this.boxesToPosts.put(vBoxCopy, post);
             } //end if
         } //end for
-
-        postView = this.view.getPostView();
-
-        instagramBox = postView.getInstagramBox();
-
-        allBox = postView.getAllBox();
 
         Platform.runLater(() -> instagramBox.getChildren()
                                             .addAll(0, nodes));
