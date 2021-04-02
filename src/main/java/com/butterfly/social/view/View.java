@@ -35,6 +35,10 @@ public final class View {
     private final PostView postView;
 
     /**
+     * The first Stage of this view
+     */
+    private final Stage primaryStage;
+    /**
      * Constructs a newly allocated {@code View} object with the specified primary stage.
      *
      * @param primaryStage the primary stage to be used in construction
@@ -50,6 +54,8 @@ public final class View {
         this.menuView = MenuView.createMenuView();
 
         this.postView = PostView.createPostView(primaryStage, this.scene);
+
+        this.primaryStage = primaryStage;
     } //View
 
     /**
@@ -87,6 +93,16 @@ public final class View {
     public PostView getPostView() {
         return this.postView;
     } //getPostView
+
+    /**
+     * Returns the primary stage
+     *
+     * @return the primary state
+     */
+    public Stage getPrimaryStage(){
+        return this.primaryStage;
+    } //getPrimaryStage
+
 
     /**
      * Creates, and returns, a {@code View} object.

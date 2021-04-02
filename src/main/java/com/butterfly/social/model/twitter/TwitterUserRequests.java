@@ -156,6 +156,17 @@ public final class TwitterUserRequests implements Serializable {
         return directMessage;
     }
 
+    public boolean followTwitterUser(String username) {
+        boolean val = true;
+        try {
+            twitter.createFriendship(username);
+        } catch (TwitterException e) {
+            e.printStackTrace();
+            val = false;
+        }
+        return val;
+    }
+
     public static void main(String[] args) throws TwitterException {
         /* Setup twitter model */
         TwitterModel user = new TwitterModel();

@@ -763,4 +763,8 @@ public final class TwitterPostController {
                                                                     Map<VBox, Post> boxesToPosts, Lock allBoxLock) {
         return new TwitterPostController(model, view, boxesToPosts, allBoxLock);
     } //createTwitterPostController
+
+    public Map<VBox, Post> getBoxesToPosts() {
+        return this.boxesToPosts;
+    }
 }

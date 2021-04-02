@@ -5,6 +5,7 @@ import net.dean.jraw.models.Submission;
 import net.dean.jraw.models.SubmissionKind;
 import net.dean.jraw.references.InboxReference;
 import net.dean.jraw.references.SubmissionReference;
+import net.dean.jraw.references.UserReference;
 
 public class RedditUserRequests {
     private RedditClient redditClient;

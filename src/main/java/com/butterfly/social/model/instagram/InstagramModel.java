@@ -2,15 +2,24 @@ package com.butterfly.social.model.instagram;
 
 import com.github.instagram4j.instagram4j.IGClient;
 import com.github.instagram4j.instagram4j.exceptions.IGLoginException;
+import com.github.instagram4j.instagram4j.models.user.Profile;
+import com.github.instagram4j.instagram4j.requests.friendships.FriendshipsActionRequest;
+import com.github.instagram4j.instagram4j.requests.users.UsersUsernameInfoRequest;
+import com.github.instagram4j.instagram4j.responses.IGResponse;
 import com.github.instagram4j.instagram4j.responses.users.UsersSearchResponse;
 import com.github.instagram4j.instagram4j.utils.IGChallengeUtils;
 
+
 import java.io.File;
 import java.io.Serializable;
+import java.util.List;
 import java.util.Objects;
 import java.util.Scanner;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static com.github.instagram4j.instagram4j.requests.friendships.FriendshipsActionRequest.FriendshipsAction.CREATE;
 
 public final class InstagramModel implements Serializable {
     private IGClient client;
@@ -59,7 +68,19 @@ public final class InstagramModel implements Serializable {
         this.client.actions().account().setProfilePicture(newProfilePicture);
     }
 
-
+    public void followInstagramProfile(String username) {
+        new UsersUsernameInfoRequest(username).execute(this.client).thenAccept(userResponse -> {
+            long pk = userResponse.getUser().getPk();
+            FriendshipsActionRequest friendshipRequest = new FriendshipsActionRequest(pk, CREATE);
+            IGResponse response = friendshipRequest.execute(this.client).join();
+            if (response.getStatus().equals("ok")) {
+                System.out.println("success");
+            }
+            else {
+                System.out.println("error");
+            }
+        });
+    }
     public static InstagramModel createInstagramModel(String username, String password) {
         InstagramModel instagramModel;
         Callable<String> inputCode;

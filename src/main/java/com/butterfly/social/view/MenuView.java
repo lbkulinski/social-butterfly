@@ -20,6 +20,15 @@ public final class MenuView {
     private final MenuItem redditProfileMenuItem;
 
     /**
+     * The Reddit follow menu item of this menu view.
+     */
+    private final MenuItem redditFollowUserMenuItem;
+
+    /**
+     * The Reddit logout menu item of this menu view
+     */
+    private final MenuItem redditLogoutMenuItem;
+    /**
      * The Twitter log in menu item of this menu view.
      */
     private final MenuItem twitterLogInMenuItem;
@@ -28,6 +37,11 @@ public final class MenuView {
      * The Twitter profile menu item of this menu view.
      */
     private final MenuItem twitterProfileMenuItem;
+
+    /**
+     * The Twitter follow menu item of this menu view.
+     */
+    private final MenuItem twitterFollowUserMenuItem;
 
     /**
      * The Instagram log in menu item of this menu view.
@@ -53,6 +67,11 @@ public final class MenuView {
      * The Instagram profile picture menu item of this menu view.
      */
     private final MenuItem instagramProfilePictureItem;
+
+    /**
+     * The Instagram follow menu item of this menu view.
+     */
+    private final MenuItem instagramFollowUserMenuItem;
 
     /**
      * The light radio menu item of this menu view.
@@ -104,9 +123,11 @@ public final class MenuView {
      */
     private MenuView() {
         String logInText = "Log In";
+        String logoutText = "Log Out";
         String profileText = "View Profile";
         String editBioText = "Edit Bio";
         String searchUsersText = "Search For Users";
+        String followUserText = "Follow user";
         String profilePictureText = "Set Profile Picture";
         String lightText = "Light";
         String darkText = "Dark";
@@ -122,9 +143,15 @@ public final class MenuView {
 
         this.redditProfileMenuItem = new MenuItem(profileText);
 
+        this.redditFollowUserMenuItem = new MenuItem(followUserText);
+
+        this.redditLogoutMenuItem = new MenuItem(logoutText);
+
         this.twitterLogInMenuItem = new MenuItem(logInText);
 
         this.twitterProfileMenuItem = new MenuItem(profileText);
+
+        this.twitterFollowUserMenuItem = new MenuItem(followUserText);
 
         this.instagramLogInMenuItem = new MenuItem(logInText);
 
@@ -136,6 +163,8 @@ public final class MenuView {
 
         this.instagramProfilePictureItem = new MenuItem(profilePictureText);
 
+        this.instagramFollowUserMenuItem = new MenuItem(followUserText);
+
         this.lightRadioMenuItem = new RadioMenuItem(lightText);
 
         this.darkRadioMenuItem = new RadioMenuItem(darkText);
@@ -144,12 +173,12 @@ public final class MenuView {
 
         this.splitRadioMenuItem = new RadioMenuItem(splitText);
 
-        this.redditMenu = new Menu(redditText, null, this.redditLogInMenuItem, this.redditProfileMenuItem);
+        this.redditMenu = new Menu(redditText, null, this.redditLogInMenuItem, this.redditProfileMenuItem, this.redditFollowUserMenuItem, redditLogoutMenuItem);
 
-        this.twitterMenu = new Menu(twitterText, null, this.twitterLogInMenuItem, this.twitterProfileMenuItem);
+        this.twitterMenu = new Menu(twitterText, null, this.twitterLogInMenuItem, this.twitterProfileMenuItem, this.twitterFollowUserMenuItem);
 
         this.instagramMenu = new Menu(instagramText, null, this.instagramLogInMenuItem, this.instagramProfileMenuItem,
-                                    this.instagramBioMenuItem, this.instagramSearchMenuItem, this.instagramProfilePictureItem);
+                                    this.instagramBioMenuItem, this.instagramSearchMenuItem, this.instagramProfilePictureItem, this.instagramFollowUserMenuItem);
 
         separator = new SeparatorMenuItem();
 
@@ -178,6 +207,24 @@ public final class MenuView {
     } //getRedditProfileMenuItem
 
     /**
+     * Returns the Reddit follow menu item of this menu view.
+     *
+     * @return the Reddit follow menu item of this menu view
+     */
+    public MenuItem getRedditFollowUserMenuItem() {
+        return this.redditFollowUserMenuItem;
+    } //getRedditFollowUserMenuItem
+
+    /**
+     * Returns the Reddit logout menu item of this menu view
+     *
+     * @return the Reddit logout menu item of this menu view
+     */
+    public MenuItem getRedditLogoutMenuItem() {
+        return this.redditLogoutMenuItem;
+    }
+
+    /**
      * Returns the Twitter log in menu item of this menu view.
      *
      * @return the Twitter log in menu item of this menu view
@@ -194,6 +241,15 @@ public final class MenuView {
     public MenuItem getTwitterProfileMenuItem() {
         return this.twitterProfileMenuItem;
     } //getTwitterProfileMenuItem
+
+    /**
+     * Returns the Twitter follow user menu item of this menu view.
+     *
+     * @return the Twitter folllow user menu item of this menu view
+     */
+    public MenuItem getTwitterFollowUserMenuItem() {
+        return this.twitterFollowUserMenuItem;
+    } //getTwitterFollowUserMenuItem
 
     /**
      * Returns the Instagram log in menu item of this menu view.
@@ -240,6 +296,14 @@ public final class MenuView {
         return this.instagramProfilePictureItem;
     } //getInstagramBioMenuItem
 
+    /**
+     * Returns the Instagram follow user menu item of this menu view.
+     *
+     * @return the Instagram follow user menu item of this menu view
+     */
+    public MenuItem getInstagramFollowUserMenuItem() {
+        return this.instagramFollowUserMenuItem;
+    } //getInstagramFollowUserMenuItem
     /**
      * Returns the light radio menu item of this menu view.
      *
@@ -347,4 +411,5 @@ public final class MenuView {
 
         return menuView;
     } //createMenuView
+
 }
