@@ -9,8 +9,16 @@ import com.github.instagram4j.instagram4j.IGClient;
 import com.github.instagram4j.instagram4j.models.media.ImageVersionsMeta;
 import com.github.instagram4j.instagram4j.models.media.VideoVersionsMeta;
 import com.github.instagram4j.instagram4j.models.media.timeline.*;
+import com.github.instagram4j.instagram4j.requests.direct.DirectInboxRequest;
+import com.github.instagram4j.instagram4j.requests.media.MediaActionRequest;
+import com.github.instagram4j.instagram4j.requests.media.MediaActionRequest.MediaAction;
+import com.github.instagram4j.instagram4j.responses.IGResponse;
+import com.github.instagram4j.instagram4j.responses.direct.DirectInboxResponse;
 import com.github.instagram4j.instagram4j.responses.feed.FeedTimelineResponse;
+import com.github.instagram4j.instagram4j.responses.media.MediaResponse;
+
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
 import javafx.scene.CacheHint;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -58,6 +66,8 @@ public final class InstagramPostController {
      */
     private final Set<String> ids;
 
+    private final Set<String> savedIds;
+
     /**
      * The map from boxes to posts of this Instagram post controller.
      */
@@ -72,6 +82,13 @@ public final class InstagramPostController {
      * The executor service of this Instagram post controller.
      */
     private final ScheduledExecutorService executorService;
+
+    private VBox allSavedBox;
+
+    public boolean sortByTime = true;
+
+    public boolean updateAll = false;
+
 
     /**
      * Constructs a newly allocated {@code InstagramPostController} object with the specified model, view, map from
@@ -99,7 +116,11 @@ public final class InstagramPostController {
 
         this.ids = new HashSet<>();
 
+        this.savedIds = new HashSet<>();
+
         this.boxesToPosts = boxesToPosts;
+
+        this.allSavedBox = new VBox();
 
         this.allBoxLock = allBoxLock;
 
@@ -114,6 +135,11 @@ public final class InstagramPostController {
     public ScheduledExecutorService getExecutorService() {
         return this.executorService;
     } //getExecutorService
+
+    public VBox getAllSavedBox() {
+        //updateSavedPosts();
+        return this.allSavedBox;
+    }
 
     /**
      * Determines whether or not the specified media is an ad.
@@ -452,6 +478,51 @@ public final class InstagramPostController {
         return accordion;
     } //getMediaAccordion
 
+    private void displayContextMenu(VBox box, double x, double y) {
+        Post post;
+        InstagramPost instagramPost;
+        TimelineMedia media;
+        String id;
+        InstagramModel instagramModel;
+        instagramModel = this.model.getInstagramModel();
+        //RedditClient client;
+        IGClient client = instagramModel.getClient();
+        //FavoritesResources favoritesResources;
+        MenuItem save;
+        ContextMenu contextMenu;
+
+        Objects.requireNonNull(box, "the specified box is null");
+
+        post = this.boxesToPosts.get(box);
+
+        if (post == null) {
+            return;
+        } else if (!(post instanceof InstagramPost)) {
+            throw new IllegalStateException("a box is mapped to the wrong post type");
+        } //end if
+
+        instagramPost = (InstagramPost) post;
+
+        media = instagramPost.getMedia();
+
+        id = media.getId();
+
+        client = instagramModel.getClient();
+
+        //favoritesResources = twitter.favorites();
+
+        save = new MenuItem("Save Post");
+
+        save.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
+            //save tweet
+            instagramModel.savePost(id);
+        });
+
+        contextMenu = new ContextMenu(save);
+
+        contextMenu.show(box, x, y);
+    } //displayContextMenu
+
     /**
      * Returns a box for the specified media.
      *
@@ -536,17 +607,100 @@ public final class InstagramPostController {
 
         dateTimeLabel.setFont(Font.font("Arial", FontWeight.BOLD, 12));
 
+        format = "%d Likes";
+
+        String likesString = String.format(format, media.getLike_count());
+
+        Label likesLabel = new Label(likesString);
+
+        likesLabel.setFont(Font.font("Arial", FontWeight.BOLD, 12));
+
         if (accordion == null) {
-            vBox = new VBox(nameLabel, text, dateTimeLabel);
+            vBox = new VBox(nameLabel, text, dateTimeLabel, likesLabel);
         } else {
             accordion.prefWidthProperty()
                      .bind(scene.widthProperty());
 
-            vBox = new VBox(nameLabel, text, accordion, dateTimeLabel);
+            vBox = new VBox(nameLabel, text, accordion, dateTimeLabel, likesLabel);
         } //end if
+
+        vBox.setOnContextMenuRequested((contextMenuEvent) -> {
+            double screenX;
+            double screenY;
+
+            screenX = contextMenuEvent.getScreenX();
+
+            screenY = contextMenuEvent.getScreenY();
+
+            this.displayContextMenu(vBox, screenX, screenY);
+        });
 
         return vBox;
     } //createPostBox
+    
+    public Scene updateSavedPosts() {
+        InstagramModel instagramModel;
+        List<TimelineMedia> feedItems;
+        List<Node> nodes;
+        List<Node> nodeCopies;
+        String id;
+        VBox vBox;
+        VBox vBoxCopy;
+        InstagramPost post;
+        VBox instagramBox;
+
+        instagramModel = this.model.getInstagramModel();
+
+        if (instagramModel == null) {
+            return null;
+        } //end if
+
+        feedItems = instagramModel.getSavedPosts();
+
+        nodes = new ArrayList<>();
+
+        nodeCopies = new ArrayList<>();
+
+        for (TimelineMedia media : feedItems) {
+            id = media.getId();
+            
+            vBox = this.createBox(media, false);
+
+            vBoxCopy = this.createBox(media, true);
+
+            nodes.add(vBox);
+
+            nodes.add(new Separator());
+
+            nodeCopies.add(vBoxCopy);
+
+            nodeCopies.add(new Separator());
+
+            if (!this.savedIds.contains(id)) {
+                this.savedIds.add(id);
+                this.ids.add(id);
+
+                post = new InstagramPost(media);
+
+                this.boxesToPosts.put(vBox, post);
+
+                this.boxesToPosts.put(vBoxCopy, post);
+            } //end if
+        } //end for
+
+        instagramBox = new VBox();
+        if(this.allSavedBox == null) {
+            this.allSavedBox = new VBox();
+        }
+
+        instagramBox.getChildren().addAll(0, nodes);
+
+        allSavedBox.getChildren().addAll(0, nodeCopies);
+
+        Scene scene = new Scene(instagramBox, 500, 300);
+
+        return scene;
+    }
 
     /**
      * Updates the posts of this Instagram post controller.
@@ -582,11 +736,31 @@ public final class InstagramPostController {
                          .timeline()
                          .feed();
 
-        comparator = Comparator.<TimelineMedia>comparingLong(media -> media.getCaption()
-                                                                           .getCreated_at_utc())
-                               .reversed();
+        if(sortByTime) {
+            comparator = Comparator.<TimelineMedia>comparingLong(media -> media.getCaption()
+            .getCreated_at_utc())
+            .reversed();
+        }
+        else {
+            comparator = Comparator.<TimelineMedia>comparingLong(media -> media.getLike_count())
+            .reversed();
+        }
+
 
         mediaSet = new TreeSet<>(comparator);
+
+        postView = this.view.getPostView();
+
+        instagramBox = postView.getInstagramBox();
+
+        allBox = postView.getAllBox();
+
+        if(updateAll) {
+            instagramBox.getChildren().clear();
+            this.ids.clear();
+            boxesToPosts.clear();
+            updateAll = false;
+        }
 
         breakLoop:
         for (FeedTimelineResponse response : iterable) {
@@ -636,12 +810,6 @@ public final class InstagramPostController {
                 this.boxesToPosts.put(vBoxCopy, post);
             } //end if
         } //end for
-
-        postView = this.view.getPostView();
-
-        instagramBox = postView.getInstagramBox();
-
-        allBox = postView.getAllBox();
 
         Platform.runLater(() -> instagramBox.getChildren()
                                             .addAll(0, nodes));

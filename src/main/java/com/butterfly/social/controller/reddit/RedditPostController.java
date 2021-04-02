@@ -6,6 +6,7 @@ import com.butterfly.social.model.reddit.RedditModel;
 import com.butterfly.social.view.PostView;
 import com.butterfly.social.view.View;
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
 import javafx.scene.CacheHint;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -22,6 +23,7 @@ import javafx.scene.text.Text;
 import net.dean.jraw.RedditClient;
 import net.dean.jraw.models.EmbeddedMedia;
 import net.dean.jraw.models.Listing;
+import net.dean.jraw.models.PublicContribution;
 import net.dean.jraw.models.Submission;
 import net.dean.jraw.models.SubredditSort;
 import net.dean.jraw.pagination.DefaultPaginator;
@@ -58,6 +60,7 @@ public final class RedditPostController {
      */
     private Set<String> ids;
 
+    private final Set<String> savedIds;
     /**
      * The map from boxes to posts of this Reddit post controller.
      */
@@ -67,6 +70,16 @@ public final class RedditPostController {
      * The all box lock of this Reddit post controller.
      */
     private final Lock allBoxLock;
+
+    private VBox allSavedBox;
+
+    private List<Node> savedNodes;
+
+    private List<Node> savedNodesCopy;
+
+    public boolean sortByTime = true;
+
+    public boolean updateAll = false;
 
     /**
      * The executor service of this Reddit post controller.
@@ -99,9 +112,17 @@ public final class RedditPostController {
 
         this.ids = new HashSet<>();
 
+        this.savedIds = new HashSet<>();
+
         this.boxesToPosts = boxesToPosts;
 
         this.allBoxLock = allBoxLock;
+
+        this.allSavedBox = null;
+
+        this.savedNodes = new ArrayList<>();
+
+        this.savedNodesCopy = new ArrayList<>();
 
         this.executorService = Executors.newSingleThreadScheduledExecutor();
     } //RedditPostController
@@ -114,6 +135,10 @@ public final class RedditPostController {
     public ScheduledExecutorService getExecutorService() {
         return this.executorService;
     } //getExecutorService
+
+    public VBox getAllSavedBox() {
+        return this.allSavedBox;
+    }
 
     /**
      * Returns a media accordion for the specified submission.
@@ -228,6 +253,51 @@ public final class RedditPostController {
         return accordion;
     } //getMediaAccordion
 
+    private void displayContextMenu(VBox box, double x, double y) {
+        Post post;
+        RedditPost redditPost;
+        Submission submission;
+        String id;
+        RedditModel redditModel;
+        RedditClient client;
+        //FavoritesResources favoritesResources;
+        MenuItem save;
+        ContextMenu contextMenu;
+
+        Objects.requireNonNull(box, "the specified box is null");
+
+        post = this.boxesToPosts.get(box);
+
+        if (post == null) {
+            return;
+        } else if (!(post instanceof RedditPost)) {
+            throw new IllegalStateException("a box is mapped to the wrong post type");
+        } //end if
+
+        redditPost = (RedditPost) post;
+
+        submission = redditPost.getSubmission();
+
+        id = submission.getId();
+
+        redditModel = this.model.getRedditModel();
+
+        client = redditModel.getClient();
+
+        //favoritesResources = twitter.favorites();
+
+        save = new MenuItem("Save Post");
+
+        save.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
+            //save tweet
+            redditModel.savePost(id);
+        });
+
+        contextMenu = new ContextMenu(save);
+
+        contextMenu.show(box, x, y);
+    } //displayContextMenu
+
     /**
      * Returns a box for the specified submission.
      *
@@ -326,17 +396,115 @@ public final class RedditPostController {
 
         dateTimeLabel.setFont(Font.font("Arial", FontWeight.BOLD, 12));
 
+        format = "%d Upvotes";
+
+        String upvotesString = String.format(format, submission.getScore());
+
+        Label upvotesLabel = new Label(upvotesString);
+
+        upvotesLabel.setFont(Font.font("Arial", FontWeight.BOLD, 12));
+
         if (accordion == null) {
-            vBox = new VBox(titleText, nameLabel, text, dateTimeLabel);
+            vBox = new VBox(titleText, nameLabel, text, dateTimeLabel, upvotesLabel);
         } else {
             accordion.prefWidthProperty()
                      .bind(scene.widthProperty());
 
-            vBox = new VBox(titleText, nameLabel, text, accordion, dateTimeLabel);
+            vBox = new VBox(titleText, nameLabel, text, accordion, dateTimeLabel, upvotesLabel);
         } //end if
+
+        vBox.setOnContextMenuRequested((contextMenuEvent) -> {
+            double screenX;
+            double screenY;
+
+            screenX = contextMenuEvent.getScreenX();
+
+            screenY = contextMenuEvent.getScreenY();
+
+            this.displayContextMenu(vBox, screenX, screenY);
+        });
 
         return vBox;
     } //createPostBox
+
+    /**
+     * Updates the saved posts of this Reddit post controller.
+     */
+    public Scene updateSavedPosts() {
+        RedditModel redditModel;
+        RedditClient client;
+        List<Node> nodes;
+        List<Node> nodeCopies;
+        String id;
+        VBox vBox;
+        VBox vBoxCopy;
+        RedditPost post;
+        int count = 0;
+        int maxCount = 50;
+        PostView postView;
+        VBox redditBox;
+
+        redditModel = this.model.getRedditModel();
+
+        if (redditModel == null) {
+            return null;
+        } //end if
+
+        client = redditModel.getClient();
+
+        nodes = new ArrayList<>();
+
+        nodeCopies = new ArrayList<>();
+
+        List<PublicContribution> listing = redditModel.getSavedPosts();
+        for (PublicContribution pc : listing) {
+            id = pc.getId();
+            Submission submission = client.submission(id).inspect();
+            vBox = this.createBox(submission, false);
+
+            vBoxCopy = this.createBox(submission, true);
+
+            nodes.add(vBox);
+
+            nodes.add(new Separator());
+
+            nodeCopies.add(vBoxCopy);
+
+            nodeCopies.add(new Separator());
+
+            if (!this.savedIds.contains(id)) {
+                this.savedIds.add(id);
+
+                post = new RedditPost(submission);
+
+                this.boxesToPosts.put(vBox, post);
+
+                this.boxesToPosts.put(vBoxCopy, post);
+            } //end if
+
+            count++;
+
+            if (count == maxCount) {
+                break;
+            } //end if
+        } //end for
+
+        redditBox = new VBox();
+
+        if(this.allSavedBox == null) {
+            this.allSavedBox = new VBox();
+        }
+        System.out.println("Nodes size: " + nodes.size());
+        redditBox.getChildren().addAll(0, nodes);
+        System.out.println("Nodes COPY size: " + nodeCopies.size());
+        allSavedBox.getChildren().addAll(0, nodeCopies);
+
+        Scene scene = new Scene(redditBox, 500, 300);
+
+        return scene;
+
+    } //updatePosts
+
 
     /**
      * Updates the posts of this Reddit post controller.
@@ -365,15 +533,37 @@ public final class RedditPostController {
         } //end if
 
         client = redditModel.getClient();
+        
+        if(sortByTime) {
+            paginator = client.frontPage()
+            .sorting(SubredditSort.NEW)
+            .limit(limit)
+            .build();
+        }
+        else {
+            paginator = client.frontPage()
+            .sorting(SubredditSort.TOP)
+            .limit(limit)
+            .build();
+        }
 
-        paginator = client.frontPage()
-                          .sorting(SubredditSort.NEW)
-                          .limit(limit)
-                          .build();
 
         nodes = new ArrayList<>();
 
         nodeCopies = new ArrayList<>();
+
+        postView = this.view.getPostView();
+
+        redditBox = postView.getRedditBox();
+
+        allBox = postView.getAllBox();
+
+        if(updateAll) {
+            redditBox.getChildren().clear();
+            this.ids.clear();
+            boxesToPosts.clear();
+            updateAll = false;
+        }
 
         breakLoop:
         for (Listing<Submission> listing : paginator) {
@@ -409,12 +599,6 @@ public final class RedditPostController {
                 } //end if
             } //end for
         } //end for
-
-        postView = this.view.getPostView();
-
-        redditBox = postView.getRedditBox();
-
-        allBox = postView.getAllBox();
 
         Platform.runLater(() -> redditBox.getChildren()
                                          .addAll(0, nodes));

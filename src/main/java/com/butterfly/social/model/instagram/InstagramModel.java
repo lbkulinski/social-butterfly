@@ -6,7 +6,15 @@ import com.github.instagram4j.instagram4j.models.user.Profile;
 import com.github.instagram4j.instagram4j.requests.friendships.FriendshipsActionRequest;
 import com.github.instagram4j.instagram4j.requests.users.UsersUsernameInfoRequest;
 import com.github.instagram4j.instagram4j.responses.IGResponse;
+import com.github.instagram4j.instagram4j.models.media.timeline.TimelineMedia;
+import com.github.instagram4j.instagram4j.requests.feed.FeedSavedRequest;
+import com.github.instagram4j.instagram4j.requests.media.MediaActionRequest;
+import com.github.instagram4j.instagram4j.requests.media.MediaActionRequest.MediaAction;
+import com.github.instagram4j.instagram4j.responses.feed.FeedSavedResponse;
 import com.github.instagram4j.instagram4j.responses.users.UsersSearchResponse;
+import com.github.instagram4j.instagram4j.requests.IGGetRequest;
+import com.github.instagram4j.instagram4j.requests.direct.DirectInboxRequest;
+import com.github.instagram4j.instagram4j.responses.direct.DirectInboxResponse;
 import com.github.instagram4j.instagram4j.utils.IGChallengeUtils;
 
 
@@ -68,6 +76,7 @@ public final class InstagramModel implements Serializable {
         this.client.actions().account().setProfilePicture(newProfilePicture);
     }
 
+
     public void followInstagramProfile(String username) {
         new UsersUsernameInfoRequest(username).execute(this.client).thenAccept(userResponse -> {
             long pk = userResponse.getUser().getPk();
@@ -81,6 +90,26 @@ public final class InstagramModel implements Serializable {
             }
         });
     }
+
+    public List<String> getDirectMessages() {
+        DirectInboxRequest dmRequest = new DirectInboxRequest();
+        DirectInboxResponse dmResponse = dmRequest.execute(this.client).join();
+        dmResponse.getInbox().getThreads().forEach(thread -> {
+            String threadID = thread.getThread_id();
+            String threadTitle = thread.getThread_title();
+            List<Profile> profiles = thread.getUsers();
+            thread.getItems();
+
+        });
+        return null;
+    }
+
+    public void savePost(String id) {
+        this.client.actions().timeline();
+        IGResponse ir = new MediaActionRequest(id, MediaAction.SAVE).execute(this.client).join();
+    }
+
+
     public static InstagramModel createInstagramModel(String username, String password) {
         InstagramModel instagramModel;
         Callable<String> inputCode;
@@ -129,4 +158,9 @@ public final class InstagramModel implements Serializable {
 
         return instagramModel;
     } //createInstagramModel
+
+    public List<TimelineMedia> getSavedPosts() {
+        FeedSavedResponse response = new FeedSavedRequest().execute(this.client).join();
+        return response.getItems();
+    }
 }

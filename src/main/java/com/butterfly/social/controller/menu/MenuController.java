@@ -14,10 +14,12 @@ import com.butterfly.social.model.twitter.TwitterUserRequests;
 import com.butterfly.social.view.MenuView;
 import com.butterfly.social.view.PostView;
 import com.butterfly.social.view.View;
+import com.github.instagram4j.instagram4j.responses.direct.DirectInboxResponse;
 import com.github.instagram4j.instagram4j.responses.users.UsersSearchResponse;
 import javafx.beans.Observable;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import com.github.instagram4j.instagram4j.requests.direct.DirectInboxRequest;
 import javafx.event.ActionEvent;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -26,21 +28,30 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
+import javafx.stage.Stage;
 import javafx.stage.FileChooser;
 import javafx.stage.Popup;
-import javafx.stage.Stage;
 import jdk.dynalink.NoSuchDynamicMethodException;
 import net.dean.jraw.RedditClient;
 import net.dean.jraw.models.*;
 import net.dean.jraw.references.OtherUserReference;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
+import net.dean.jraw.models.Message;
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.*;
+import twitter4j.DirectMessage;
+import twitter4j.User;
+import java.util.Date;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 
 /**
  * A controller for the menu of the Social Butterfly application.
@@ -756,6 +767,24 @@ public final class MenuController {
         alert.show();
     } //searchUsersOnInstagram
 
+    public Scene getAllSavedPostsScene() {
+        this.instagramPostController.updateSavedPosts();
+        this.redditPostController.updateSavedPosts();
+        this.twitterPostController.getSavedPosts();
+        VBox temp = new VBox();
+        if(this.instagramPostController.getAllSavedBox() != null) {
+            temp.getChildren().addAll(this.instagramPostController.getAllSavedBox().getChildren());
+        }
+        if(this.redditPostController.getAllSavedBox() != null) {
+            temp.getChildren().addAll(this.redditPostController.getAllSavedBox().getChildren());
+        }
+        if(this.twitterPostController.getAllSavedBox() != null) {
+            temp.getChildren().addAll(this.twitterPostController.getAllSavedBox().getChildren());
+        }
+        
+        return new Scene(temp, 500, 300);
+    }
+
     /**
      * Allows users
      */
@@ -1100,16 +1129,27 @@ public final class MenuController {
         MenuItem twitterLogInMenuItem;
         MenuItem twitterProfileMenuItem;
         MenuItem twitterFollowUserMenuItem;
+        MenuItem redditSavedPostsMenuItem;
+        MenuItem redditMessagesMenuItem;
+        MenuItem twitterLogInMenuItem;
+        MenuItem twitterProfileMenuItem;
+        MenuItem twitterMessagesMenuItem;
+        MenuItem twitterSavedPostsMenuItem;
         MenuItem instagramLogInMenuItem;
         MenuItem instagramProfileMenuItem;
+        MenuItem instagramMessagesMenuItem;
         MenuItem instagramBioMenuItem;
         MenuItem instagramSearchMenuItem;
         MenuItem instagramProfilePictureItem;
         MenuItem instagramFollowUserMenuItem;
+        MenuItem instagramSavedPostsMenuItem;
+        MenuItem timeSortMenuItem;
+        MenuItem popularitySortMenuItem;
         RadioMenuItem lightRadioMenuItem;
         RadioMenuItem darkRadioMenuItem;
         RadioMenuItem tabRadioMenuItem;
         RadioMenuItem splitRadioMenuItem;
+        MenuItem allSavedPostsRadioMenuItem;
 
         controller = new MenuController(model, view, redditPostController, twitterPostController,
                                         instagramPostController);
@@ -1120,9 +1160,14 @@ public final class MenuController {
 
         redditProfileMenuItem = menuView.getRedditProfileMenuItem();
 
+
         redditFollowUserMenuItem = menuView.getRedditFollowUserMenuItem();
 
         redditLogoutMenuItem = menuView.getRedditLogoutMenuItem();
+
+        redditSavedPostsMenuItem = menuView.getRedditSavedPostsMenuItem();
+
+        redditMessagesMenuItem = menuView.getRedditMessagesMenuItem();
 
         twitterLogInMenuItem = menuView.getTwitterLogInMenuItem();
 
@@ -1130,9 +1175,15 @@ public final class MenuController {
 
         twitterFollowUserMenuItem = menuView.getTwitterFollowUserMenuItem();
 
+        twitterMessagesMenuItem = menuView.getTwitterMessagesMenuItem();
+
+        twitterSavedPostsMenuItem = menuView.getTwitterSavedPostsMenuItem();
+
         instagramLogInMenuItem = menuView.getInstagramLogInMenuItem();
 
         instagramProfileMenuItem = menuView.getInstagramProfileMenuItem();
+
+        instagramMessagesMenuItem = menuView.getInstagramMessagesMenuItem();
 
         instagramBioMenuItem = menuView.getInstagramBioMenuItem();
 
@@ -1142,6 +1193,12 @@ public final class MenuController {
 
         instagramFollowUserMenuItem = menuView.getInstagramFollowUserMenuItem();
 
+        instagramSavedPostsMenuItem = menuView.getInstagramSavedPostsMenuItem();
+
+        timeSortMenuItem = menuView.getTimeSortMenuItem();
+
+        popularitySortMenuItem = menuView.getPopularitySortMenuItem();
+
         lightRadioMenuItem = menuView.getLightRadioMenuItem();
 
         darkRadioMenuItem = menuView.getDarkRadioMenuItem();
@@ -1150,6 +1207,8 @@ public final class MenuController {
 
         splitRadioMenuItem = menuView.getSplitRadioMenuItem();
 
+        allSavedPostsRadioMenuItem = menuView.getAllSavedPostsRadioMenuItem();
+
         redditLogInMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.logInToReddit());
 
         redditProfileMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.viewRedditProfile());
@@ -1157,12 +1216,135 @@ public final class MenuController {
         redditFollowUserMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.followRedditUser());
 
         redditLogoutMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.logoutReddit());
+        
+        redditSavedPostsMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
+            Scene scene = redditPostController.updateSavedPosts();
+            Stage stage = new Stage();
+            stage.setScene(scene);
+            stage.setTitle("Saved Posts");
+            stage.setResizable(true);
+            stage.show();
+        });
+
+        redditMessagesMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
+            RedditModel redditModel = controller.model.getRedditModel();
+            Alert alert;
+            String title = "Social Butterfly";
+            String headerText = "Direct Messages";
+            String message = "";
+            List<Message> messages = redditModel.getDirectMessages();
+            for(Message m : messages) {
+                Date date = m.getCreated();
+                DateFormat dateFormat = new SimpleDateFormat("mm-dd-yyyy hh:mm");
+
+                String author = m.getAuthor();
+                String messageBody = m.getBody();
+                String strDate = dateFormat.format(date);
+                String subject = m.getSubject();
+                String dest = m.getDest();
+                String temp = """
+                              Sent: %s
+                              From: %s
+                              To: %s
+                              Subject: %s
+                              Message: %s
+                              --------------------
+                              """.formatted(strDate, author, dest, subject, messageBody);
+                System.out.println(temp);
+                message += temp;
+            }
+            alert = new Alert(Alert.AlertType.INFORMATION);
+
+            alert.setTitle(title);
+
+            alert.setHeaderText(headerText);
+
+            TextArea area = new TextArea(message);
+            area.setWrapText(true);
+            area.setEditable(false);
+
+            alert.getDialogPane().setContent(area);
+            alert.setResizable(true);
+
+            alert.show();
+        });
 
         twitterLogInMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.logInToTwitter());
 
         twitterProfileMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.viewTwitterProfile());
 
         twitterFollowUserMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.followTwitterUser());
+        
+        twitterMessagesMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
+            TwitterModel twitterModel;
+            Alert alert;
+            String title = "Social Butterfly";
+            String headerText = "Direct Messages";
+            twitterModel = controller.model.getTwitterModel();
+            try{
+                List<DirectMessage> messages = twitterModel.getRequests().getDirectMessages();
+                String messagesText = "";
+                for (int i = 0; i < messages.size(); i++) {
+                    DirectMessage dm = messages.get(i);
+                    User sender = twitterModel.getTwitter().users().showUser(dm.getSenderId());
+                    User recipient = twitterModel.getTwitter().users().showUser(dm.getRecipientId());
+                    Date date = dm.getCreatedAt();
+                    DateFormat dateFormat = new SimpleDateFormat("mm-dd-yyyy hh:mm");  
+
+                    String senderScreenName = sender.getScreenName();
+                    String recipientScreenName = recipient.getScreenName();
+                    String strDate = dateFormat.format(date);
+                    String message = dm.getText();
+
+                    String temp = """
+                                  Sent: %s
+                                  Sender: %s
+                                  Recipient: %s
+                                  Message: %s
+                                  --------------------
+                                  """.formatted(strDate, senderScreenName, recipientScreenName, message);
+                    
+                    messagesText += temp;
+                }
+                alert = new Alert(Alert.AlertType.INFORMATION);
+
+                alert.setTitle(title);
+
+                alert.setHeaderText(headerText);
+
+                TextArea area = new TextArea(messagesText);
+                area.setWrapText(true);
+                area.setEditable(false);
+
+                alert.getDialogPane().setContent(area);
+                alert.setResizable(true);
+
+                alert.show();
+            } catch (Exception te) {
+                //handle exception
+                alert = new Alert(Alert.AlertType.ERROR);
+
+                alert.setTitle(title);
+
+                alert.setHeaderText(headerText);
+
+                alert.setContentText("Error: Couldn't load DM data!\n" + te.getStackTrace());
+            
+                alert.show();
+            }
+
+            
+        });
+        twitterSavedPostsMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
+            Scene scene = twitterPostController.getSavedPosts();
+            Stage stage = new Stage();
+            stage.setScene(scene);
+            stage.setTitle("Saved Posts");
+            stage.setResizable(true);
+            stage.setHeight(300);
+            stage.setWidth(500);
+            stage.show();
+        });
 
         instagramLogInMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.logInToInstagram());
 
@@ -1175,7 +1357,22 @@ public final class MenuController {
 
         instagramProfilePictureItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.setInstagramProfilePicture());
 
+
         instagramFollowUserMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.followInstagramUser());
+        
+        instagramSavedPostsMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
+            Scene scene = instagramPostController.updateSavedPosts();
+            Stage stage = new Stage();
+            stage.setScene(scene);
+            stage.setTitle("Saved Posts");
+            stage.setResizable(true);
+            stage.show();
+        });
+
+        instagramMessagesMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
+            //DirectInboxResponse pleaseWork = new DirectInboxRequest().execute(controller.model.getInstagramModel().getClient()).join();
+            //System.out.println(pleaseWork.getInbox().getThreads().get(0).getItems().get(0).getClient_context());
+        });
 
         lightRadioMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.switchToLightMode());
 
@@ -1184,6 +1381,38 @@ public final class MenuController {
         tabRadioMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.switchToTabPane());
 
         splitRadioMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.switchToSplitPane());
+
+        allSavedPostsRadioMenuItem.addEventHandler(ActionEvent.ACTION, (actionevent) -> {
+            Scene scene = controller.getAllSavedPostsScene();
+            Stage stage = new Stage();
+            stage.setScene(scene);
+            stage.setTitle("Saved Posts");
+            stage.show();
+        });
+
+        timeSortMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
+            controller.redditPostController.sortByTime = true;
+            controller.instagramPostController.sortByTime = true;
+            controller.twitterPostController.sortByTime = true;  
+            controller.redditPostController.updateAll = true;          
+            controller.instagramPostController.updateAll = true;
+            controller.twitterPostController.updateAll = true;
+            controller.redditPostController.updatePosts();
+            controller.instagramPostController.updatePosts();
+            controller.twitterPostController.updatePosts();
+        });
+
+        popularitySortMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
+            controller.redditPostController.sortByTime = false;
+            controller.instagramPostController.sortByTime = false;
+            controller.twitterPostController.sortByTime = false;
+            controller.twitterPostController.updateAll = true;
+            controller.instagramPostController.updateAll = true;
+            controller.redditPostController.updateAll = true;          
+            controller.redditPostController.updatePosts();
+            controller.instagramPostController.updatePosts();
+            controller.twitterPostController.updatePosts();
+        });
 
         return controller;
     } //createMenuController
