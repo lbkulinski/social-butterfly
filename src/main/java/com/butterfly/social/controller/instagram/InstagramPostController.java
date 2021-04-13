@@ -9,14 +9,7 @@ import com.github.instagram4j.instagram4j.IGClient;
 import com.github.instagram4j.instagram4j.models.media.ImageVersionsMeta;
 import com.github.instagram4j.instagram4j.models.media.VideoVersionsMeta;
 import com.github.instagram4j.instagram4j.models.media.timeline.*;
-import com.github.instagram4j.instagram4j.requests.direct.DirectInboxRequest;
-import com.github.instagram4j.instagram4j.requests.media.MediaActionRequest;
-import com.github.instagram4j.instagram4j.requests.media.MediaActionRequest.MediaAction;
-import com.github.instagram4j.instagram4j.responses.IGResponse;
-import com.github.instagram4j.instagram4j.responses.direct.DirectInboxResponse;
 import com.github.instagram4j.instagram4j.responses.feed.FeedTimelineResponse;
-import com.github.instagram4j.instagram4j.responses.media.MediaResponse;
-
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.scene.CacheHint;
@@ -41,14 +34,13 @@ import java.time.temporal.ChronoField;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 
 /**
  * A controller for Instagram posts of the Social Butterfly application.
  *
  * @author Logan Kulinski, lbk@purdue.edu
- * @version March 21, 2021
+ * @version April 13, 2021
  */
 public final class InstagramPostController {
     /**
@@ -81,14 +73,13 @@ public final class InstagramPostController {
     /**
      * The executor service of this Instagram post controller.
      */
-    private final ScheduledExecutorService executorService;
+    private ScheduledExecutorService executorService;
 
     private VBox allSavedBox;
 
     public boolean sortByTime = true;
 
     public boolean updateAll = false;
-
 
     /**
      * Constructs a newly allocated {@code InstagramPostController} object with the specified model, view, map from
@@ -825,6 +816,72 @@ public final class InstagramPostController {
             } //end try finally
         });
     } //updatePosts
+
+    /**
+     * Resets this Instagram post controller.
+     */
+    public void reset() {
+        PostView postView;
+        VBox instagramBox;
+        Set<Map.Entry<VBox, Post>> entrySet;
+        Iterator<Map.Entry<VBox, Post>> iterator;
+        VBox allBox;
+        Map.Entry<VBox, Post> entry;
+        VBox key;
+        Post value;
+        List<Node> children;
+        int separatorIndex;
+        int size;
+
+        this.executorService.shutdownNow();
+
+        this.executorService = Executors.newSingleThreadScheduledExecutor();
+
+        this.ids.clear();
+
+        postView = this.view.getPostView();
+
+        instagramBox = postView.getInstagramBox();
+
+        entrySet = this.boxesToPosts.entrySet();
+
+        iterator = entrySet.iterator();
+
+        allBox = postView.getAllBox();
+
+        instagramBox.getChildren()
+                    .clear();
+
+        while (iterator.hasNext()) {
+            entry = iterator.next();
+
+            key = entry.getKey();
+
+            value = entry.getValue();
+
+            if (value instanceof InstagramPost) {
+                iterator.remove();
+
+                this.allBoxLock.lock();
+
+                try {
+                    children = allBox.getChildren();
+
+                    separatorIndex = children.indexOf(key) + 1;
+
+                    size = children.size();
+
+                    if (separatorIndex < size) {
+                        children.remove(separatorIndex);
+                    } //end if
+
+                    children.remove(key);
+                } finally {
+                    this.allBoxLock.unlock();
+                } //end try finally
+            } //end if
+        } //end while
+    } //reset
 
     /**
      * Creates, and returns, a {@code InstagramPostController} object using the specified model, view, map from boxes

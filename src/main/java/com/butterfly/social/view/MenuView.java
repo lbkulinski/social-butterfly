@@ -6,13 +6,18 @@ import javafx.scene.control.*;
  * A view for the menu of the Social Butterfly application.
  *
  * @author Logan Kulinski, lbk@purdue.edu
- * @version March 22, 2021
+ * @version March 13, 2021
  */
 public final class MenuView {
     /**
      * The Reddit log in menu item of this menu view.
      */
     private final MenuItem redditLogInMenuItem;
+
+    /**
+     * The Reddit log out menu item of this menu view
+     */
+    private final MenuItem redditLogOutMenuItem;
 
     /**
      * The Reddit profile menu item of this menu view.
@@ -25,15 +30,10 @@ public final class MenuView {
     private final MenuItem redditFollowUserMenuItem;
 
     /**
-     * The Reddit logout menu item of this menu view
-     */
-    private final MenuItem redditLogoutMenuItem;
-
-    /**
      * The Reddit saved posts menu item of this menu view.
      */
-
     private final MenuItem redditSavedPostsMenuItem;
+
     /**
      * The Reddit messages menu item of this menu view.
      */
@@ -45,12 +45,16 @@ public final class MenuView {
     private final MenuItem twitterLogInMenuItem;
 
     /**
+     * The Twitter log out menu item of this menu view.
+     */
+    private final MenuItem twitterLogOutMenuItem;
+
+    /**
      * The Twitter profile menu item of this menu view.
      */
     private final MenuItem twitterProfileMenuItem;
 
     /**
-
      * The Twitter follow menu item of this menu view.
      */
     private final MenuItem twitterFollowUserMenuItem;
@@ -58,16 +62,22 @@ public final class MenuView {
     /**
      * The Twitter messages menu item of this menu view.
      */
-  
     private final MenuItem twitterMessagesMenuItem;
 
+    /**
+     * The Twitter saved posts menu item of this menu view.
+     */
     private final MenuItem twitterSavedPostsMenuItem;
-
 
     /**
      * The Instagram log in menu item of this menu view.
      */
     private final MenuItem instagramLogInMenuItem;
+
+    /**
+     * The Instagram log out menu item of this menu view.
+     */
+    private final MenuItem instagramLogOutMenuItem;
 
     /**
      * The Instagram profile menu item of this menu view.
@@ -89,7 +99,11 @@ public final class MenuView {
      */
     private final MenuItem instagramProfilePictureItem;
 
+    /**
+     * The Instagram saved posts menu item of this menu view.
+     */
     private final MenuItem instagramSavedPostsMenuItem;
+
     /**
      * The Instagram messages menu item of this menu view.
      */
@@ -120,11 +134,20 @@ public final class MenuView {
      */
     private final RadioMenuItem splitRadioMenuItem;
 
+    /**
+     * The all saved posts radio menu item of this menu view.
+     */
     private final MenuItem allSavedPostsRadioMenuItem;
 
-    private final MenuItem timeSortMenuItem;
+    /**
+     * The time sort radio menu item of this menu view.
+     */
+    private final RadioMenuItem timeSortRadioMenuItem;
 
-    private final MenuItem popularitySortMenuItem;
+    /**
+     * The popularity sort radio menu item of this menu view.
+     */
+    private final RadioMenuItem popularitySortRadioMenuItem;
 
     /**
      * The Reddit menu of this menu view.
@@ -142,14 +165,9 @@ public final class MenuView {
     private final Menu instagramMenu;
 
     /**
-     * The view menu of this menu view.
+     * The all menu of this menu view.
      */
-    private final Menu viewMenu;
-
-    /**
-     * The sort menu of this menu view.
-     */
-    private final Menu sortMenu;
+    private final Menu allMenu;
 
     /**
      * The menu bar of this menu view.
@@ -173,28 +191,28 @@ public final class MenuView {
         String darkText = "Dark";
         String tabText = "Tab";
         String splitText = "Split";
+        String timeText = "Time";
+        String popularityText = "Popularity";
         String redditText = "Reddit";
         String twitterText = "Twitter";
         String instagramText = "Instagram";
-        String viewText = "View";
-        String sortText = "Sort By";
-        String timeText = "Time";
-        String popularityText = "Popularity";
-        SeparatorMenuItem separator;
+        String allText = "All";
 
         this.redditLogInMenuItem = new MenuItem(logInText);
+
+        this.redditLogOutMenuItem = new MenuItem(logoutText);
 
         this.redditProfileMenuItem = new MenuItem(profileText);
 
         this.redditFollowUserMenuItem = new MenuItem(followUserText);
-
-        this.redditLogoutMenuItem = new MenuItem(logoutText);
 
         this.redditSavedPostsMenuItem = new MenuItem(savedPostsText);
       
         this.redditMessagesMenuItem = new MenuItem(messagesText);
 
         this.twitterLogInMenuItem = new MenuItem(logInText);
+
+        this.twitterLogOutMenuItem = new MenuItem(logoutText);
 
         this.twitterProfileMenuItem = new MenuItem(profileText);
 
@@ -206,6 +224,8 @@ public final class MenuView {
 
         this.instagramLogInMenuItem = new MenuItem(logInText);
 
+        this.instagramLogOutMenuItem = new MenuItem(logoutText);
+
         this.instagramProfileMenuItem = new MenuItem(profileText);
 
         this.instagramSavedPostsMenuItem = new MenuItem(savedPostsText);
@@ -215,11 +235,12 @@ public final class MenuView {
         this.instagramSearchMenuItem = new MenuItem(searchUsersText);
 
         this.instagramProfilePictureItem = new MenuItem(profilePictureText);
+
         this.instagramMessagesMenuItem = new MenuItem(messagesText);
 
-        this.timeSortMenuItem = new MenuItem(timeText);
+        this.timeSortRadioMenuItem = new RadioMenuItem(timeText);
 
-        this.popularitySortMenuItem = new MenuItem(popularityText);
+        this.popularitySortRadioMenuItem = new RadioMenuItem(popularityText);
 
         this.instagramFollowUserMenuItem = new MenuItem(followUserText);
 
@@ -233,21 +254,15 @@ public final class MenuView {
         
         this.allSavedPostsRadioMenuItem = new MenuItem(savedPostsText);
 
-        this.redditMenu = new Menu(redditText, null, this.redditLogInMenuItem, this.redditProfileMenuItem, this.redditSavedPostsMenuItem, this.redditMessagesMenuItem, this.redditFollowUserMenuItem, redditLogoutMenuItem);
+        this.redditMenu = new Menu(redditText, null, this.redditLogInMenuItem);
 
-        this.twitterMenu = new Menu(twitterText, null, this.twitterLogInMenuItem, this.twitterProfileMenuItem, this.twitterMessagesMenuItem, this.twitterSavedPostsMenuItem, this.twitterFollowUserMenuItem);
+        this.twitterMenu = new Menu(twitterText, null, this.twitterLogInMenuItem);
 
-        this.instagramMenu = new Menu(instagramText, null, this.instagramLogInMenuItem, this.instagramProfileMenuItem,
-                                    this.instagramBioMenuItem, this.instagramSearchMenuItem, this.instagramProfilePictureItem, this.instagramSavedPostsMenuItem, this.instagramMessagesMenuItem, this.instagramFollowUserMenuItem);
+        this.instagramMenu = new Menu(instagramText, null, this.instagramLogInMenuItem);
 
-        separator = new SeparatorMenuItem();
+        this.allMenu = new Menu(allText, null);
 
-        this.viewMenu = new Menu(viewText, null, this.lightRadioMenuItem, this.darkRadioMenuItem, separator,
-                                 this.tabRadioMenuItem, this.splitRadioMenuItem, this.allSavedPostsRadioMenuItem);
-
-        this.sortMenu = new Menu(sortText, null, this.timeSortMenuItem, this.popularitySortMenuItem);
-
-        this.menuBar = new MenuBar(this.redditMenu, this.twitterMenu, this.instagramMenu, this.viewMenu, this.sortMenu);
+        this.menuBar = new MenuBar(this.redditMenu, this.twitterMenu, this.instagramMenu, this.allMenu);
     } //MenuView
 
     /**
@@ -258,6 +273,15 @@ public final class MenuView {
     public MenuItem getRedditLogInMenuItem() {
         return this.redditLogInMenuItem;
     } //getRedditLogInMenuItem
+
+    /**
+     * Returns the Reddit log out menu item of this menu view
+     *
+     * @return the Reddit log out menu item of this menu view
+     */
+    public MenuItem getRedditLogOutMenuItem() {
+        return this.redditLogOutMenuItem;
+    } //getRedditLogoutMenuItem
 
     /**
      * Returns the Reddit profile menu item of this menu view.
@@ -277,14 +301,6 @@ public final class MenuView {
         return this.redditFollowUserMenuItem;
     } //getRedditFollowUserMenuItem
 
-    /**
-     * Returns the Reddit logout menu item of this menu view
-     *
-     * @return the Reddit logout menu item of this menu view
-     */
-    public MenuItem getRedditLogoutMenuItem() {
-        return this.redditLogoutMenuItem;
-    } //getRedditLogoutMenuItem
     /**
      * Returns the Reddit saved posts menu item of this menu view.
      *
@@ -313,6 +329,15 @@ public final class MenuView {
     } //getTwitterLogInMenuItem
 
     /**
+     * Returns the Twitter log out menu item of this menu view.
+     *
+     * @return the Twitter log out menu item of this menu view
+     */
+    public MenuItem getTwitterLogOutMenuItem() {
+        return this.twitterLogOutMenuItem;
+    } //getTwitterLogOutMenuItem
+
+    /**
      * Returns the Twitter profile menu item of this menu view.
      *
      * @return the Twitter profile menu item of this menu view
@@ -339,6 +364,11 @@ public final class MenuView {
         return this.twitterMessagesMenuItem;
     } //getTwitterMessagesMenuItem
 
+    /**
+     * Returns the Twitter saved posts menu item of this menu view.
+     *
+     * @return the Twitter saved posts menu item of this menu view
+     */
     public MenuItem getTwitterSavedPostsMenuItem() {
         return this.twitterSavedPostsMenuItem;
     }
@@ -351,6 +381,15 @@ public final class MenuView {
     public MenuItem getInstagramLogInMenuItem() {
         return this.instagramLogInMenuItem;
     } //getInstagramLogInMenuItem
+
+    /**
+     * Returns the Instagram log out menu item of this menu view.
+     *
+     * @return the Instagram log out menu item of this menu view
+     */
+    public MenuItem getInstagramLogOutMenuItem() {
+        return this.instagramLogOutMenuItem;
+    } //getInstagramLogOutMenuItem
 
     /**
      * Returns the Instagram profile menu item of this menu view.
@@ -416,22 +455,22 @@ public final class MenuView {
     } //getInstagramMessagesMenuItem
 
     /**
-     * Returns the time sort menu item of this menu view.
+     * Returns the time sort radio menu item of this menu view.
      *
-     * @return the time sort menu item of this menu view
+     * @return the time sort radio menu item of this menu view
      */
-    public MenuItem getTimeSortMenuItem() {
-        return this.timeSortMenuItem;
-    } //getTimeSortMenuItem
+    public RadioMenuItem getTimeSortRadioMenuItem() {
+        return this.timeSortRadioMenuItem;
+    } //getTimeSortRadioMenuItem
 
     /**
-     * Returns the popularity sort menu item of this menu view.
+     * Returns the popularity sort radio menu item of this menu view.
      *
-     * @return the popularity sort menu item of this menu view
+     * @return the popularity sort radio menu item of this menu view
      */
-    public MenuItem getPopularitySortMenuItem() {
-        return this.popularitySortMenuItem;
-    } //getPopularitySortMenuItem
+    public RadioMenuItem getPopularitySortRadioMenuItem() {
+        return this.popularitySortRadioMenuItem;
+    } //getPopularitySortRadioMenuItem
 
     /**
      * Returns the light radio menu item of this menu view.
@@ -469,6 +508,11 @@ public final class MenuView {
         return this.splitRadioMenuItem;
     } //getSplitRadioMenuItem
 
+    /**
+     * Returns the all saved posts radio menu item of this menu view.
+     *
+     * @return the all saved posts radio menu item of this menu view
+     */
     public MenuItem getAllSavedPostsRadioMenuItem() {
         return this.allSavedPostsRadioMenuItem;
     }
@@ -501,13 +545,13 @@ public final class MenuView {
     } //getInstagramMenu
 
     /**
-     * Returns the view menu of this menu view.
+     * Returns the all menu of this menu view.
      *
-     * @return the view menu of this menu view
+     * @return the all menu of this menu view
      */
-    public Menu getViewMenu() {
-        return this.viewMenu;
-    } //getViewMenu
+    public Menu getAllMenu() {
+        return this.allMenu;
+    } //getAllMenu
 
     /**
      * Returns the menu bar of this menu view.
@@ -524,15 +568,58 @@ public final class MenuView {
      * @return a {@code MenuView} object
      */
     public static MenuView createMenuView() {
+        MenuView menuView;
+        SeparatorMenuItem separator;
+        Menu themeMenu;
+        String themeText = "Theme";
+        Menu layoutMenu;
+        String layoutText = "Layout";
+        Menu sortMenu;
+        String sortText = "Sort";
+        Menu viewMenu;
+        String viewText = "View";
         ToggleGroup toggleGroup0;
         ToggleGroup toggleGroup1;
-        MenuView menuView;
+        ToggleGroup toggleGroup2;
+
+        menuView = new MenuView();
+
+        separator = new SeparatorMenuItem();
+
+        themeMenu = new Menu(themeText, null, menuView.lightRadioMenuItem, separator, menuView.darkRadioMenuItem);
+
+        separator = new SeparatorMenuItem();
+
+        layoutMenu = new Menu(layoutText, null, menuView.tabRadioMenuItem, separator, menuView.splitRadioMenuItem);
+
+        separator = new SeparatorMenuItem();
+
+        sortMenu = new Menu(sortText, null, menuView.timeSortRadioMenuItem, separator,
+                            menuView.popularitySortRadioMenuItem);
+
+        viewMenu = new Menu(viewText);
+
+        separator = new SeparatorMenuItem();
+
+        viewMenu.getItems()
+                .addAll(themeMenu, separator);
+
+        separator = new SeparatorMenuItem();
+
+        viewMenu.getItems()
+                .addAll(layoutMenu, separator);
+
+        viewMenu.getItems()
+                .addAll(sortMenu);
+
+        menuView.menuBar.getMenus()
+                        .add(viewMenu);
 
         toggleGroup0 = new ToggleGroup();
 
         toggleGroup1 = new ToggleGroup();
 
-        menuView = new MenuView();
+        toggleGroup2 = new ToggleGroup();
 
         menuView.lightRadioMenuItem.setToggleGroup(toggleGroup0);
 
@@ -541,6 +628,10 @@ public final class MenuView {
         menuView.tabRadioMenuItem.setToggleGroup(toggleGroup1);
 
         menuView.splitRadioMenuItem.setToggleGroup(toggleGroup1);
+
+        menuView.timeSortRadioMenuItem.setToggleGroup(toggleGroup2);
+
+        menuView.popularitySortRadioMenuItem.setToggleGroup(toggleGroup2);
 
         return menuView;
     } //createMenuView

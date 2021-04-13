@@ -9,6 +9,7 @@ import com.butterfly.social.model.instagram.InstagramModel;
 import com.butterfly.social.model.reddit.RedditModel;
 import com.butterfly.social.model.twitter.TwitterModel;
 import com.butterfly.social.model.twitter.TwitterUserAuthentication;
+import com.butterfly.social.model.twitter.TwitterUserRequests;
 import com.butterfly.social.view.View;
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -27,9 +28,25 @@ import java.util.concurrent.locks.ReentrantLock;
  * A runner for the Social Butterfly application.
  *
  * @author Logan Kulinski, lbk@purdue.edu
- * @version March 22, 2021
+ * @version April 13, 2021
  */
 public final class SocialButterflyApplication extends Application {
+    /**
+     * The Twitter user authentication of the {@code SocialButterflyApplication} class.
+     */
+    private static TwitterUserAuthentication twitterAuth;
+
+    /**
+     * The Twitter user requests of the {@code SocialButterflyApplication} class.
+     */
+    private static TwitterUserRequests twitterRequests;
+
+    static {
+        twitterAuth = null;
+
+        twitterRequests = null;
+    } //static
+
     /**
      * Returns the Reddit model of the {@code SocialButterflyApplication} class.
      *
@@ -111,18 +128,26 @@ public final class SocialButterflyApplication extends Application {
      */
     public static TwitterModel getTwitterModel() {
         TwitterModel twitterModel;
-        TwitterUserAuthentication authentication;
         String url;
         URI uri;
         TextInputDialog inputDialog;
         String pin;
 
+        if ((SocialButterflyApplication.twitterAuth != null) && (SocialButterflyApplication.twitterRequests != null)) {
+            twitterModel = new TwitterModel(SocialButterflyApplication.twitterAuth,
+                                            SocialButterflyApplication.twitterRequests);
+
+            return twitterModel;
+        } //end if
+
         twitterModel = new TwitterModel();
 
-        authentication = twitterModel.getAuth();
+        SocialButterflyApplication.twitterAuth = twitterModel.getAuth();
+
+        SocialButterflyApplication.twitterRequests = twitterModel.getRequests();
 
         try {
-            url = authentication.getURL();
+            url = SocialButterflyApplication.twitterAuth.getURL();
         } catch (TwitterException e) {
             e.printStackTrace();
 
@@ -152,7 +177,7 @@ public final class SocialButterflyApplication extends Application {
             return null;
         } //end if
 
-        authentication.handlePIN(pin);
+        SocialButterflyApplication.twitterAuth.handlePIN(pin);
 
         try {
             twitterModel.initializeRequests();

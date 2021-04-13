@@ -1,12 +1,23 @@
 package com.butterfly.social.model.twitter;
 
 import java.io.Serializable;
+import java.util.Objects;
+
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 
 public final class TwitterModel implements Serializable {
     private final TwitterUserAuthentication auth;
     private final TwitterUserRequests requests;
+
+    public TwitterModel(TwitterUserAuthentication auth, TwitterUserRequests requests) {
+        Objects.requireNonNull(auth, "the specified auth is null");
+
+        Objects.requireNonNull(requests, "the specified requests are null");
+
+        this.auth = auth;
+        this.requests = requests;
+    } //TwitterModel
 
     public TwitterModel() {
         this.auth = new TwitterUserAuthentication();

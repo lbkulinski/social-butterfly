@@ -23,10 +23,8 @@ import javafx.scene.text.Text;
 import javafx.util.Duration;
 import twitter4j.*;
 import twitter4j.api.FavoritesResources;
-
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -75,7 +73,7 @@ public final class TwitterPostController {
     /**
      * The executor service of this Twitter post controller.
      */
-    private final ScheduledExecutorService executorService;
+    private ScheduledExecutorService executorService;
 
     public boolean sortByTime = true;
 
@@ -917,6 +915,72 @@ public final class TwitterPostController {
             } //end try finally
         });
     } //updatePosts
+
+    /**
+     * Resets this Twitter post controller.
+     */
+    public void reset() {
+        PostView postView;
+        VBox twitterBox;
+        Set<Map.Entry<VBox, Post>> entrySet;
+        Iterator<Map.Entry<VBox, Post>> iterator;
+        VBox allBox;
+        Map.Entry<VBox, Post> entry;
+        VBox key;
+        Post value;
+        List<Node> children;
+        int separatorIndex;
+        int size;
+
+        this.executorService.shutdownNow();
+
+        this.executorService = Executors.newSingleThreadScheduledExecutor();
+
+        this.ids.clear();
+
+        postView = this.view.getPostView();
+
+        twitterBox = postView.getTwitterBox();
+
+        entrySet = this.boxesToPosts.entrySet();
+
+        iterator = entrySet.iterator();
+
+        allBox = postView.getAllBox();
+
+        twitterBox.getChildren()
+                  .clear();
+
+        while (iterator.hasNext()) {
+            entry = iterator.next();
+
+            key = entry.getKey();
+
+            value = entry.getValue();
+
+            if (value instanceof TwitterPost) {
+                iterator.remove();
+
+                this.allBoxLock.lock();
+
+                try {
+                    children = allBox.getChildren();
+
+                    separatorIndex = children.indexOf(key) + 1;
+
+                    size = children.size();
+
+                    if (separatorIndex < size) {
+                        children.remove(separatorIndex);
+                    } //end if
+
+                    children.remove(key);
+                } finally {
+                    this.allBoxLock.unlock();
+                } //end try finally
+            } //end if
+        } //end while
+    } //reset
 
     /**
      * Creates, and returns, a {@code TwitterPostController} object using the specified model, view, map from boxes to

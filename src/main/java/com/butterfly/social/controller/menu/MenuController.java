@@ -1,7 +1,6 @@
 package com.butterfly.social.controller.menu;
 
 import com.butterfly.social.SocialButterflyApplication;
-import com.butterfly.social.controller.Post;
 import com.butterfly.social.controller.instagram.InstagramPostController;
 import com.butterfly.social.controller.reddit.RedditPostController;
 import com.butterfly.social.controller.twitter.TwitterPostController;
@@ -10,18 +9,11 @@ import com.butterfly.social.model.instagram.InstagramModel;
 import com.butterfly.social.model.reddit.RedditModel;
 import com.butterfly.social.model.twitter.TwitterModel;
 import com.butterfly.social.model.twitter.TwitterUserProfile;
-import com.butterfly.social.model.twitter.TwitterUserRequests;
 import com.butterfly.social.view.MenuView;
 import com.butterfly.social.view.PostView;
 import com.butterfly.social.view.View;
-import com.github.instagram4j.instagram4j.responses.direct.DirectInboxResponse;
 import com.github.instagram4j.instagram4j.responses.users.UsersSearchResponse;
-import javafx.beans.Observable;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import com.github.instagram4j.instagram4j.requests.direct.DirectInboxRequest;
 import javafx.event.ActionEvent;
-import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
@@ -31,22 +23,19 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.stage.FileChooser;
 import javafx.stage.Popup;
-import jdk.dynalink.NoSuchDynamicMethodException;
 import net.dean.jraw.RedditClient;
 import net.dean.jraw.models.*;
 import net.dean.jraw.references.OtherUserReference;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import net.dean.jraw.models.Message;
+import java.io.IOException;
 import java.net.URL;
-import java.util.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.concurrent.*;
-import java.util.stream.Collectors;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.*;
 import twitter4j.DirectMessage;
 import twitter4j.User;
 import java.util.Date;
@@ -57,7 +46,7 @@ import java.text.SimpleDateFormat;
  * A controller for the menu of the Social Butterfly application.
  *
  * @author Logan Kulinski, lbk@purdue.edu
- * @version March 22, 2021
+ * @version April 13, 2021
  */
 public final class MenuController {
     /**
@@ -126,6 +115,15 @@ public final class MenuController {
      */
     private void logInToReddit() {
         RedditModel redditModel;
+        MenuView menuView;
+        Menu redditMenu;
+        Menu allMenu;
+        MenuItem redditProfileMenuItem;
+        MenuItem redditSavedPostsMenuItem;
+        MenuItem redditMessagesMenuItem;
+        MenuItem redditFollowUserMenuItem;
+        MenuItem redditLogOutMenuItem;
+        MenuItem allSavedPostsRadioMenuItem;
         ScheduledExecutorService executorService;
         int delay = 0;
         int period = 1;
@@ -133,14 +131,7 @@ public final class MenuController {
         redditModel = this.model.getRedditModel();
 
         if (redditModel != null) {
-            Alert alert;
-            String message = "You are already signed into Reddit!";
-
-            alert = new Alert(Alert.AlertType.ERROR, message);
-
-            alert.show();
-
-            return;
+            throw new IllegalStateException("the user is already logged into Reddit");
         } //end if
 
         redditModel = SocialButterflyApplication.getRedditModel();
@@ -158,10 +149,88 @@ public final class MenuController {
 
         this.model.setRedditModel(redditModel);
 
+        menuView = this.view.getMenuView();
+
+        redditMenu = menuView.getRedditMenu();
+
+        allMenu = menuView.getAllMenu();
+
+        redditProfileMenuItem = menuView.getRedditProfileMenuItem();
+
+        redditSavedPostsMenuItem = menuView.getRedditSavedPostsMenuItem();
+
+        redditMessagesMenuItem = menuView.getRedditMessagesMenuItem();
+
+        redditFollowUserMenuItem = menuView.getRedditFollowUserMenuItem();
+
+        redditLogOutMenuItem = menuView.getRedditLogOutMenuItem();
+
+        allSavedPostsRadioMenuItem = menuView.getAllSavedPostsRadioMenuItem();
+
+        redditMenu.getItems()
+                  .clear();
+
+        redditMenu.getItems()
+                  .addAll(redditProfileMenuItem, new SeparatorMenuItem(), redditSavedPostsMenuItem,
+                          new SeparatorMenuItem(), redditMessagesMenuItem, new SeparatorMenuItem(),
+                          redditFollowUserMenuItem, new SeparatorMenuItem(), redditLogOutMenuItem);
+
+        allMenu.getItems()
+               .clear();
+
+        allMenu.getItems()
+               .add(allSavedPostsRadioMenuItem);
+
         executorService = this.redditPostController.getExecutorService();
 
         executorService.scheduleAtFixedRate(this.redditPostController::updatePosts, delay, period, TimeUnit.MINUTES);
     } //logInToReddit
+
+    /**
+     * Attempts to log the user out of their Reddit account.
+     */
+    private void logOutOfReddit() {
+        RedditModel redditModel;
+        TwitterModel twitterModel;
+        InstagramModel instagramModel;
+        MenuView menuView;
+        Menu redditMenu;
+        Menu allMenu;
+        MenuItem redditLogInMenuItem;
+
+        redditModel = this.model.getRedditModel();
+
+        twitterModel = this.model.getTwitterModel();
+
+        instagramModel = this.model.getInstagramModel();
+
+        if (redditModel == null) {
+            throw new IllegalStateException("the user is not logged into Reddit");
+        } //end if
+
+        this.model.setRedditModel(null);
+
+        this.redditPostController.reset();
+
+        menuView = this.view.getMenuView();
+
+        redditMenu = menuView.getRedditMenu();
+
+        allMenu = menuView.getAllMenu();
+
+        redditLogInMenuItem = menuView.getRedditLogInMenuItem();
+
+        redditMenu.getItems()
+                  .clear();
+
+        redditMenu.getItems()
+                  .add(redditLogInMenuItem);
+
+        if ((twitterModel == null) && (instagramModel == null)) {
+            allMenu.getItems()
+                   .clear();
+        } //end if
+    } //logOutOfReddit
 
     /**
      * Attempts to view the user's Reddit profile.
@@ -327,90 +396,21 @@ public final class MenuController {
         }
         alert.show();
     }
-    /**
-     * Attempts to log the user out of their Reddit account.
-     */
-    private void logoutReddit() {
-        RedditModel redditModel;
-        Alert alert;
-        String title = "Social Butterfly";
-        redditModel = this.model.getRedditModel();
-        if (redditModel == null) {
-            String message = "You are not signed into Reddit!";
-            alert = new Alert(Alert.AlertType.ERROR, message);
 
-            alert.show();
-
-            return;
-        }
-        this.redditPostController.clearRedditFeed();
-
-        //this.redditPostController.getExecutorService().shutdownNow();
-
-        this.model.setRedditModel(null);
-
-        ObservableList<VBox> insta = (ObservableList) this.view.getPostView().getInstagramBox().getChildren();
-        ObservableList<VBox> twitter = (ObservableList) this.view.getPostView().getTwitterBox().getChildren();
-
-        Map<VBox, Post> twitterMap = this.twitterPostController.getBoxesToPosts();
-        Map<VBox, Post> instaMap = this.instagramPostController.getBoxesToPosts();
-
-        //ObservableList<VBox> instaClone = FXCollections.checkedObservableList(insta);
-        //ObservableList<VBox> twitterClone = FXCollections.observableArrayList(twitter);
-
-        /*for(VBox node : insta) {
-            try {
-                (Observable) node.clone();
-            }catch (NoSuchDynamicMethodException e)
-        }*/
-        System.out.println("MAP TWI "   + twitterMap);
-        System.out.println("MAP IN "    + instaMap);
-        //System.out.println("INSTA OBV LIST "    +insta);
-        //System.out.println("TWITTER OBV LIST " + twitter);
-        ArrayList<VBox> instaClone = new ArrayList<>(instaMap.keySet());
-        System.out.println("LKASJDNFKAJSDF: "+ instaClone);
-        ArrayList<VBox> twitterClone = new ArrayList<>(twitterMap.keySet());
-        System.out.println("sadjKLSAJDNFLKSAJDNF "+ twitterClone);
-        ArrayList<VBox> copyT = new ArrayList<>();
-        ArrayList<VBox> copyI = new ArrayList<>();
-        ArrayList<VBox> copyT2 = new ArrayList<>();
-        ArrayList<VBox> copyI2 = new ArrayList<>();
-
-        for(int i = 0; i < twitter.size() - 1; i++) {
-            copyT.add(new VBox(twitter.get(i)));
-            copyT2.add(new VBox(twitter.get(i)));
-        }
-        for(int i = 0; i < insta.size() - 1; i++) {
-            copyI.add(new VBox(insta.get(i)));
-            copyI2.add(new VBox(insta.get(i)));
-        }
-
-        System.out.println("CopyT 1 "+ copyT.get(0));
-        System.out.println("CopyI 1 "+ copyI.get(0));
-        System.out.println("insta2 obs "+copyI2.get(0));
-        System.out.println("twitter2 obs "+copyT2.get(0));
-        this.view.getPostView().getAllBox().getChildren().addAll(copyI2);
-
-        this.view.getPostView().getAllBox().getChildren().addAll(copyT2);
-
-        this.view.getPostView().getTwitterBox().getChildren().addAll(copyT);
-
-        this.view.getPostView().getInstagramBox().getChildren().addAll(copyI);
-
-        alert = new Alert(Alert.AlertType.INFORMATION);
-
-        alert.setTitle(title);
-
-        alert.setContentText("Successfully logged out!");
-
-        alert.show();
-
-    }
     /**
      * Attempts to log the user into their Twitter account.
      */
     private void logInToTwitter() {
         TwitterModel twitterModel;
+        MenuView menuView;
+        Menu twitterMenu;
+        Menu allMenu;
+        MenuItem twitterProfileMenuItem;
+        MenuItem twitterMessagesMenuItem;
+        MenuItem twitterSavedPostsMenuItem;
+        MenuItem twitterFollowUserMenuItem;
+        MenuItem twitterLogOutMenuItem;
+        MenuItem allSavedPostsRadioMenuItem;
         ScheduledExecutorService executorService;
         int delay = 0;
         int period = 1;
@@ -418,14 +418,7 @@ public final class MenuController {
         twitterModel = this.model.getTwitterModel();
 
         if (twitterModel != null) {
-            Alert alert;
-            String message = "You are already signed into Twitter!";
-
-            alert = new Alert(Alert.AlertType.ERROR, message);
-
-            alert.show();
-
-            return;
+            throw new IllegalStateException("the user is already logged into Twitter");
         } //end if
 
         twitterModel = SocialButterflyApplication.getTwitterModel();
@@ -443,10 +436,98 @@ public final class MenuController {
 
         this.model.setTwitterModel(twitterModel);
 
+        menuView = this.view.getMenuView();
+
+        twitterMenu = menuView.getTwitterMenu();
+
+        allMenu = menuView.getAllMenu();
+
+        twitterProfileMenuItem = menuView.getTwitterProfileMenuItem();
+
+        twitterMessagesMenuItem = menuView.getTwitterMessagesMenuItem();
+
+        twitterSavedPostsMenuItem = menuView.getTwitterSavedPostsMenuItem();
+
+        twitterFollowUserMenuItem = menuView.getTwitterFollowUserMenuItem();
+
+        twitterLogOutMenuItem = menuView.getTwitterLogOutMenuItem();
+
+        allSavedPostsRadioMenuItem = menuView.getAllSavedPostsRadioMenuItem();
+
+        twitterMenu.getItems()
+                   .clear();
+
+        twitterMenu.getItems()
+                   .addAll(twitterProfileMenuItem, new SeparatorMenuItem(), twitterMessagesMenuItem,
+                           new SeparatorMenuItem(), twitterSavedPostsMenuItem, new SeparatorMenuItem(),
+                           twitterFollowUserMenuItem, new SeparatorMenuItem(), twitterLogOutMenuItem);
+
+        allMenu.getItems()
+               .clear();
+
+        allMenu.getItems()
+               .add(allSavedPostsRadioMenuItem);
+
         executorService = this.twitterPostController.getExecutorService();
 
         executorService.scheduleAtFixedRate(this.twitterPostController::updatePosts, delay, period, TimeUnit.MINUTES);
     } //logInToTwitter
+
+    /**
+     * Attempts to log the user out of their Reddit account.
+     */
+    private void logOutOfTwitter() {
+        RedditModel redditModel;
+        TwitterModel twitterModel;
+        InstagramModel instagramModel;
+        MenuView menuView;
+        Menu twitterMenu;
+        Menu allMenu;
+        MenuItem twitterLogInMenuItem;
+        Path path;
+        String fileName = "twitter-model.ser";
+
+        redditModel = this.model.getRedditModel();
+
+        twitterModel = this.model.getTwitterModel();
+
+        instagramModel = this.model.getInstagramModel();
+
+        if (twitterModel == null) {
+            throw new IllegalStateException("the user is not logged into Twitter");
+        } //end if
+
+        this.model.setTwitterModel(null);
+
+        this.twitterPostController.reset();
+
+        menuView = this.view.getMenuView();
+
+        twitterMenu = menuView.getTwitterMenu();
+
+        allMenu = menuView.getAllMenu();
+
+        twitterLogInMenuItem = menuView.getTwitterLogInMenuItem();
+
+        twitterMenu.getItems()
+                   .clear();
+
+        twitterMenu.getItems()
+                   .add(twitterLogInMenuItem);
+
+        if ((redditModel == null) && (instagramModel == null)) {
+            allMenu.getItems()
+                   .clear();
+        } //end if
+
+        path = Path.of(fileName);
+
+        try {
+            Files.deleteIfExists(path);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } //end try catch
+    } //logOutOfTwitter
 
     /**
      * Attempts to view the user's Twitter profile.
@@ -566,11 +647,24 @@ public final class MenuController {
         }
         alert.show();
     }
+
     /**
      * Attempts to log the user into their Instagram account.
      */
     private void logInToInstagram() {
         InstagramModel instagramModel;
+        MenuView menuView;
+        Menu instagramMenu;
+        Menu allMenu;
+        MenuItem instagramProfileMenuItem;
+        MenuItem instagramBioMenuItem;
+        MenuItem instagramSearchMenuItem;
+        MenuItem instagramProfilePictureItem;
+        MenuItem instagramSavedPostsMenuItem;
+        MenuItem instagramMessagesMenuItem;
+        MenuItem instagramFollowUserMenuItem;
+        MenuItem instagramLogOutMenuItem;
+        MenuItem allSavedPostsRadioMenuItem;
         ScheduledExecutorService executorService;
         int delay = 0;
         int period = 1;
@@ -578,14 +672,7 @@ public final class MenuController {
         instagramModel = this.model.getInstagramModel();
 
         if (instagramModel != null) {
-            Alert alert;
-            String message = "You are already signed into Instagram!";
-
-            alert = new Alert(Alert.AlertType.ERROR, message);
-
-            alert.show();
-
-            return;
+            throw new IllegalStateException("the user is already logged into Instagram");
         } //end if
 
         instagramModel = SocialButterflyApplication.getInstagramModel();
@@ -603,11 +690,97 @@ public final class MenuController {
 
         this.model.setInstagramModel(instagramModel);
 
+        menuView = this.view.getMenuView();
+
+        instagramMenu = menuView.getInstagramMenu();
+
+        allMenu = menuView.getAllMenu();
+
+        instagramProfileMenuItem = menuView.getInstagramProfileMenuItem();
+
+        instagramBioMenuItem = menuView.getInstagramBioMenuItem();
+
+        instagramSearchMenuItem = menuView.getInstagramSearchMenuItem();
+
+        instagramProfilePictureItem = menuView.getInstagramProfilePictureMenuItem();
+
+        instagramSavedPostsMenuItem = menuView.getInstagramSavedPostsMenuItem();
+
+        instagramMessagesMenuItem = menuView.getInstagramMessagesMenuItem();
+
+        instagramFollowUserMenuItem = menuView.getInstagramFollowUserMenuItem();
+
+        instagramLogOutMenuItem = menuView.getInstagramLogOutMenuItem();
+
+        allSavedPostsRadioMenuItem = menuView.getAllSavedPostsRadioMenuItem();
+
+        instagramMenu.getItems()
+                     .clear();
+
+        instagramMenu.getItems()
+                     .addAll(instagramProfileMenuItem, new SeparatorMenuItem(), instagramBioMenuItem,
+                             new SeparatorMenuItem(), instagramSearchMenuItem, new SeparatorMenuItem(),
+                             instagramProfilePictureItem, new SeparatorMenuItem(), instagramSavedPostsMenuItem,
+                             new SeparatorMenuItem(), instagramMessagesMenuItem, new SeparatorMenuItem(),
+                             instagramFollowUserMenuItem, new SeparatorMenuItem(), instagramLogOutMenuItem);
+
+        allMenu.getItems()
+               .clear();
+
+        allMenu.getItems()
+               .add(allSavedPostsRadioMenuItem);
+
         executorService = this.instagramPostController.getExecutorService();
 
         executorService.scheduleAtFixedRate(this.instagramPostController::updatePosts, delay, period,
                                             TimeUnit.MINUTES);
     } //logInToInstagram
+
+    /**
+     * Attempts to log the user out of their Instagram account.
+     */
+    private void logOutOfInstagram() {
+        RedditModel redditModel;
+        TwitterModel twitterModel;
+        InstagramModel instagramModel;
+        MenuView menuView;
+        Menu instagramMenu;
+        Menu allMenu;
+        MenuItem instagramLogInMenuItem;
+
+        redditModel = this.model.getRedditModel();
+
+        twitterModel = this.model.getTwitterModel();
+
+        instagramModel = this.model.getInstagramModel();
+
+        if (instagramModel == null) {
+            throw new IllegalStateException("the user is not logged into Instagram");
+        } //end if
+
+        this.model.setInstagramModel(null);
+
+        this.instagramPostController.reset();
+
+        menuView = this.view.getMenuView();
+
+        instagramMenu = menuView.getInstagramMenu();
+
+        allMenu = menuView.getAllMenu();
+
+        instagramLogInMenuItem = menuView.getInstagramLogInMenuItem();
+
+        instagramMenu.getItems()
+                     .clear();
+
+        instagramMenu.getItems()
+                     .add(instagramLogInMenuItem);
+
+        if ((redditModel == null) && (twitterModel == null)) {
+            allMenu.getItems()
+                   .clear();
+        } //end if
+    } //logOutOfInstagram
 
     /**
      * Attempts to view the user's Instagram profile.
@@ -781,7 +954,7 @@ public final class MenuController {
         if(this.twitterPostController.getAllSavedBox() != null) {
             temp.getChildren().addAll(this.twitterPostController.getAllSavedBox().getChildren());
         }
-        
+
         return new Scene(temp, 500, 300);
     }
 
@@ -1125,31 +1298,33 @@ public final class MenuController {
         MenuItem redditLogInMenuItem;
         MenuItem redditProfileMenuItem;
         MenuItem redditFollowUserMenuItem;
-        MenuItem redditLogoutMenuItem;
-        //MenuItem twitterLogInMenuItem;
-        //MenuItem twitterProfileMenuItem;
+        MenuItem redditLogOutMenuItem;
         MenuItem twitterFollowUserMenuItem;
         MenuItem redditSavedPostsMenuItem;
         MenuItem redditMessagesMenuItem;
         MenuItem twitterLogInMenuItem;
+        MenuItem twitterLogOutMenuItem;
         MenuItem twitterProfileMenuItem;
         MenuItem twitterMessagesMenuItem;
         MenuItem twitterSavedPostsMenuItem;
         MenuItem instagramLogInMenuItem;
+        MenuItem instagramLogOutMenuItem;
         MenuItem instagramProfileMenuItem;
-        MenuItem instagramMessagesMenuItem;
         MenuItem instagramBioMenuItem;
         MenuItem instagramSearchMenuItem;
         MenuItem instagramProfilePictureItem;
         MenuItem instagramFollowUserMenuItem;
         MenuItem instagramSavedPostsMenuItem;
-        MenuItem timeSortMenuItem;
-        MenuItem popularitySortMenuItem;
+        RadioMenuItem timeSortRadioMenuItem;
+        RadioMenuItem popularitySortRadioMenuItem;
         RadioMenuItem lightRadioMenuItem;
         RadioMenuItem darkRadioMenuItem;
         RadioMenuItem tabRadioMenuItem;
         RadioMenuItem splitRadioMenuItem;
         MenuItem allSavedPostsRadioMenuItem;
+        TwitterModel twitterModel0;
+        Menu twitterMenu;
+        Menu allMenu;
 
         controller = new MenuController(model, view, redditPostController, twitterPostController,
                                         instagramPostController);
@@ -1158,18 +1333,19 @@ public final class MenuController {
 
         redditLogInMenuItem = menuView.getRedditLogInMenuItem();
 
+        redditLogOutMenuItem = menuView.getRedditLogOutMenuItem();
+
         redditProfileMenuItem = menuView.getRedditProfileMenuItem();
 
-
         redditFollowUserMenuItem = menuView.getRedditFollowUserMenuItem();
-
-        redditLogoutMenuItem = menuView.getRedditLogoutMenuItem();
 
         redditSavedPostsMenuItem = menuView.getRedditSavedPostsMenuItem();
 
         redditMessagesMenuItem = menuView.getRedditMessagesMenuItem();
 
         twitterLogInMenuItem = menuView.getTwitterLogInMenuItem();
+
+        twitterLogOutMenuItem = menuView.getTwitterLogOutMenuItem();
 
         twitterProfileMenuItem = menuView.getTwitterProfileMenuItem();
 
@@ -1181,9 +1357,9 @@ public final class MenuController {
 
         instagramLogInMenuItem = menuView.getInstagramLogInMenuItem();
 
-        instagramProfileMenuItem = menuView.getInstagramProfileMenuItem();
+        instagramLogOutMenuItem = menuView.getInstagramLogOutMenuItem();
 
-        instagramMessagesMenuItem = menuView.getInstagramMessagesMenuItem();
+        instagramProfileMenuItem = menuView.getInstagramProfileMenuItem();
 
         instagramBioMenuItem = menuView.getInstagramBioMenuItem();
 
@@ -1195,9 +1371,9 @@ public final class MenuController {
 
         instagramSavedPostsMenuItem = menuView.getInstagramSavedPostsMenuItem();
 
-        timeSortMenuItem = menuView.getTimeSortMenuItem();
+        timeSortRadioMenuItem = menuView.getTimeSortRadioMenuItem();
 
-        popularitySortMenuItem = menuView.getPopularitySortMenuItem();
+        popularitySortRadioMenuItem = menuView.getPopularitySortRadioMenuItem();
 
         lightRadioMenuItem = menuView.getLightRadioMenuItem();
 
@@ -1211,12 +1387,12 @@ public final class MenuController {
 
         redditLogInMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.logInToReddit());
 
+        redditLogOutMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.logOutOfReddit());
+
         redditProfileMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.viewRedditProfile());
 
         redditFollowUserMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.followRedditUser());
 
-        redditLogoutMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.logoutReddit());
-        
         redditSavedPostsMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
             Scene scene = redditPostController.updateSavedPosts();
             Stage stage = new Stage();
@@ -1271,10 +1447,12 @@ public final class MenuController {
 
         twitterLogInMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.logInToTwitter());
 
+        twitterLogOutMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.logOutOfTwitter());
+
         twitterProfileMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.viewTwitterProfile());
 
         twitterFollowUserMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.followTwitterUser());
-        
+
         twitterMessagesMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
             TwitterModel twitterModel;
             Alert alert;
@@ -1289,7 +1467,7 @@ public final class MenuController {
                     User sender = twitterModel.getTwitter().users().showUser(dm.getSenderId());
                     User recipient = twitterModel.getTwitter().users().showUser(dm.getRecipientId());
                     Date date = dm.getCreatedAt();
-                    DateFormat dateFormat = new SimpleDateFormat("mm-dd-yyyy hh:mm");  
+                    DateFormat dateFormat = new SimpleDateFormat("mm-dd-yyyy hh:mm");
 
                     String senderScreenName = sender.getScreenName();
                     String recipientScreenName = recipient.getScreenName();
@@ -1303,7 +1481,7 @@ public final class MenuController {
                                   Message: %s
                                   --------------------
                                   """.formatted(strDate, senderScreenName, recipientScreenName, message);
-                    
+
                     messagesText += temp;
                 }
                 alert = new Alert(Alert.AlertType.INFORMATION);
@@ -1329,12 +1507,13 @@ public final class MenuController {
                 alert.setHeaderText(headerText);
 
                 alert.setContentText("Error: Couldn't load DM data!\n" + te.getStackTrace());
-            
+
                 alert.show();
             }
 
-            
+
         });
+
         twitterSavedPostsMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
             Scene scene = twitterPostController.getSavedPosts();
             Stage stage = new Stage();
@@ -1348,6 +1527,8 @@ public final class MenuController {
 
         instagramLogInMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.logInToInstagram());
 
+        instagramLogOutMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.logOutOfInstagram());
+
         instagramProfileMenuItem.addEventHandler(ActionEvent.ACTION,
                                                  (actionEvent) -> controller.viewInstagramProfile());
 
@@ -1359,7 +1540,7 @@ public final class MenuController {
 
 
         instagramFollowUserMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.followInstagramUser());
-        
+
         instagramSavedPostsMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
             Scene scene = instagramPostController.updateSavedPosts();
             Stage stage = new Stage();
@@ -1367,11 +1548,6 @@ public final class MenuController {
             stage.setTitle("Saved Posts");
             stage.setResizable(true);
             stage.show();
-        });
-
-        instagramMessagesMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
-            //DirectInboxResponse pleaseWork = new DirectInboxRequest().execute(controller.model.getInstagramModel().getClient()).join();
-            //System.out.println(pleaseWork.getInbox().getThreads().get(0).getItems().get(0).getClient_context());
         });
 
         lightRadioMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.switchToLightMode());
@@ -1382,7 +1558,7 @@ public final class MenuController {
 
         splitRadioMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.switchToSplitPane());
 
-        allSavedPostsRadioMenuItem.addEventHandler(ActionEvent.ACTION, (actionevent) -> {
+        allSavedPostsRadioMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
             Scene scene = controller.getAllSavedPostsScene();
             Stage stage = new Stage();
             stage.setScene(scene);
@@ -1390,11 +1566,11 @@ public final class MenuController {
             stage.show();
         });
 
-        timeSortMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
+        timeSortRadioMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
             controller.redditPostController.sortByTime = true;
             controller.instagramPostController.sortByTime = true;
-            controller.twitterPostController.sortByTime = true;  
-            controller.redditPostController.updateAll = true;          
+            controller.twitterPostController.sortByTime = true;
+            controller.redditPostController.updateAll = true;
             controller.instagramPostController.updateAll = true;
             controller.twitterPostController.updateAll = true;
             controller.redditPostController.updatePosts();
@@ -1402,17 +1578,39 @@ public final class MenuController {
             controller.twitterPostController.updatePosts();
         });
 
-        popularitySortMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
+        popularitySortRadioMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
             controller.redditPostController.sortByTime = false;
             controller.instagramPostController.sortByTime = false;
             controller.twitterPostController.sortByTime = false;
             controller.twitterPostController.updateAll = true;
             controller.instagramPostController.updateAll = true;
-            controller.redditPostController.updateAll = true;          
+            controller.redditPostController.updateAll = true;
             controller.redditPostController.updatePosts();
             controller.instagramPostController.updatePosts();
             controller.twitterPostController.updatePosts();
         });
+
+        twitterModel0 = controller.model.getTwitterModel();
+
+        if (twitterModel0 != null) {
+            twitterMenu = menuView.getTwitterMenu();
+
+            allMenu = menuView.getAllMenu();
+
+            twitterMenu.getItems()
+                       .clear();
+
+            twitterMenu.getItems()
+                       .addAll(twitterProfileMenuItem, new SeparatorMenuItem(), twitterMessagesMenuItem,
+                               new SeparatorMenuItem(), twitterSavedPostsMenuItem, new SeparatorMenuItem(),
+                               twitterFollowUserMenuItem, new SeparatorMenuItem(), twitterLogOutMenuItem);
+
+            allMenu.getItems()
+                   .clear();
+
+            allMenu.getItems()
+                   .add(allSavedPostsRadioMenuItem);
+        } //end if
 
         return controller;
     } //createMenuController

@@ -35,14 +35,13 @@ import java.time.temporal.ChronoField;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 
 /**
  * A controller for Reddit posts of the Social Butterfly application.
  *
  * @author Logan Kulinski, lbk@purdue.edu
- * @version March 22, 2021
+ * @version April 13, 2021
  */
 public final class RedditPostController {
     /**
@@ -58,13 +57,13 @@ public final class RedditPostController {
     /**
      * The IDs of this Reddit post controller.
      */
-    private Set<String> ids;
+    private final Set<String> ids;
 
     private final Set<String> savedIds;
     /**
      * The map from boxes to posts of this Reddit post controller.
      */
-    private Map<VBox, Post> boxesToPosts;
+    private final Map<VBox, Post> boxesToPosts;
 
     /**
      * The all box lock of this Reddit post controller.
@@ -72,10 +71,6 @@ public final class RedditPostController {
     private final Lock allBoxLock;
 
     private VBox allSavedBox;
-
-    private List<Node> savedNodes;
-
-    private List<Node> savedNodesCopy;
 
     public boolean sortByTime = true;
 
@@ -119,10 +114,6 @@ public final class RedditPostController {
         this.allBoxLock = allBoxLock;
 
         this.allSavedBox = null;
-
-        this.savedNodes = new ArrayList<>();
-
-        this.savedNodesCopy = new ArrayList<>();
 
         this.executorService = Executors.newSingleThreadScheduledExecutor();
     } //RedditPostController
@@ -505,7 +496,6 @@ public final class RedditPostController {
 
     } //updatePosts
 
-
     /**
      * Updates the posts of this Reddit post controller.
      */
@@ -616,6 +606,72 @@ public final class RedditPostController {
     } //updatePosts
 
     /**
+     * Resets this Reddit post controller.
+     */
+    public void reset() {
+        PostView postView;
+        VBox redditBox;
+        Set<Map.Entry<VBox, Post>> entrySet;
+        Iterator<Map.Entry<VBox, Post>> iterator;
+        VBox allBox;
+        Map.Entry<VBox, Post> entry;
+        VBox key;
+        Post value;
+        List<Node> children;
+        int separatorIndex;
+        int size;
+
+        this.executorService.shutdownNow();
+
+        this.executorService = Executors.newSingleThreadScheduledExecutor();
+
+        this.ids.clear();
+
+        postView = this.view.getPostView();
+
+        redditBox = postView.getRedditBox();
+
+        entrySet = this.boxesToPosts.entrySet();
+
+        iterator = entrySet.iterator();
+
+        allBox = postView.getAllBox();
+
+        redditBox.getChildren()
+                 .clear();
+
+        while (iterator.hasNext()) {
+            entry = iterator.next();
+
+            key = entry.getKey();
+
+            value = entry.getValue();
+
+            if (value instanceof RedditPost) {
+                iterator.remove();
+
+                this.allBoxLock.lock();
+
+                try {
+                    children = allBox.getChildren();
+
+                    separatorIndex = children.indexOf(key) + 1;
+
+                    size = children.size();
+
+                    if (separatorIndex < size) {
+                        children.remove(separatorIndex);
+                    } //end if
+
+                    children.remove(key);
+                } finally {
+                    this.allBoxLock.unlock();
+                } //end try finally
+            } //end if
+        } //end while
+    } //reset
+
+    /**
      * Creates, and returns, a {@code createRedditPostController} object using the specified model, view, map from
      * boxes to posts, and all box lock.
      *
@@ -632,19 +688,4 @@ public final class RedditPostController {
                                                                   Lock allBoxLock) {
         return new RedditPostController(model, view, boxesToPosts, allBoxLock);
     } //createRedditPostController
-
-    public void clearRedditFeed() {
-        PostView postView;
-        VBox redditBox;
-        VBox allBox;
-        postView = this.view.getPostView();
-        redditBox = postView.getRedditBox();
-        allBox = postView.getAllBox();
-        redditBox.getChildren().clear();
-        allBox.getChildren().clear();
-        this.boxesToPosts.clear();
-        this.ids.clear();
-        //this.executorService = null;
-        //updatePosts();
-    }
 }
