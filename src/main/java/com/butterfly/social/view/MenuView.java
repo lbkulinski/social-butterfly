@@ -135,6 +135,11 @@ public final class MenuView {
     private final RadioMenuItem splitRadioMenuItem;
 
     /**
+     * The font size spinner of this menu view.
+     */
+    private final Spinner<Integer> fontSizeSpinner;
+
+    /**
      * The all saved posts radio menu item of this menu view.
      */
     private final MenuItem allSavedPostsRadioMenuItem;
@@ -191,6 +196,10 @@ public final class MenuView {
         String darkText = "Dark";
         String tabText = "Tab";
         String splitText = "Split";
+        int min = 1;
+        int max = 100;
+        int initialValue = 12;
+        int stepCount = 1;
         String timeText = "Time";
         String popularityText = "Popularity";
         String redditText = "Reddit";
@@ -251,6 +260,8 @@ public final class MenuView {
         this.tabRadioMenuItem = new RadioMenuItem(tabText);
 
         this.splitRadioMenuItem = new RadioMenuItem(splitText);
+
+        this.fontSizeSpinner = new Spinner<>(min, max, initialValue, stepCount);
         
         this.allSavedPostsRadioMenuItem = new MenuItem(savedPostsText);
 
@@ -349,7 +360,7 @@ public final class MenuView {
     /**
      * Returns the Twitter follow user menu item of this menu view.
      *
-     * @return the Twitter folllow user menu item of this menu view
+     * @return the Twitter follow user menu item of this menu view
      */
     public MenuItem getTwitterFollowUserMenuItem() {
         return this.twitterFollowUserMenuItem;
@@ -509,6 +520,15 @@ public final class MenuView {
     } //getSplitRadioMenuItem
 
     /**
+     * Returns the font size spinner of this menu view.
+     *
+     * @return the font size spinner of this menu view
+     */
+    public Spinner<Integer> getFontSizeSpinner() {
+        return this.fontSizeSpinner;
+    } //getFontSizeSpinner
+
+    /**
      * Returns the all saved posts radio menu item of this menu view.
      *
      * @return the all saved posts radio menu item of this menu view
@@ -569,6 +589,9 @@ public final class MenuView {
      */
     public static MenuView createMenuView() {
         MenuView menuView;
+        CustomMenuItem customMenuItem;
+        Menu fontSizeMenu;
+        String fontSizeText = "Font Size";
         SeparatorMenuItem separator;
         Menu themeMenu;
         String themeText = "Theme";
@@ -584,6 +607,10 @@ public final class MenuView {
 
         menuView = new MenuView();
 
+        customMenuItem = new CustomMenuItem(menuView.fontSizeSpinner);
+
+        fontSizeMenu = new Menu(fontSizeText, null, customMenuItem);
+
         separator = new SeparatorMenuItem();
 
         themeMenu = new Menu(themeText, null, menuView.lightRadioMenuItem, separator, menuView.darkRadioMenuItem);
@@ -598,6 +625,11 @@ public final class MenuView {
                             menuView.popularitySortRadioMenuItem);
 
         viewMenu = new Menu(viewText);
+
+        separator = new SeparatorMenuItem();
+
+        viewMenu.getItems()
+                .addAll(fontSizeMenu, separator);
 
         separator = new SeparatorMenuItem();
 
