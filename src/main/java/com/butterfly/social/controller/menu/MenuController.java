@@ -14,11 +14,14 @@ import com.butterfly.social.view.PostView;
 import com.butterfly.social.view.View;
 import com.github.instagram4j.instagram4j.responses.users.UsersSearchResponse;
 import javafx.event.ActionEvent;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.stage.FileChooser;
@@ -46,7 +49,7 @@ import java.text.SimpleDateFormat;
  * A controller for the menu of the Social Butterfly application.
  *
  * @author Logan Kulinski, lbk@purdue.edu
- * @version April 13, 2021
+ * @version April 18, 2021
  */
 public final class MenuController {
     /**
@@ -1276,6 +1279,94 @@ public final class MenuController {
     } //switchToSplitPane
 
     /**
+     * Updates the font size of the posts to the specified size.
+     *
+     * @param size the size to be used in the operation
+     */
+    private void updateFontSize(int size) {
+        PostView postView;
+        VBox redditBox;
+        VBox twitterBox;
+        VBox instagramBox;
+        VBox allBox;
+        String family = "Tahoma";
+
+        postView = this.view.getPostView();
+
+        redditBox = postView.getRedditBox();
+
+        twitterBox = postView.getTwitterBox();
+
+        instagramBox = postView.getInstagramBox();
+
+        allBox = postView.getAllBox();
+
+        for (Node node0 : redditBox.getChildren()) {
+            if (node0 instanceof VBox) {
+                for (Node node1 : ((VBox) node0).getChildren()) {
+                    if (node1 instanceof Label) {
+                        ((Label) node1).setFont(Font.font(family, FontWeight.BOLD, size));
+                    } else if (node1 instanceof Text) {
+                        ((Text) node1).setFont(Font.font(family, size));
+                    } else if (node1 instanceof Accordion) {
+                        for (TitledPane titledPane : ((Accordion) node1).getPanes()) {
+                            titledPane.setFont(Font.font(family, size));
+                        } //end for
+                    } //end if
+                } //end for
+            } //end if
+        } //end for
+
+        for (Node node0 : twitterBox.getChildren()) {
+            if (node0 instanceof VBox) {
+                for (Node node1 : ((VBox) node0).getChildren()) {
+                    if (node1 instanceof Label) {
+                        ((Label) node1).setFont(Font.font(family, FontWeight.BOLD, size));
+                    } else if (node1 instanceof Text) {
+                        ((Text) node1).setFont(Font.font(family, size));
+                    } else if (node1 instanceof Accordion) {
+                        for (TitledPane titledPane : ((Accordion) node1).getPanes()) {
+                            titledPane.setFont(Font.font(family, size));
+                        } //end for
+                    } //end if
+                } //end for
+            } //end if
+        } //end for
+
+        for (Node node0 : instagramBox.getChildren()) {
+            if (node0 instanceof VBox) {
+                for (Node node1 : ((VBox) node0).getChildren()) {
+                    if (node1 instanceof Label) {
+                        ((Label) node1).setFont(Font.font(family, FontWeight.BOLD, size));
+                    } else if (node1 instanceof Text) {
+                        ((Text) node1).setFont(Font.font(family, size));
+                    } else if (node1 instanceof Accordion) {
+                        for (TitledPane titledPane : ((Accordion) node1).getPanes()) {
+                            titledPane.setFont(Font.font(family, size));
+                        } //end for
+                    } //end if
+                } //end for
+            } //end if
+        } //end for
+
+        for (Node node0 : allBox.getChildren()) {
+            if (node0 instanceof VBox) {
+                for (Node node1 : ((VBox) node0).getChildren()) {
+                    if (node1 instanceof Label) {
+                        ((Label) node1).setFont(Font.font(family, FontWeight.BOLD, size));
+                    } else if (node1 instanceof Text) {
+                        ((Text) node1).setFont(Font.font(family, size));
+                    } else if (node1 instanceof Accordion) {
+                        for (TitledPane titledPane : ((Accordion) node1).getPanes()) {
+                            titledPane.setFont(Font.font(family, size));
+                        } //end for
+                    } //end if
+                } //end for
+            } //end if
+        } //end for
+    } //updateFontSize
+
+    /**
      * Creates, and returns, a {@code MenuController} object using the specified model, view, Reddit post controller,
      * Twitter post controller, and Instagram post controller.
      *
@@ -1321,6 +1412,7 @@ public final class MenuController {
         RadioMenuItem darkRadioMenuItem;
         RadioMenuItem tabRadioMenuItem;
         RadioMenuItem splitRadioMenuItem;
+        Spinner<Integer> fontSizeSpinner;
         MenuItem allSavedPostsRadioMenuItem;
         TwitterModel twitterModel0;
         Menu twitterMenu;
@@ -1382,6 +1474,8 @@ public final class MenuController {
         tabRadioMenuItem = menuView.getTabRadioMenuItem();
 
         splitRadioMenuItem = menuView.getSplitRadioMenuItem();
+
+        fontSizeSpinner = menuView.getFontSizeSpinner();
 
         allSavedPostsRadioMenuItem = menuView.getAllSavedPostsRadioMenuItem();
 
@@ -1557,6 +1651,9 @@ public final class MenuController {
         tabRadioMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.switchToTabPane());
 
         splitRadioMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.switchToSplitPane());
+
+        fontSizeSpinner.valueProperty()
+                       .addListener((observable, oldValue, newValue) -> controller.updateFontSize(newValue));
 
         allSavedPostsRadioMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
             Scene scene = controller.getAllSavedPostsScene();

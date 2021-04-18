@@ -3,6 +3,7 @@ package com.butterfly.social.controller.twitter;
 import com.butterfly.social.controller.Post;
 import com.butterfly.social.model.Model;
 import com.butterfly.social.model.twitter.TwitterModel;
+import com.butterfly.social.view.MenuView;
 import com.butterfly.social.view.PostView;
 import com.butterfly.social.view.View;
 import javafx.application.Platform;
@@ -40,7 +41,7 @@ import java.util.concurrent.locks.Lock;
  * A controller for Twitter posts of the Social Butterfly application.
  *
  * @author Logan Kulinski, lbk@purdue.edu
- * @version March 27, 2021
+ * @version April 18, 2021
  */
 public final class TwitterPostController {
     /**
@@ -298,6 +299,9 @@ public final class TwitterPostController {
      * @throws NullPointerException if the specified array of media entities is {@code null}
      */
     private Accordion getMediaAccordion(MediaEntity[] mediaEntities) {
+        MenuView menuView;
+        Spinner<Integer> fontSizeSpinner;
+        int size;
         List<TitledPane> titledPanes;
         String type;
         Node node;
@@ -305,6 +309,7 @@ public final class TwitterPostController {
         int mediaCount = 1;
         ScrollPane scrollPane;
         TitledPane titledPane;
+        String family = "Tahoma";
         TitledPane[] array;
         Accordion accordion;
 
@@ -313,6 +318,12 @@ public final class TwitterPostController {
         if (mediaEntities.length == 0) {
             return null;
         } //end if
+
+        menuView = this.view.getMenuView();
+
+        fontSizeSpinner = menuView.getFontSizeSpinner();
+
+        size = fontSizeSpinner.getValue();
 
         titledPanes = new ArrayList<>();
 
@@ -341,7 +352,7 @@ public final class TwitterPostController {
 
                 titledPane = new TitledPane(mediaName, scrollPane);
 
-                titledPane.setFont(Font.font("Arial", 14));
+                titledPane.setFont(Font.font(family, size));
 
                 titledPanes.add(titledPane);
             } //end if
@@ -602,7 +613,11 @@ public final class TwitterPostController {
         String textString;
         LocalDateTime dateTime;
         String combinedName;
+        MenuView menuView;
+        Spinner<Integer> fontSizeSpinner;
+        int size;
         Label nameLabel;
+        String family = "Tahoma";
         Scene scene;
         Text text;
         MediaEntity[] mediaEntities;
@@ -635,15 +650,21 @@ public final class TwitterPostController {
 
         combinedName = name + " @" + screenName;
 
+        menuView = this.view.getMenuView();
+
+        fontSizeSpinner = menuView.getFontSizeSpinner();
+
+        size = fontSizeSpinner.getValue();
+
         nameLabel = new Label(combinedName);
 
-        nameLabel.setFont(Font.font("Arial", FontWeight.BOLD, 12));
+        nameLabel.setFont(Font.font(family, FontWeight.BOLD, size));
 
         scene = this.view.getScene();
 
         text = new Text(textString);
 
-        text.setFont(Font.font("Arial", 14));
+        text.setFont(Font.font(family, size));
 
         text.wrappingWidthProperty()
             .bind(scene.widthProperty());
@@ -676,17 +697,17 @@ public final class TwitterPostController {
 
         dateTimeString = String.format(format, month, day, year, hour, minute, amPm);
 
-        format = "%d Retweets\t\t\t\t%d Likes";
+        format = "%d Retweets %d Favorites";
 
         String likesRetweetsString = String.format(format, status.getRetweetCount(), status.getFavoriteCount());
 
         Label likesRetweetsLabel = new Label(likesRetweetsString);
 
-        likesRetweetsLabel.setFont(Font.font("Arial", FontWeight.BOLD, 12));
+        likesRetweetsLabel.setFont(Font.font(family, FontWeight.BOLD, size));
 
         dateTimeLabel = new Label(dateTimeString);
 
-        dateTimeLabel.setFont(Font.font("Arial", FontWeight.BOLD, 12));
+        dateTimeLabel.setFont(Font.font(family, FontWeight.BOLD, size));
 
         if (accordion == null) {
             vBox = new VBox(nameLabel, text, dateTimeLabel, likesRetweetsLabel);

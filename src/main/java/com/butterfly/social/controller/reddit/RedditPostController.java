@@ -3,6 +3,7 @@ package com.butterfly.social.controller.reddit;
 import com.butterfly.social.controller.Post;
 import com.butterfly.social.model.Model;
 import com.butterfly.social.model.reddit.RedditModel;
+import com.butterfly.social.view.MenuView;
 import com.butterfly.social.view.PostView;
 import com.butterfly.social.view.View;
 import javafx.application.Platform;
@@ -41,7 +42,7 @@ import java.util.concurrent.locks.Lock;
  * A controller for Reddit posts of the Social Butterfly application.
  *
  * @author Logan Kulinski, lbk@purdue.edu
- * @version April 13, 2021
+ * @version April 18, 2021
  */
 public final class RedditPostController {
     /**
@@ -237,7 +238,7 @@ public final class RedditPostController {
 
         titledPane = new TitledPane(mediaName, scrollPane);
 
-        titledPane.setFont(Font.font("Arial", 14));
+        titledPane.setFont(Font.font(14));
 
         accordion = new Accordion(titledPane);
 
@@ -305,7 +306,11 @@ public final class RedditPostController {
         String textString;
         LocalDateTime dateTime;
         Scene scene;
+        MenuView menuView;
+        Spinner<Integer> fontSizeSpinner;
+        int size;
         Text titleText;
+        String family = "Tahoma";
         Label nameLabel;
         Text text;
         Accordion accordion;
@@ -339,20 +344,26 @@ public final class RedditPostController {
 
         scene = this.view.getScene();
 
+        menuView = this.view.getMenuView();
+
+        fontSizeSpinner = menuView.getFontSizeSpinner();
+
+        size = fontSizeSpinner.getValue();
+
         titleText = new Text(title);
 
-        titleText.setFont(Font.font("Arial", FontWeight.BOLD, 12));
+        titleText.setFont(Font.font(family, FontWeight.BOLD, size));
 
         titleText.wrappingWidthProperty()
                  .bind(scene.widthProperty());
 
         nameLabel = new Label(name);
 
-        nameLabel.setFont(Font.font("Arial", FontWeight.BOLD, 12));
+        nameLabel.setFont(Font.font(family, FontWeight.BOLD, size));
 
         text = new Text(textString);
 
-        text.setFont(Font.font("Arial", 14));
+        text.setFont(Font.font(14));
 
         text.wrappingWidthProperty()
             .bind(scene.widthProperty());
@@ -385,7 +396,7 @@ public final class RedditPostController {
 
         dateTimeLabel = new Label(dateTimeString);
 
-        dateTimeLabel.setFont(Font.font("Arial", FontWeight.BOLD, 12));
+        dateTimeLabel.setFont(Font.font(family, FontWeight.BOLD, size));
 
         format = "%d Upvotes";
 
@@ -393,7 +404,7 @@ public final class RedditPostController {
 
         Label upvotesLabel = new Label(upvotesString);
 
-        upvotesLabel.setFont(Font.font("Arial", FontWeight.BOLD, 12));
+        upvotesLabel.setFont(Font.font(family, FontWeight.BOLD, size));
 
         if (accordion == null) {
             vBox = new VBox(titleText, nameLabel, text, dateTimeLabel, upvotesLabel);

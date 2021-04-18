@@ -3,6 +3,7 @@ package com.butterfly.social.controller.instagram;
 import com.butterfly.social.controller.Post;
 import com.butterfly.social.model.Model;
 import com.butterfly.social.model.instagram.InstagramModel;
+import com.butterfly.social.view.MenuView;
 import com.butterfly.social.view.PostView;
 import com.butterfly.social.view.View;
 import com.github.instagram4j.instagram4j.IGClient;
@@ -40,7 +41,7 @@ import java.util.concurrent.locks.Lock;
  * A controller for Instagram posts of the Social Butterfly application.
  *
  * @author Logan Kulinski, lbk@purdue.edu
- * @version April 13, 2021
+ * @version April 18, 2021
  */
 public final class InstagramPostController {
     /**
@@ -401,10 +402,14 @@ public final class InstagramPostController {
         List<TitledPane> titledPanes;
         List<Node> nodes;
         Node node;
+        MenuView menuView;
+        Spinner<Integer> fontSizeSpinner;
+        int size;
         String mediaName;
         int mediaCount = 1;
         ScrollPane scrollPane;
         TitledPane titledPane;
+        String family = "Tahoma";
         TitledPane[] array;
         Accordion accordion;
 
@@ -446,6 +451,12 @@ public final class InstagramPostController {
             return null;
         } //end if
 
+        menuView = this.view.getMenuView();
+
+        fontSizeSpinner = menuView.getFontSizeSpinner();
+
+        size = fontSizeSpinner.getValue();
+
         for (Node currentNode : nodes) {
             mediaName = String.format("Attachment %d", mediaCount);
 
@@ -455,7 +466,7 @@ public final class InstagramPostController {
 
             titledPane = new TitledPane(mediaName, scrollPane);
 
-            titledPane.setFont(Font.font("Arial", 14));
+            titledPane.setFont(Font.font(family, size));
 
             titledPanes.add(titledPane);
         } //end for
@@ -527,7 +538,11 @@ public final class InstagramPostController {
         String textString;
         long creationTime;
         LocalDateTime dateTime;
+        MenuView menuView;
+        Spinner<Integer> fontSizeSpinner;
+        int size;
         Label nameLabel;
+        String family = "Tahoma";
         Scene scene;
         Text text;
         Accordion accordion;
@@ -555,15 +570,21 @@ public final class InstagramPostController {
 
         dateTime = LocalDateTime.ofInstant(Instant.ofEpochSecond(creationTime), ZoneId.systemDefault());
 
+        menuView = this.view.getMenuView();
+
+        fontSizeSpinner = menuView.getFontSizeSpinner();
+
+        size = fontSizeSpinner.getValue();
+
         nameLabel = new Label(username);
 
-        nameLabel.setFont(Font.font("Arial", FontWeight.BOLD, 12));
+        nameLabel.setFont(Font.font(family, FontWeight.BOLD, size));
 
         scene = this.view.getScene();
 
         text = new Text(textString);
 
-        text.setFont(Font.font("Arial", 14));
+        text.setFont(Font.font(family, size));
 
         text.wrappingWidthProperty()
             .bind(scene.widthProperty());
@@ -596,7 +617,7 @@ public final class InstagramPostController {
 
         dateTimeLabel = new Label(dateTimeString);
 
-        dateTimeLabel.setFont(Font.font("Arial", FontWeight.BOLD, 12));
+        dateTimeLabel.setFont(Font.font(family, FontWeight.BOLD, size));
 
         format = "%d Likes";
 
@@ -604,7 +625,7 @@ public final class InstagramPostController {
 
         Label likesLabel = new Label(likesString);
 
-        likesLabel.setFont(Font.font("Arial", FontWeight.BOLD, 12));
+        likesLabel.setFont(Font.font(family, FontWeight.BOLD, size));
 
         if (accordion == null) {
             vBox = new VBox(nameLabel, text, dateTimeLabel, likesLabel);

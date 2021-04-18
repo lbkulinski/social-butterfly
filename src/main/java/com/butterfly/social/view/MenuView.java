@@ -667,5 +667,4 @@ public final class MenuView {
 
         return menuView;
     } //createMenuView
-
 }
