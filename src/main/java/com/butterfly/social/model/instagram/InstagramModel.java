@@ -76,6 +76,10 @@ public final class InstagramModel implements Serializable {
         this.client.actions().account().setProfilePicture(newProfilePicture);
     }
 
+    public void makeStoryPost(File newPost) {
+        this.client.actions().story().uploadPhoto(newPost);
+    }
+
 
     public void followInstagramProfile(String username) {
         new UsersUsernameInfoRequest(username).execute(this.client).thenAccept(userResponse -> {

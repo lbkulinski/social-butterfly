@@ -105,6 +105,11 @@ public final class MenuView {
     private final MenuItem instagramSavedPostsMenuItem;
 
     /**
+     * The Instagram story menu item of this menu view.
+     */
+    private final MenuItem instagramStoryMenuItem;
+
+    /**
      * The Instagram messages menu item of this menu view.
      */
     private final MenuItem instagramMessagesMenuItem;
@@ -191,6 +196,7 @@ public final class MenuView {
         String searchUsersText = "Search For Users";
         String followUserText = "Follow user";
         String profilePictureText = "Set Profile Picture";
+        String storyText = "Make Story Post";
         String messagesText = "Direct Messages";
         String lightText = "Light";
         String darkText = "Dark";
@@ -244,6 +250,8 @@ public final class MenuView {
         this.instagramSearchMenuItem = new MenuItem(searchUsersText);
 
         this.instagramProfilePictureItem = new MenuItem(profilePictureText);
+
+        this.instagramStoryMenuItem = new MenuItem(storyText);
 
         this.instagramMessagesMenuItem = new MenuItem(messagesText);
 
@@ -436,7 +444,16 @@ public final class MenuView {
      */
     public MenuItem getInstagramProfilePictureMenuItem() {
         return this.instagramProfilePictureItem;
-    } //getInstagramBioMenuItem
+    } //getInstagramProfilePictureMenuItem
+
+    /**
+     * Returns the Instagram story menu item of this menu view.
+     *
+     * @return the Instagram story menu item of this menu view
+     */
+    public MenuItem getInstagramStoryMenuItem() {
+        return this.instagramStoryMenuItem;
+    } //getInstagramStoryMenuItem
 
     /**
      * Returns the Instagram follow user menu item of this menu view.

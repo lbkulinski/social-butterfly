@@ -664,6 +664,7 @@ public final class MenuController {
         MenuItem instagramSearchMenuItem;
         MenuItem instagramProfilePictureItem;
         MenuItem instagramSavedPostsMenuItem;
+        MenuItem instagramStoryItem;
         MenuItem instagramMessagesMenuItem;
         MenuItem instagramFollowUserMenuItem;
         MenuItem instagramLogOutMenuItem;
@@ -707,6 +708,8 @@ public final class MenuController {
 
         instagramProfilePictureItem = menuView.getInstagramProfilePictureMenuItem();
 
+        instagramStoryItem = menuView.getInstagramStoryMenuItem();
+
         instagramSavedPostsMenuItem = menuView.getInstagramSavedPostsMenuItem();
 
         instagramMessagesMenuItem = menuView.getInstagramMessagesMenuItem();
@@ -723,7 +726,8 @@ public final class MenuController {
         instagramMenu.getItems()
                      .addAll(instagramProfileMenuItem, new SeparatorMenuItem(), instagramBioMenuItem,
                              new SeparatorMenuItem(), instagramSearchMenuItem, new SeparatorMenuItem(),
-                             instagramProfilePictureItem, new SeparatorMenuItem(), instagramSavedPostsMenuItem,
+                             instagramProfilePictureItem, new SeparatorMenuItem(), instagramStoryItem,
+                             new SeparatorMenuItem(), instagramSavedPostsMenuItem,
                              new SeparatorMenuItem(), instagramMessagesMenuItem, new SeparatorMenuItem(),
                              instagramFollowUserMenuItem, new SeparatorMenuItem(), instagramLogOutMenuItem);
 
@@ -962,7 +966,7 @@ public final class MenuController {
     }
 
     /**
-     * Allows users
+     * Allows users to set their profile picture on instagram
      */
     private void setInstagramProfilePicture() {
         FileChooser fileChooser = new FileChooser();
@@ -976,6 +980,24 @@ public final class MenuController {
 
         if (selectedFile != null) {
             instagramModel.setProfilePicture(selectedFile);
+        }
+    }
+
+    /**
+     * Allows users to make a post to their instagram story
+     */
+    private void makeInstagramStoryPost() {
+        FileChooser fileChooser = new FileChooser();
+        InstagramModel instagramModel;
+
+        instagramModel = this.model.getInstagramModel();
+
+        fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("Image Files", "*.jpg", "*.png"));
+
+        File selectedFile = fileChooser.showOpenDialog(null);
+
+        if (selectedFile != null) {
+            instagramModel.makeStoryPost(selectedFile);
         }
     }
 
@@ -1404,6 +1426,7 @@ public final class MenuController {
         MenuItem instagramBioMenuItem;
         MenuItem instagramSearchMenuItem;
         MenuItem instagramProfilePictureItem;
+        MenuItem instagramStoryItem;
         MenuItem instagramFollowUserMenuItem;
         MenuItem instagramSavedPostsMenuItem;
         RadioMenuItem timeSortRadioMenuItem;
@@ -1458,6 +1481,8 @@ public final class MenuController {
         instagramSearchMenuItem = menuView.getInstagramSearchMenuItem();
 
         instagramProfilePictureItem = menuView.getInstagramProfilePictureMenuItem();
+
+        instagramStoryItem = menuView.getInstagramStoryMenuItem();
 
         instagramFollowUserMenuItem = menuView.getInstagramFollowUserMenuItem();
 
@@ -1632,6 +1657,7 @@ public final class MenuController {
 
         instagramProfilePictureItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.setInstagramProfilePicture());
 
+        instagramStoryItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.makeInstagramStoryPost());
 
         instagramFollowUserMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.followInstagramUser());
 
