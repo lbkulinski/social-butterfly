@@ -8,9 +8,11 @@ import com.butterfly.social.view.PostView;
 import com.butterfly.social.view.View;
 import com.github.instagram4j.instagram4j.IGClient;
 import com.github.instagram4j.instagram4j.models.media.ImageVersionsMeta;
+import com.github.instagram4j.instagram4j.models.media.UserTags;
 import com.github.instagram4j.instagram4j.models.media.VideoVersionsMeta;
 import com.github.instagram4j.instagram4j.models.media.timeline.*;
 import com.github.instagram4j.instagram4j.responses.feed.FeedTimelineResponse;
+import com.github.instagram4j.instagram4j.responses.users.UsersSearchResponse;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.scene.CacheHint;
@@ -34,6 +36,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoField;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.locks.Lock;
@@ -481,6 +484,45 @@ public final class InstagramPostController {
         return accordion;
     } //getMediaAccordion
 
+    private void displayTaggedUsers(List<UserTags.UserTag> userTags) {
+        InstagramModel instagramModel;
+        Alert alert;
+        String title = "Social Butterfly";
+        String headerText = "Users tagged in this post:";
+        String taggedUsers = "";
+
+        instagramModel = this.model.getInstagramModel();
+
+        if (instagramModel == null) {
+            String message = "You are not signed into Instagram!";
+
+            alert = new Alert(Alert.AlertType.ERROR, message);
+
+            alert.show();
+
+            return;
+        } //end if
+
+        alert = new Alert(Alert.AlertType.INFORMATION);
+
+        alert.setTitle(title);
+
+        alert.setHeaderText(headerText);
+
+        for (int i = 0; i < userTags.size(); i++) {
+            if (userTags.get(i) != null) {
+                taggedUsers += "Name: " + userTags.get(i).getUser().getFull_name() + "\n" + "User: " + userTags.get(i).getUser().getUsername() + "\n";
+            }
+            else {
+                break;
+            }
+        }
+
+        alert.setContentText(taggedUsers);
+
+        alert.show();
+    } //searchUsersOnInstagram
+
     private void displayContextMenu(VBox box, double x, double y) {
         Post post;
         InstagramPost instagramPost;
@@ -492,6 +534,7 @@ public final class InstagramPostController {
         IGClient client = instagramModel.getClient();
         //FavoritesResources favoritesResources;
         MenuItem save;
+        MenuItem tagged;
         ContextMenu contextMenu;
 
         Objects.requireNonNull(box, "the specified box is null");
@@ -512,8 +555,6 @@ public final class InstagramPostController {
 
         client = instagramModel.getClient();
 
-        //favoritesResources = twitter.favorites();
-
         save = new MenuItem("Save Post");
 
         save.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
@@ -522,6 +563,16 @@ public final class InstagramPostController {
         });
 
         contextMenu = new ContextMenu(save);
+
+        if (media.getUsertags() != null) {
+            tagged = new MenuItem("Tagged users");
+
+            tagged.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
+                displayTaggedUsers(media.getUsertags().getIn());
+            });
+
+            contextMenu.getItems().add(tagged);
+        }
 
         contextMenu.show(box, x, y);
     } //displayContextMenu
