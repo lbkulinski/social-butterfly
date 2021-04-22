@@ -28,6 +28,7 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.sql.SQLOutput;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -535,6 +536,7 @@ public final class InstagramPostController {
      */
     private VBox createBox(TimelineMedia media, boolean displayInstagram) {
         String username;
+        String location;
         String textString;
         long creationTime;
         LocalDateTime dateTime;
@@ -542,6 +544,7 @@ public final class InstagramPostController {
         Spinner<Integer> fontSizeSpinner;
         int size;
         Label nameLabel;
+        Label locationLabel;
         String family = "Tahoma";
         Scene scene;
         Text text;
@@ -562,8 +565,19 @@ public final class InstagramPostController {
         username = media.getUser()
                         .getUsername();
 
+        if (media.getLocation() != null) {
+            location = media.getLocation().getName();
+        }
+        else {
+            location = "";
+        }
+
         textString = media.getCaption()
                           .getText();
+
+        if (media.getUsertags() != null) {
+            //System.out.println(media.getUsertags().getIn().get(0).getUser().getUsername() + "    " + media.getUsertags().getIn().get(0).getUser().getFull_name() + "\n"+ "\n"+ "\n");
+        }
 
         creationTime = media.getCaption()
                             .getCreated_at_utc();
@@ -579,6 +593,8 @@ public final class InstagramPostController {
         nameLabel = new Label(username);
 
         nameLabel.setFont(Font.font(family, FontWeight.BOLD, size));
+
+        locationLabel = new Label(location);
 
         scene = this.view.getScene();
 
@@ -627,13 +643,21 @@ public final class InstagramPostController {
 
         likesLabel.setFont(Font.font(family, FontWeight.BOLD, size));
 
+        format = "%d Comments";
+
+        String commentsString = String.format(format, media.getComment_count());
+
+        Label commentsLabel = new Label(commentsString);
+
+        commentsLabel.setFont(Font.font(family, FontWeight.BOLD, size));
+
         if (accordion == null) {
-            vBox = new VBox(nameLabel, text, dateTimeLabel, likesLabel);
+            vBox = new VBox(nameLabel, locationLabel, text, dateTimeLabel, likesLabel, commentsLabel);
         } else {
             accordion.prefWidthProperty()
                      .bind(scene.widthProperty());
 
-            vBox = new VBox(nameLabel, text, accordion, dateTimeLabel, likesLabel);
+            vBox = new VBox(nameLabel, locationLabel, text, accordion, dateTimeLabel, likesLabel, commentsLabel);
         } //end if
 
         vBox.setOnContextMenuRequested((contextMenuEvent) -> {
