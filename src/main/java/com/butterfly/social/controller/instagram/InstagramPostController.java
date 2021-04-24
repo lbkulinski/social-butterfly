@@ -8,9 +8,11 @@ import com.butterfly.social.view.PostView;
 import com.butterfly.social.view.View;
 import com.github.instagram4j.instagram4j.IGClient;
 import com.github.instagram4j.instagram4j.models.media.ImageVersionsMeta;
+import com.github.instagram4j.instagram4j.models.media.UserTags;
 import com.github.instagram4j.instagram4j.models.media.VideoVersionsMeta;
 import com.github.instagram4j.instagram4j.models.media.timeline.*;
 import com.github.instagram4j.instagram4j.responses.feed.FeedTimelineResponse;
+import com.github.instagram4j.instagram4j.responses.users.UsersSearchResponse;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.scene.CacheHint;
@@ -28,11 +30,13 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.sql.SQLOutput;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoField;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.locks.Lock;
@@ -480,6 +484,45 @@ public final class InstagramPostController {
         return accordion;
     } //getMediaAccordion
 
+    private void displayTaggedUsers(List<UserTags.UserTag> userTags) {
+        InstagramModel instagramModel;
+        Alert alert;
+        String title = "Social Butterfly";
+        String headerText = "Users tagged in this post:";
+        String taggedUsers = "";
+
+        instagramModel = this.model.getInstagramModel();
+
+        if (instagramModel == null) {
+            String message = "You are not signed into Instagram!";
+
+            alert = new Alert(Alert.AlertType.ERROR, message);
+
+            alert.show();
+
+            return;
+        } //end if
+
+        alert = new Alert(Alert.AlertType.INFORMATION);
+
+        alert.setTitle(title);
+
+        alert.setHeaderText(headerText);
+
+        for (int i = 0; i < userTags.size(); i++) {
+            if (userTags.get(i) != null) {
+                taggedUsers += "Name: " + userTags.get(i).getUser().getFull_name() + "\n" + "User: " + userTags.get(i).getUser().getUsername() + "\n";
+            }
+            else {
+                break;
+            }
+        }
+
+        alert.setContentText(taggedUsers);
+
+        alert.show();
+    } //searchUsersOnInstagram
+
     private void displayContextMenu(VBox box, double x, double y) {
         Post post;
         InstagramPost instagramPost;
@@ -491,6 +534,7 @@ public final class InstagramPostController {
         IGClient client = instagramModel.getClient();
         //FavoritesResources favoritesResources;
         MenuItem save;
+        MenuItem tagged;
         ContextMenu contextMenu;
 
         Objects.requireNonNull(box, "the specified box is null");
@@ -511,8 +555,6 @@ public final class InstagramPostController {
 
         client = instagramModel.getClient();
 
-        //favoritesResources = twitter.favorites();
-
         save = new MenuItem("Save Post");
 
         save.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
@@ -521,6 +563,16 @@ public final class InstagramPostController {
         });
 
         contextMenu = new ContextMenu(save);
+
+        if (media.getUsertags() != null) {
+            tagged = new MenuItem("Tagged users");
+
+            tagged.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
+                displayTaggedUsers(media.getUsertags().getIn());
+            });
+
+            contextMenu.getItems().add(tagged);
+        }
 
         contextMenu.show(box, x, y);
     } //displayContextMenu
@@ -535,6 +587,7 @@ public final class InstagramPostController {
      */
     private VBox createBox(TimelineMedia media, boolean displayInstagram) {
         String username;
+        String location;
         String textString;
         long creationTime;
         LocalDateTime dateTime;
@@ -542,6 +595,7 @@ public final class InstagramPostController {
         Spinner<Integer> fontSizeSpinner;
         int size;
         Label nameLabel;
+        Label locationLabel;
         String family = "Tahoma";
         Scene scene;
         Text text;
@@ -562,8 +616,19 @@ public final class InstagramPostController {
         username = media.getUser()
                         .getUsername();
 
+        if (media.getLocation() != null) {
+            location = media.getLocation().getName();
+        }
+        else {
+            location = "";
+        }
+
         textString = media.getCaption()
                           .getText();
+
+        if (media.getUsertags() != null) {
+            //System.out.println(media.getUsertags().getIn().get(0).getUser().getUsername() + "    " + media.getUsertags().getIn().get(0).getUser().getFull_name() + "\n"+ "\n"+ "\n");
+        }
 
         creationTime = media.getCaption()
                             .getCreated_at_utc();
@@ -579,6 +644,8 @@ public final class InstagramPostController {
         nameLabel = new Label(username);
 
         nameLabel.setFont(Font.font(family, FontWeight.BOLD, size));
+
+        locationLabel = new Label(location);
 
         scene = this.view.getScene();
 
@@ -627,13 +694,21 @@ public final class InstagramPostController {
 
         likesLabel.setFont(Font.font(family, FontWeight.BOLD, size));
 
+        format = "%d Comments";
+
+        String commentsString = String.format(format, media.getComment_count());
+
+        Label commentsLabel = new Label(commentsString);
+
+        commentsLabel.setFont(Font.font(family, FontWeight.BOLD, size));
+
         if (accordion == null) {
-            vBox = new VBox(nameLabel, text, dateTimeLabel, likesLabel);
+            vBox = new VBox(nameLabel, locationLabel, text, dateTimeLabel, likesLabel, commentsLabel);
         } else {
             accordion.prefWidthProperty()
                      .bind(scene.widthProperty());
 
-            vBox = new VBox(nameLabel, text, accordion, dateTimeLabel, likesLabel);
+            vBox = new VBox(nameLabel, locationLabel, text, accordion, dateTimeLabel, likesLabel, commentsLabel);
         } //end if
 
         vBox.setOnContextMenuRequested((contextMenuEvent) -> {
