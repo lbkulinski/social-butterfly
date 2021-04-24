@@ -419,6 +419,7 @@ public final class MenuController {
         MenuView menuView;
         Menu twitterMenu;
         Menu allMenu;
+        MenuItem twitterTrendingMenuItem;
         MenuItem twitterProfileMenuItem;
         MenuItem twitterMessagesMenuItem;
         MenuItem twitterDirectMessageMenuItem;
@@ -458,6 +459,8 @@ public final class MenuController {
 
         allMenu = menuView.getAllMenu();
 
+        twitterTrendingMenuItem = menuView.getTwitterTrendingMenuItem();
+
         twitterProfileMenuItem = menuView.getTwitterProfileMenuItem();
 
         twitterMessagesMenuItem = menuView.getTwitterMessagesMenuItem();
@@ -481,7 +484,8 @@ public final class MenuController {
                    .addAll(twitterProfileMenuItem, new SeparatorMenuItem(), twitterMessagesMenuItem,
                            new SeparatorMenuItem(), twitterSavedPostsMenuItem, new SeparatorMenuItem(),
                            twitterDirectMessageMenuItem, new SeparatorMenuItem(), twitterFollowUserMenuItem,
-                           new SeparatorMenuItem(), twitterLogOutMenuItem);
+                           new SeparatorMenuItem(), twitterTrendingMenuItem, new SeparatorMenuItem(),
+                           twitterLogOutMenuItem);
 
         allMenu.getItems()
                .clear();
@@ -1020,6 +1024,26 @@ public final class MenuController {
         if (selectedFile != null) {
             instagramModel.makeStoryPost(selectedFile);
         }
+    }
+
+    public void showTwitterTrending() {
+        List<String> list;
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+
+        alert.setTitle("Trends");
+        alert.setHeaderText("Top Trends on Twitter");
+        StringBuilder sb = new StringBuilder("");
+
+        TwitterModel twitterModel = this.model.getTwitterModel();
+        try {
+            list = twitterModel.getRequests().getTrending();
+        } catch (TwitterException e) {
+            return;
+        }
+        list.forEach(item -> sb.append(item).append("\n"));
+
+        alert.setContentText(sb.toString());
+        alert.show();
     }
 
     public void sendTwitterDirectMessage() {
@@ -1690,6 +1714,7 @@ public final class MenuController {
         MenuItem twitterFollowUserMenuItem;
         MenuItem redditSavedPostsMenuItem;
         MenuItem redditMessagesMenuItem;
+        MenuItem twitterTrendingMenuItem;
         MenuItem twitterLogInMenuItem;
         MenuItem twitterLogOutMenuItem;
         MenuItem twitterProfileMenuItem;
@@ -1725,6 +1750,8 @@ public final class MenuController {
         menuView = controller.view.getMenuView();
 
         twitterDirectMessageMenuItem = menuView.getTwitterSendMessagesmenuItem();
+
+        twitterTrendingMenuItem = menuView.getTwitterTrendingMenuItem();
 
         redditDirectMessageMenuItem = menuView.getRedditSendMessageMenuItem();
 
@@ -1851,6 +1878,8 @@ public final class MenuController {
         redditDirectMessageMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.sendRedditDirectMessage());
 
         twitterDirectMessageMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent)-> controller.sendTwitterDirectMessage());
+
+        twitterTrendingMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.showTwitterTrending());
 
         twitterLogInMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.logInToTwitter());
 

@@ -68,7 +68,12 @@ public final class MenuView {
      * The Twitter follow menu item of this menu view.
      */
     private final MenuItem twitterFollowUserMenuItem;
-  
+
+    /**
+     * The Twitter trending menu item of this menu view.
+     */
+    private final MenuItem twitterTrendingMenuItem;
+
     /**
      * The Twitter messages menu item of this menu view.
      */
@@ -230,6 +235,9 @@ public final class MenuView {
         String multiPostText = "Multi Post";
         String twitterDirectMessageText = "Send Direct Message";
         String redditDirectMessageText = "Send Direct Message";
+        String twitterTrendingText = "Show Trends";
+
+        this.twitterTrendingMenuItem = new MenuItem(twitterTrendingText);
 
         this.multiPostMenuItem = new MenuItem(multiPostText);
 
@@ -307,6 +315,15 @@ public final class MenuView {
 
         this.menuBar = new MenuBar(this.redditMenu, this.twitterMenu, this.instagramMenu, this.allMenu);
     } //MenuView
+
+    /**
+     * Returns the twitter trending menu item of this menu view.
+     *
+     * @return the twitter trending menu item of this menu view
+     */
+    public MenuItem getTwitterTrendingMenuItem() {
+        return twitterTrendingMenuItem;
+    }
 
     /**
      * Returns the reddit direct message menu item of this menu view.

@@ -1,21 +1,12 @@
 package com.butterfly.social.model.twitter;
 
 import java.io.Serializable;
-import twitter4j.Twitter;
+
+import twitter4j.*;
+
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
-
-import twitter4j.AsyncTwitter;
-import twitter4j.AsyncTwitterFactory;
-import twitter4j.Paging;
-import twitter4j.ResponseList;
-import twitter4j.Status;
-import twitter4j.StatusUpdate;
-import twitter4j.TwitterException;
-import twitter4j.User;
-import twitter4j.DirectMessage;
-import twitter4j.DirectMessageList;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -166,6 +157,15 @@ public final class TwitterUserRequests implements Serializable {
         return val;
     }
 
+    public List<String> getTrending() throws TwitterException {
+        List<String> trends = new ArrayList<>();
+        Trends trending = twitter.getPlaceTrends(23424977);
+        for (Trend trend : trending.getTrends()) {
+            trends.add(trend.getName());
+        }
+        return trends;
+    }
+
     public static void main(String[] args) throws TwitterException {
         /* Setup twitter model */
         TwitterModel user = new TwitterModel();
@@ -176,6 +176,9 @@ public final class TwitterUserRequests implements Serializable {
         String pin = in.nextLine();
         user.getAuth().handlePIN(pin);
         user.initializeRequests();
+
+        user.getRequests().getTrending();
+        /*
 
         StatusUpdate statusUpdate = new StatusUpdate("test tweet");
         Status status = user.getRequests().postTweet(statusUpdate);  // Test posting a tweet
@@ -188,5 +191,7 @@ public final class TwitterUserRequests implements Serializable {
 
 
         user.getRequests().sendDirectMessage("JonFreier", "hello"); // Test sending a direct message
+
+         */
     }
 }
