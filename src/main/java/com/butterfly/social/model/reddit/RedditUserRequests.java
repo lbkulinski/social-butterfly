@@ -74,14 +74,14 @@ public class RedditUserRequests {
 
         SubmissionReference submissionReference = userRequests.post("test", "My first Post!",
                 "This is my first post!");                                                              // Test making a post
-        userRequests.comment(submissionReference.inspect().getId(), "This is my first comment!");      // Test replying to a post
-        userRequests.upvote(submissionReference.inspect().getId());                                             // Test upvoting a post
+        //userRequests.comment(submissionReference.inspect().getId(), "This is my first comment!");      // Test replying to a post
+        //userRequests.upvote(submissionReference.inspect().getId());                                             // Test upvoting a post
 
         System.out.println(userRequests.getUserInfo(submissionReference.inspect().getId()));                    // Test obtaining user information from a post
 
 
-        userRequests.sendPrivateMessage("User_Simulator", "First message",
-                "This is my first message!");                                                           // Test sending a private message
+        userRequests.sendPrivateMessage("User_Simulator", "Second message",
+                "This is my second message!");                                                           // Test sending a private message
     }
 
 }

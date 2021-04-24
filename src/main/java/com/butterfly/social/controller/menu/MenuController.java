@@ -5,6 +5,7 @@ import com.butterfly.social.controller.instagram.InstagramPostController;
 import com.butterfly.social.controller.reddit.RedditPostController;
 import com.butterfly.social.controller.twitter.TwitterPostController;
 import com.butterfly.social.model.Model;
+import com.butterfly.social.model.MultiPost;
 import com.butterfly.social.model.instagram.InstagramModel;
 import com.butterfly.social.model.reddit.RedditModel;
 import com.butterfly.social.model.twitter.TwitterModel;
@@ -14,11 +15,13 @@ import com.butterfly.social.view.PostView;
 import com.butterfly.social.view.View;
 import com.github.instagram4j.instagram4j.responses.users.UsersSearchResponse;
 import javafx.event.ActionEvent;
+import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -35,13 +38,13 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.*;
 import java.util.concurrent.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+
 import twitter4j.DirectMessage;
+import twitter4j.TwitterException;
 import twitter4j.User;
-import java.util.Date;
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
@@ -127,6 +130,7 @@ public final class MenuController {
         MenuItem redditFollowUserMenuItem;
         MenuItem redditLogOutMenuItem;
         MenuItem allSavedPostsRadioMenuItem;
+        MenuItem multiPostMenuItem;
         ScheduledExecutorService executorService;
         int delay = 0;
         int period = 1;
@@ -170,6 +174,8 @@ public final class MenuController {
 
         allSavedPostsRadioMenuItem = menuView.getAllSavedPostsRadioMenuItem();
 
+        multiPostMenuItem = menuView.getMultiPostMenuItem();
+
         redditMenu.getItems()
                   .clear();
 
@@ -182,7 +188,7 @@ public final class MenuController {
                .clear();
 
         allMenu.getItems()
-               .add(allSavedPostsRadioMenuItem);
+               .addAll(allSavedPostsRadioMenuItem, multiPostMenuItem);
 
         executorService = this.redditPostController.getExecutorService();
 
@@ -414,6 +420,7 @@ public final class MenuController {
         MenuItem twitterFollowUserMenuItem;
         MenuItem twitterLogOutMenuItem;
         MenuItem allSavedPostsRadioMenuItem;
+        MenuItem multiPostMenuItem;
         ScheduledExecutorService executorService;
         int delay = 0;
         int period = 1;
@@ -457,6 +464,8 @@ public final class MenuController {
 
         allSavedPostsRadioMenuItem = menuView.getAllSavedPostsRadioMenuItem();
 
+        multiPostMenuItem = menuView.getMultiPostMenuItem();
+
         twitterMenu.getItems()
                    .clear();
 
@@ -469,7 +478,7 @@ public final class MenuController {
                .clear();
 
         allMenu.getItems()
-               .add(allSavedPostsRadioMenuItem);
+               .addAll(allSavedPostsRadioMenuItem, multiPostMenuItem);
 
         executorService = this.twitterPostController.getExecutorService();
 
@@ -669,6 +678,7 @@ public final class MenuController {
         MenuItem instagramFollowUserMenuItem;
         MenuItem instagramLogOutMenuItem;
         MenuItem allSavedPostsRadioMenuItem;
+        MenuItem multiPostMenuItem;
         ScheduledExecutorService executorService;
         int delay = 0;
         int period = 1;
@@ -720,6 +730,8 @@ public final class MenuController {
 
         allSavedPostsRadioMenuItem = menuView.getAllSavedPostsRadioMenuItem();
 
+        multiPostMenuItem = menuView.getMultiPostMenuItem();
+
         instagramMenu.getItems()
                      .clear();
 
@@ -735,7 +747,7 @@ public final class MenuController {
                .clear();
 
         allMenu.getItems()
-               .add(allSavedPostsRadioMenuItem);
+               .addAll(allSavedPostsRadioMenuItem, multiPostMenuItem);
 
         executorService = this.instagramPostController.getExecutorService();
 
@@ -999,6 +1011,187 @@ public final class MenuController {
         if (selectedFile != null) {
             instagramModel.makeStoryPost(selectedFile);
         }
+    }
+
+    public void makeMultiPost() {
+        Optional<ButtonType> selection;
+        Optional<String> text;
+        String subreddit = null;
+        File file = null;
+        String title =null;
+        boolean postInstagram = false;
+        boolean postTwitter = false;
+        boolean postReddit = false;
+        InstagramModel instagramModel = this.model.getInstagramModel();
+        TwitterModel twitterModel = this.model.getTwitterModel();
+        RedditModel redditModel= this.model.getRedditModel();
+
+        ButtonType buttonYes = new ButtonType("Yes");
+        ButtonType buttonNo = new ButtonType("No");
+        ButtonType buttonOk = new ButtonType("Ok");
+        ButtonType buttonCancel = new ButtonType("Cancel");
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+
+        if (instagramModel != null) {
+            alert.setTitle("Instagram");
+            alert.setHeaderText("Would you like add this post to your Instagram?");
+            alert.getButtonTypes().setAll(buttonYes, buttonNo);
+            selection = alert.showAndWait();
+            if (selection.get() == buttonYes) {
+                postInstagram = true;
+            } else if (selection.get() == buttonNo) {
+                postInstagram = false;
+            } else {
+                return;
+            }
+        }
+
+        if (redditModel != null) {
+            alert.setTitle("Reddit");
+            alert.setHeaderText("Would you like add this post to your Reddit?");
+            alert.getButtonTypes().setAll(buttonYes, buttonNo);
+            selection = alert.showAndWait();
+            if (selection.get() == buttonYes) {
+                postReddit = true;
+            } else if (selection.get() == buttonNo) {
+                postReddit = false;
+            } else {
+                return;
+            }
+        }
+
+        if (twitterModel != null) {
+            alert.setTitle("Twitter");
+            alert.setHeaderText("Would you like add this post to your Twitter?");
+            alert.getButtonTypes().setAll(buttonYes, buttonNo);
+            selection = alert.showAndWait();
+            if (selection.get() == buttonYes) {
+                postTwitter = true;
+            } else if (selection.get() == buttonNo) {
+                postTwitter = false;
+            } else {
+                return;
+            }
+        }
+
+        TextInputDialog dialog = new TextInputDialog();
+        if (postReddit) {
+            dialog.setTitle("Subreddit");
+            dialog.setContentText("Please specify a subreddit for your post.");
+            text = dialog.showAndWait();
+            if (text.isPresent()) {
+                subreddit = text.get();
+            } else {
+                return;
+            }
+        }
+
+        if (postReddit) {
+            dialog.getEditor().clear();
+            dialog.setTitle("Title");
+            dialog.setContentText("Please specify a title for your post.");
+            text = dialog.showAndWait();
+            if (text.isPresent()) {
+                title = text.get();
+            } else {
+                return;
+            }
+        }
+
+        if (postInstagram) {
+            alert.setTitle("Media Selection");
+            alert.setHeaderText(null);
+            alert.getButtonTypes().setAll(buttonOk, buttonCancel);
+            alert.setContentText("You will be prompted to select an image file for your post.");
+            selection = alert.showAndWait();
+            if (selection.get() != buttonOk) {
+                return;
+            }
+
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("Image Files", "*.jpg", "*.png"));
+            file = fileChooser.showOpenDialog(null);
+            if (file == null) {
+                return;
+            }
+        }
+
+        Stage stage = new Stage();
+        stage.setTitle("Multi Post");
+        stage.setResizable(true);
+
+        GridPane gridPane = new GridPane();
+        gridPane.setHgap(10);
+        gridPane.setVgap(10);
+        gridPane.setPadding(new Insets(20));
+
+        Label lblContent = new Label("Please enter the content of your post.");
+
+        TextArea textArea = new TextArea();
+        Button postButton = new Button("Post");
+        Button cancelButton = new Button("Cancel");
+        ButtonBar buttonbar = new ButtonBar();
+        buttonbar.setPadding(new Insets(10));
+        buttonbar.getButtons().addAll(postButton, cancelButton);
+
+        File finalFile = file;
+        boolean finalPostTwitter = postTwitter;
+        boolean finalPostInstagram = postInstagram;
+        boolean finalPostReddit = postReddit;
+        String finalTitle = title;
+        String finalSubreddit = subreddit;
+
+        alert.getButtonTypes().setAll(buttonOk);
+        alert.setAlertType(Alert.AlertType.ERROR);
+        postButton.setOnAction(actionEvent -> {
+            if (this.model.getTwitterModel() != null && textArea.getText().length() > 280) {
+                stage.close();
+                alert.setTitle("Error");
+                alert.setHeaderText("Multi-Post Error");
+                alert.setContentText("Your post exceeded the character limit for Twitter.");
+                alert.showAndWait();
+                return;
+            }
+            if (this.model.getInstagramModel() != null && textArea.getText().length() >2200) {
+                stage.close();
+                alert.setTitle("Error");
+                alert.setHeaderText("Multi-Post Error");
+                alert.setContentText("Your post exceeded the character limit for Instagram.");
+                alert.showAndWait();
+                return;
+            }
+            MultiPost multiPost= new MultiPost(this.model);
+            try {
+                multiPost.createPost(finalPostTwitter,
+                        finalPostInstagram,
+                        finalPostReddit,
+                        textArea.getText(),
+                        finalTitle,
+                        finalFile,
+                        finalSubreddit);
+            } catch (TwitterException e) {
+                stage.close();
+                alert.setTitle("Error");
+                alert.setHeaderText("Multi-Post Error");
+                alert.setContentText("There was an error with your Multi-Post. Please try again.");
+                alert.showAndWait();
+            }
+        });
+
+        cancelButton.setOnAction(actionEvent -> {
+            stage.close();
+            return;
+        });
+
+        gridPane.add(lblContent, 0, 0);
+        gridPane.add(textArea, 0, 1);
+
+        VBox vbox = new VBox();
+        vbox.getChildren().addAll(gridPane, buttonbar);
+
+        Scene scene = new Scene(vbox, 300, 300);
+        stage.setScene(scene);
+        stage.show();
     }
 
     private void followInstagramUser() {
@@ -1429,6 +1622,7 @@ public final class MenuController {
         MenuItem instagramStoryItem;
         MenuItem instagramFollowUserMenuItem;
         MenuItem instagramSavedPostsMenuItem;
+        MenuItem multiPostMenuItem;
         RadioMenuItem timeSortRadioMenuItem;
         RadioMenuItem popularitySortRadioMenuItem;
         RadioMenuItem lightRadioMenuItem;
@@ -1445,6 +1639,8 @@ public final class MenuController {
                                         instagramPostController);
 
         menuView = controller.view.getMenuView();
+
+        multiPostMenuItem = menuView.getMultiPostMenuItem();
 
         redditLogInMenuItem = menuView.getRedditLogInMenuItem();
 
@@ -1670,6 +1866,8 @@ public final class MenuController {
             stage.show();
         });
 
+        multiPostMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.makeMultiPost());
+
         lightRadioMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.switchToLightMode());
 
         darkRadioMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.switchToDarkMode());
@@ -1732,7 +1930,7 @@ public final class MenuController {
                    .clear();
 
             allMenu.getItems()
-                   .add(allSavedPostsRadioMenuItem);
+                   .addAll(allSavedPostsRadioMenuItem, multiPostMenuItem);
         } //end if
 
         return controller;

@@ -64,8 +64,8 @@ public class MultiPost {
         /* setup model end */
 
         MultiPost multiPost = new MultiPost(model);
-        multiPost.createPost(true, true, true, "This is the body of my first multi-post!",
-                "My first multi-post!", new File("image.jpg"), "test");                 // test posting on all 3 platforms
+        //multiPost.createPost(true, true, true, "This is the body of my first multi-post!",
+        //        "My first multi-post!", new File("/Users/anudeepyakkala/Desktop/image.jpg"), "test"); // test posting on all 3 platforms
         multiPost.createPost(true, false, true, "This is the body of my second multi-post!",
                 "My second multi-post", null, "test");                                     // test posting on only Twitter and Reddit
     }

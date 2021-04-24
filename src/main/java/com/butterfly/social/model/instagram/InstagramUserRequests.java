@@ -93,7 +93,7 @@ public class InstagramUserRequests {
         InstagramUserRequests userRequests = new InstagramUserRequests();
         userRequests.setIgClient(instagramModel.getClient());
 
-        File file = new File("image.jpg");
+        File file = new File("/Users/anudeepyakkala/Desktop/image.jpg");
         String id = userRequests.post(file, "My first post!");  // Test posting
         userRequests.comment(id, "My first comment!");                      // Test replying to a post
         userRequests.like(id);                                                      // Test liking a post

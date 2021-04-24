@@ -150,6 +150,11 @@ public final class MenuView {
     private final MenuItem allSavedPostsRadioMenuItem;
 
     /**
+     * The multipost menu item of this menu view.
+     */
+    private final MenuItem multiPostMenuItem;
+
+    /**
      * The time sort radio menu item of this menu view.
      */
     private final RadioMenuItem timeSortRadioMenuItem;
@@ -212,6 +217,9 @@ public final class MenuView {
         String twitterText = "Twitter";
         String instagramText = "Instagram";
         String allText = "All";
+        String multiPostText = "Multi Post";
+
+        this.multiPostMenuItem = new MenuItem(multiPostText);
 
         this.redditLogInMenuItem = new MenuItem(logInText);
 
@@ -283,6 +291,15 @@ public final class MenuView {
 
         this.menuBar = new MenuBar(this.redditMenu, this.twitterMenu, this.instagramMenu, this.allMenu);
     } //MenuView
+
+    /**
+     * Returns the Multi post menu item of this menu view.
+     *
+     * @return the Menu post menu item of this menu view
+     */
+    public MenuItem getMultiPostMenuItem() {
+        return multiPostMenuItem;
+    }
 
     /**
      * Returns the Reddit log in menu item of this menu view.
