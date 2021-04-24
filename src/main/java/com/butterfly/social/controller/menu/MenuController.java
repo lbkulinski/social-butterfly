@@ -8,6 +8,7 @@ import com.butterfly.social.model.Model;
 import com.butterfly.social.model.MultiPost;
 import com.butterfly.social.model.instagram.InstagramModel;
 import com.butterfly.social.model.reddit.RedditModel;
+import com.butterfly.social.model.reddit.RedditUserRequests;
 import com.butterfly.social.model.twitter.TwitterModel;
 import com.butterfly.social.model.twitter.TwitterUserProfile;
 import com.butterfly.social.view.MenuView;
@@ -131,6 +132,7 @@ public final class MenuController {
         MenuItem redditLogOutMenuItem;
         MenuItem allSavedPostsRadioMenuItem;
         MenuItem multiPostMenuItem;
+        MenuItem redditDirectMessageMenuItem;
         ScheduledExecutorService executorService;
         int delay = 0;
         int period = 1;
@@ -176,13 +178,16 @@ public final class MenuController {
 
         multiPostMenuItem = menuView.getMultiPostMenuItem();
 
+        redditDirectMessageMenuItem = menuView.getRedditSendMessageMenuItem();
+
         redditMenu.getItems()
                   .clear();
 
         redditMenu.getItems()
                   .addAll(redditProfileMenuItem, new SeparatorMenuItem(), redditSavedPostsMenuItem,
                           new SeparatorMenuItem(), redditMessagesMenuItem, new SeparatorMenuItem(),
-                          redditFollowUserMenuItem, new SeparatorMenuItem(), redditLogOutMenuItem);
+                          redditDirectMessageMenuItem, new SeparatorMenuItem(), redditFollowUserMenuItem,
+                          new SeparatorMenuItem(), redditLogOutMenuItem);
 
         allMenu.getItems()
                .clear();
@@ -416,6 +421,7 @@ public final class MenuController {
         Menu allMenu;
         MenuItem twitterProfileMenuItem;
         MenuItem twitterMessagesMenuItem;
+        MenuItem twitterDirectMessageMenuItem;
         MenuItem twitterSavedPostsMenuItem;
         MenuItem twitterFollowUserMenuItem;
         MenuItem twitterLogOutMenuItem;
@@ -456,6 +462,8 @@ public final class MenuController {
 
         twitterMessagesMenuItem = menuView.getTwitterMessagesMenuItem();
 
+        twitterDirectMessageMenuItem = menuView.getTwitterSendMessagesmenuItem();
+
         twitterSavedPostsMenuItem = menuView.getTwitterSavedPostsMenuItem();
 
         twitterFollowUserMenuItem = menuView.getTwitterFollowUserMenuItem();
@@ -472,7 +480,8 @@ public final class MenuController {
         twitterMenu.getItems()
                    .addAll(twitterProfileMenuItem, new SeparatorMenuItem(), twitterMessagesMenuItem,
                            new SeparatorMenuItem(), twitterSavedPostsMenuItem, new SeparatorMenuItem(),
-                           twitterFollowUserMenuItem, new SeparatorMenuItem(), twitterLogOutMenuItem);
+                           twitterDirectMessageMenuItem, new SeparatorMenuItem(), twitterFollowUserMenuItem,
+                           new SeparatorMenuItem(), twitterLogOutMenuItem);
 
         allMenu.getItems()
                .clear();
@@ -1011,6 +1020,79 @@ public final class MenuController {
         if (selectedFile != null) {
             instagramModel.makeStoryPost(selectedFile);
         }
+    }
+
+    public void sendTwitterDirectMessage() {
+        Optional<String> text;
+        String username;
+        String message;
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Send Direct Message");
+        dialog.setHeaderText("Username");
+        dialog.setContentText("Enter the username of the user you want to message.");
+        text = dialog.showAndWait();
+        if (text.isPresent()) {
+            username = text.get();
+        } else {
+            return;
+        }
+
+        dialog.getEditor().clear();
+        dialog.setHeaderText("Message");
+        dialog.setContentText("Enter the message.");
+        text = dialog.showAndWait();
+        if (text.isPresent()) {
+            message = text.get();
+        } else {
+            return;
+        }
+        TwitterModel twitterModel = this.model.getTwitterModel();
+        try {
+            twitterModel.getRequests().sendDirectMessage(username, message);
+        } catch (TwitterException e) {
+
+        }
+    }
+
+    public void sendRedditDirectMessage() {
+        Optional<String> text;
+        String username;
+        String message;
+        String subject;
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Send Direct Message");
+        dialog.setHeaderText("Username");
+        dialog.setContentText("Enter the username of the user you want to message.");
+        text = dialog.showAndWait();
+        if (text.isPresent()) {
+            username = text.get();
+        } else {
+            return;
+        }
+
+        dialog.getEditor().clear();
+        dialog.setHeaderText("Subject");
+        dialog.setContentText("Enter a title for the message.");
+        text = dialog.showAndWait();
+        if (text.isPresent()) {
+            subject = text.get();
+        } else {
+            return;
+        }
+
+        dialog.getEditor().clear();
+        dialog.setHeaderText("Message");
+        dialog.setContentText("Enter the message.");
+        text = dialog.showAndWait();
+        if (text.isPresent()) {
+            message = text.get();
+        } else {
+            return;
+        }
+        RedditModel redditModel = this.model.getRedditModel();
+        RedditUserRequests userRequests = new RedditUserRequests();
+        userRequests.setRedditClient(redditModel.getClient());
+        userRequests.sendPrivateMessage(username, subject, message);
     }
 
     public void makeMultiPost() {
@@ -1612,6 +1694,8 @@ public final class MenuController {
         MenuItem twitterLogOutMenuItem;
         MenuItem twitterProfileMenuItem;
         MenuItem twitterMessagesMenuItem;
+        MenuItem twitterDirectMessageMenuItem;
+        MenuItem redditDirectMessageMenuItem;
         MenuItem twitterSavedPostsMenuItem;
         MenuItem instagramLogInMenuItem;
         MenuItem instagramLogOutMenuItem;
@@ -1639,6 +1723,10 @@ public final class MenuController {
                                         instagramPostController);
 
         menuView = controller.view.getMenuView();
+
+        twitterDirectMessageMenuItem = menuView.getTwitterSendMessagesmenuItem();
+
+        redditDirectMessageMenuItem = menuView.getRedditSendMessageMenuItem();
 
         multiPostMenuItem = menuView.getMultiPostMenuItem();
 
@@ -1759,6 +1847,10 @@ public final class MenuController {
 
             alert.show();
         });
+
+        redditDirectMessageMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.sendRedditDirectMessage());
+
+        twitterDirectMessageMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent)-> controller.sendTwitterDirectMessage());
 
         twitterLogInMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.logInToTwitter());
 

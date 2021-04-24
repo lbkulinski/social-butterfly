@@ -40,6 +40,16 @@ public final class MenuView {
     private final MenuItem redditMessagesMenuItem;
 
     /**
+     * The Reddit send direct messages menu item of this menu view.
+     */
+    private final MenuItem redditSendMessageMenuItem;
+
+    /**
+     * The Twitter send direct messages menu item of this menu view.
+     */
+    private final MenuItem twitterSendMessagesmenuItem;
+
+    /**
      * The Twitter log in menu item of this menu view.
      */
     private final MenuItem twitterLogInMenuItem;
@@ -218,6 +228,8 @@ public final class MenuView {
         String instagramText = "Instagram";
         String allText = "All";
         String multiPostText = "Multi Post";
+        String twitterDirectMessageText = "Send Direct Message";
+        String redditDirectMessageText = "Send Direct Message";
 
         this.multiPostMenuItem = new MenuItem(multiPostText);
 
@@ -232,6 +244,10 @@ public final class MenuView {
         this.redditSavedPostsMenuItem = new MenuItem(savedPostsText);
       
         this.redditMessagesMenuItem = new MenuItem(messagesText);
+
+        this.redditSendMessageMenuItem = new MenuItem(redditDirectMessageText);
+
+        this.twitterSendMessagesmenuItem = new MenuItem(twitterDirectMessageText);
 
         this.twitterLogInMenuItem = new MenuItem(logInText);
 
@@ -291,6 +307,24 @@ public final class MenuView {
 
         this.menuBar = new MenuBar(this.redditMenu, this.twitterMenu, this.instagramMenu, this.allMenu);
     } //MenuView
+
+    /**
+     * Returns the reddit direct message menu item of this menu view.
+     *
+     * @return the reddit direct message menu item of this menu view
+     */
+    public MenuItem getRedditSendMessageMenuItem() {
+        return redditSendMessageMenuItem;
+    }
+
+    /**
+     * Returns the twitter direct message menu item of this menu view.
+     *
+     * @return the twitter direct message menu item of this menu view
+     */
+    public MenuItem getTwitterSendMessagesmenuItem() {
+        return twitterSendMessagesmenuItem;
+    }
 
     /**
      * Returns the Multi post menu item of this menu view.
