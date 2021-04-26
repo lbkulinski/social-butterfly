@@ -90,6 +90,21 @@ public final class MenuView {
     private final MenuItem instagramLogInMenuItem;
 
     /**
+     * The Instagram post menu item of this menu view.
+     */
+    private final MenuItem instagramPostMenuItem;
+
+    /**
+     * The Twitter post menu item of this menu view.
+     */
+    private final MenuItem twitterPostMenuItem;
+
+    /**
+     * The Reddit post menu item of this menu view.
+     */
+    private final MenuItem redditPostMenuItem;
+
+    /**
      * The Instagram log out menu item of this menu view.
      */
     private final MenuItem instagramLogOutMenuItem;
@@ -236,6 +251,13 @@ public final class MenuView {
         String twitterDirectMessageText = "Send Direct Message";
         String redditDirectMessageText = "Send Direct Message";
         String twitterTrendingText = "Show Trends";
+        String postText = "Make a Post";
+
+        this.twitterPostMenuItem = new MenuItem(postText);
+
+        this.redditPostMenuItem = new MenuItem(postText);
+
+        this.instagramPostMenuItem = new MenuItem(postText);
 
         this.twitterTrendingMenuItem = new MenuItem(twitterTrendingText);
 
@@ -315,6 +337,33 @@ public final class MenuView {
 
         this.menuBar = new MenuBar(this.redditMenu, this.twitterMenu, this.instagramMenu, this.allMenu);
     } //MenuView
+
+    /**
+     * Returns the Instagram post menu item of this menu view.
+     *
+     * @return the Instagram post menu item of this menu view
+     */
+    public MenuItem getInstagramPostMenuItem() {
+        return instagramPostMenuItem;
+    }
+
+    /**
+     * Returns the Twitter Post menu item of this menu view.
+     *
+     * @return the Twitter Post menu item of this menu view
+     */
+    public MenuItem getTwitterPostMenuItem() {
+        return twitterPostMenuItem;
+    }
+
+    /**
+     * Returns the Reddit Post menu item of this menu view.
+     *
+     * @return the Reddit Post menu item of this menu view
+     */
+    public MenuItem getRedditPostMenuItem() {
+        return redditPostMenuItem;
+    }
 
     /**
      * Returns the twitter trending menu item of this menu view.
