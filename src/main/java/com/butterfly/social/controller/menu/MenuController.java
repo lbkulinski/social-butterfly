@@ -129,6 +129,7 @@ public final class MenuController {
         Menu allMenu;
         MenuItem redditProfileMenuItem;
         MenuItem redditSavedPostsMenuItem;
+        MenuItem redditUpvotedPostsMenuItem;
         MenuItem redditBlockedUsersMenuItem;
         MenuItem redditMessagesMenuItem;
         MenuItem redditFollowUserMenuItem;
@@ -136,6 +137,7 @@ public final class MenuController {
         MenuItem redditUnfollowSubredditMenuItem;
         MenuItem redditBlockUserMenuItem;
         MenuItem redditLogOutMenuItem;
+        MenuItem allLikedPostsMenuItem;
         MenuItem allSavedPostsRadioMenuItem;
         MenuItem multiPostMenuItem;
         MenuItem redditDirectMessageMenuItem;
@@ -550,6 +552,7 @@ public final class MenuController {
         MenuItem twitterMessagesMenuItem;
         MenuItem twitterDirectMessageMenuItem;
         MenuItem twitterSavedPostsMenuItem;
+        MenuItem twitterLikedPostsMenuItem;
         MenuItem twitterBlockedUsersMenuItem;
         MenuItem twitterFollowUserMenuItem;
         MenuItem twitterBlockUserMenuItem;
@@ -600,6 +603,8 @@ public final class MenuController {
 
         twitterSavedPostsMenuItem = menuView.getTwitterSavedPostsMenuItem();
 
+        twitterLikedPostsMenuItem = menuView.getTwitterLikedPostsMenuItem();
+
         twitterBlockedUsersMenuItem = menuView.getTwitterBlockedUsersMenuItem();
 
         twitterFollowUserMenuItem = menuView.getTwitterFollowUserMenuItem();
@@ -617,11 +622,12 @@ public final class MenuController {
 
         twitterMenu.getItems()
                    .addAll(twitterProfileMenuItem, new SeparatorMenuItem(), twitterMessagesMenuItem,
-                           new SeparatorMenuItem(), twitterSavedPostsMenuItem, new SeparatorMenuItem(),
-                           twitterFollowUserMenuItem, new SeparatorMenuItem(), twitterBlockUserMenuItem, 
-                           new SeparatorMenuItem(), twitterBlockedUsersMenuItem, new SeparatorMenuItem(), twitterDirectMessageMenuItem, 
-                           new SeparatorMenuItem(), twitterTrendingMenuItem, 
-                           new SeparatorMenuItem(), twitterPostMenuItem, twitterLogOutMenuItem);
+                           new SeparatorMenuItem(), twitterLikedPostsMenuItem, new SeparatorMenuItem(),
+                           twitterSavedPostsMenuItem, new SeparatorMenuItem(),
+                           twitterDirectMessageMenuItem, new SeparatorMenuItem(), twitterFollowUserMenuItem,
+                           new SeparatorMenuItem(), twitterTrendingMenuItem, new SeparatorMenuItem(),twitterBlockUserMenuItem, 
+                           new SeparatorMenuItem(), twitterBlockedUsersMenuItem, new SeparatorMenuItem(),
+                           twitterLogOutMenuItem, new SeparatorMenuItem(), twitterPostMenuItem);
 
         allMenu.getItems()
                .clear();
@@ -971,6 +977,7 @@ public final class MenuController {
         MenuItem instagramSearchMenuItem;
         MenuItem instagramProfilePictureItem;
         MenuItem instagramSavedPostsMenuItem;
+        MenuItem instagramLikedPostsMenuItem;
         MenuItem instagramStoryItem;
         MenuItem instagramMessagesMenuItem;
         MenuItem instagramFollowUserMenuItem;
@@ -1024,6 +1031,8 @@ public final class MenuController {
 
         instagramSavedPostsMenuItem = menuView.getInstagramSavedPostsMenuItem();
 
+        instagramLikedPostsMenuItem = menuView.getInstagramLikedPostsMenuItem();
+
         instagramMessagesMenuItem = menuView.getInstagramMessagesMenuItem();
 
         instagramFollowUserMenuItem = menuView.getInstagramFollowUserMenuItem();
@@ -1043,11 +1052,12 @@ public final class MenuController {
                      .addAll(instagramProfileMenuItem, new SeparatorMenuItem(), instagramBioMenuItem,
                              new SeparatorMenuItem(), instagramSearchMenuItem, new SeparatorMenuItem(),
                              instagramProfilePictureItem, new SeparatorMenuItem(), instagramStoryItem,
-                             new SeparatorMenuItem(), instagramSavedPostsMenuItem,
-                             new SeparatorMenuItem(), instagramMessagesMenuItem, new SeparatorMenuItem(),
-                             instagramFollowUserMenuItem, new SeparatorMenuItem(), instagramBlockUserMenuItem,
-                             new SeparatorMenuItem(), instagramPostMenuItem,
-                             new SeparatorMenuItem(), instagramLogOutMenuItem);
+                             new SeparatorMenuItem(),instagramLikedPostsMenuItem, new SeparatorMenuItem(),
+                             instagramSavedPostsMenuItem, new SeparatorMenuItem(), instagramBlockUserMenuItem,
+                             new SeparatorMenuItem(), instagramMessagesMenuItem,
+                             new SeparatorMenuItem(), instagramFollowUserMenuItem, new SeparatorMenuItem(),
+                             instagramLogOutMenuItem, new SeparatorMenuItem(), instagramPostMenuItem);
+
 
         allMenu.getItems()
                .clear();
@@ -2221,6 +2231,7 @@ public final class MenuController {
         MenuItem twitterDirectMessageMenuItem;
         MenuItem redditDirectMessageMenuItem;
         MenuItem twitterSavedPostsMenuItem;
+        MenuItem twitterLikedPostsMenuItem;
         MenuItem twitterBlockedUsersMenuItem;
         MenuItem redditBlockedUsersMenuItem;
         MenuItem instagramLogInMenuItem;
@@ -2245,6 +2256,7 @@ public final class MenuController {
         RadioMenuItem splitRadioMenuItem;
         Spinner<Integer> fontSizeSpinner;
         MenuItem allSavedPostsRadioMenuItem;
+        MenuItem allLikedPostsMenuItem;
         TwitterModel twitterModel0;
         Menu twitterMenu;
         Menu allMenu;
@@ -2300,6 +2312,8 @@ public final class MenuController {
 
         twitterMessagesMenuItem = menuView.getTwitterMessagesMenuItem();
 
+        twitterLikedPostsMenuItem = menuView.getTwitterLikedPostsMenuItem();
+
         twitterSavedPostsMenuItem = menuView.getTwitterSavedPostsMenuItem();
 
         twitterBlockedUsersMenuItem = menuView.getTwitterBlockedUsersMenuItem();
@@ -2339,6 +2353,8 @@ public final class MenuController {
         fontSizeSpinner = menuView.getFontSizeSpinner();
 
         allSavedPostsRadioMenuItem = menuView.getAllSavedPostsRadioMenuItem();
+
+        allLikedPostsMenuItem = menuView.getAllLikedPostsMenuItem();
 
         twitterPostMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent)  -> controller.makeTwitterPost());
 
@@ -2496,6 +2512,18 @@ public final class MenuController {
             Stage stage = new Stage();
             stage.setScene(scene);
             stage.setTitle("Saved Posts");
+            stage.setResizable(true);
+            stage.setHeight(300);
+            stage.setWidth(500);
+            stage.show();
+        });
+
+
+        twitterLikedPostsMenuItem.addEventHandler((ActionEvent.ACTION), (actionEvent) -> {
+            Scene scene = twitterPostController.getLikedPosts();
+            Stage stage = new Stage();
+            stage.setScene(scene);
+            stage.setTitle("Liked Posts");
             stage.setResizable(true);
             stage.setHeight(300);
             stage.setWidth(500);
@@ -2666,10 +2694,12 @@ public final class MenuController {
 
             twitterMenu.getItems()
                        .addAll(twitterProfileMenuItem, new SeparatorMenuItem(), twitterMessagesMenuItem,
-                               new SeparatorMenuItem(), twitterSavedPostsMenuItem, new SeparatorMenuItem(),
-                               twitterFollowUserMenuItem, new SeparatorMenuItem(), twitterBlockUserMenuItem,
+                               new SeparatorMenuItem(), twitterLikedPostsMenuItem, new SeparatorMenuItem(),
+                               twitterSavedPostsMenuItem, new SeparatorMenuItem(), twitterBlockUserMenuItem,
                                new SeparatorMenuItem(), twitterBlockedUsersMenuItem, new SeparatorMenuItem(), 
-                               twitterLogOutMenuItem);
+                               twitterFollowUserMenuItem, new SeparatorMenuItem(), twitterLogOutMenuItem);
+
+
 
             allMenu.getItems()
                    .clear();

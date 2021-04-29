@@ -21,13 +21,13 @@ import javafx.scene.media.MediaView;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
+import javafx.stage.Stage;
 import net.dean.jraw.RedditClient;
-import net.dean.jraw.models.EmbeddedMedia;
-import net.dean.jraw.models.Listing;
-import net.dean.jraw.models.PublicContribution;
-import net.dean.jraw.models.Submission;
-import net.dean.jraw.models.SubredditSort;
+import net.dean.jraw.models.*;
 import net.dean.jraw.pagination.DefaultPaginator;
+import net.dean.jraw.tree.CommentNode;
+import net.dean.jraw.tree.RootCommentNode;
+
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.LocalDateTime;
@@ -252,6 +252,7 @@ public final class RedditPostController {
         String id;
         RedditModel redditModel;
         RedditClient client;
+        MenuItem viewThread;
         //FavoritesResources favoritesResources;
         MenuItem save;
         MenuItem downvote;
@@ -281,9 +282,15 @@ public final class RedditPostController {
 
         save = new MenuItem("Save Post");
 
+        viewThread = new MenuItem("View Thread");
+
         save.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
             //save tweet
             redditModel.savePost(id);
+        });
+
+        viewThread.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
+            viewRedditThread(id);
         });
 
         downvote = new MenuItem("Downvote");
@@ -293,7 +300,8 @@ public final class RedditPostController {
             redditModel.downvotePost(id);
         });
 
-        contextMenu = new ContextMenu(save, downvote);
+        contextMenu = new ContextMenu(viewThread, save, downvote);
+
 
         contextMenu.show(box, x, y);
     } //displayContextMenu
@@ -332,6 +340,7 @@ public final class RedditPostController {
         String dateTimeString;
         Label dateTimeLabel;
         VBox vBox;
+        int numComments;
 
         Objects.requireNonNull(submission, "the specified submission is null");
 
@@ -357,6 +366,8 @@ public final class RedditPostController {
         fontSizeSpinner = menuView.getFontSizeSpinner();
 
         size = fontSizeSpinner.getValue();
+
+        numComments = submission.getCommentCount();
 
         titleText = new Text(title);
 
@@ -410,17 +421,23 @@ public final class RedditPostController {
 
         String upvotesString = String.format(format, submission.getScore());
 
+        String numCommentsString = String.format("%d Comments", numComments);
+
         Label upvotesLabel = new Label(upvotesString);
+
+        Label numCommentsLabel = new Label(numCommentsString);
+
+        numCommentsLabel.setFont(Font.font(family, FontWeight.BOLD, size));
 
         upvotesLabel.setFont(Font.font(family, FontWeight.BOLD, size));
 
         if (accordion == null) {
-            vBox = new VBox(titleText, nameLabel, text, dateTimeLabel, upvotesLabel);
+            vBox = new VBox(titleText, nameLabel, text, dateTimeLabel, upvotesLabel, numCommentsLabel);
         } else {
             accordion.prefWidthProperty()
                      .bind(scene.widthProperty());
 
-            vBox = new VBox(titleText, nameLabel, text, accordion, dateTimeLabel, upvotesLabel);
+            vBox = new VBox(titleText, nameLabel, text, accordion, dateTimeLabel, upvotesLabel, numCommentsLabel);
         } //end if
 
         vBox.setOnContextMenuRequested((contextMenuEvent) -> {
@@ -514,6 +531,12 @@ public final class RedditPostController {
         return scene;
 
     } //updatePosts
+
+    public Scene getLikedPosts() {
+        RedditModel redditModel = this.model.getRedditModel();
+        RedditClient redditClient = redditModel.getClient();
+        return null;
+    }
 
     /**
      * Updates the posts of this Reddit post controller.
@@ -689,6 +712,139 @@ public final class RedditPostController {
             } //end if
         } //end while
     } //reset
+
+    public void viewRedditThread(String id) {
+        RedditModel redditModel = this.model.getRedditModel();
+        RedditClient redditClient = redditModel.getClient();
+        List<Node> nodes = new ArrayList<>();
+        int size;
+        String postID;
+        String group = "Tahoma";
+        MenuView menuView;
+        Spinner<Integer> fontSizeSpinner;
+        menuView = this.view.getMenuView();
+        fontSizeSpinner = menuView.getFontSizeSpinner();
+        size = fontSizeSpinner.getValue();
+        List<Comment> comments = new ArrayList<>();
+        VBox post = createBox(redditClient.submission(id).inspect(), false);
+        post.setOnContextMenuRequested((contextMenuEvent) -> {
+            double screenX;
+            double screenY;
+
+            screenX = contextMenuEvent.getScreenX();
+
+            screenY = contextMenuEvent.getScreenY();
+
+            this.showRedditThreadContextMenu(post, screenX, screenY, true, id);
+        });
+        RootCommentNode root = redditClient.submission(id).comments();
+        //root.loadFully(redditClient);
+        Iterator<CommentNode<PublicContribution<?>>> it = root.walkTree().iterator();
+        Label commentsLabel = new Label("Comments");
+        commentsLabel.setFont(Font.font(15));
+        VBox commentsLabelBox = new VBox(commentsLabel);
+        nodes.add(post);
+        nodes.add(new Separator());
+        nodes.add(new VBox());
+        nodes.add(commentsLabelBox);
+        nodes.add(new Separator());
+        PublicContribution<?> comment = it.next().getSubject();
+        while (it.hasNext()) {
+            menuView = this.view.getMenuView();
+            fontSizeSpinner = menuView.getFontSizeSpinner();
+            size = fontSizeSpinner.getValue();
+            comment = it.next().getSubject();
+            String author = comment.getAuthor();
+            String body = comment.getBody();
+            //int upvotes = commentObj.getScore();
+            Label authorLabel = new Label(author);
+            Label bodyLabel = new Label(body);
+            bodyLabel.setWrapText(true);
+            //String infoString = upvotes + " Upvotes";
+            //Label infoLabel = new Label(infoString);
+            authorLabel.setFont(Font.font(group, FontWeight.BOLD, size));
+            bodyLabel.setFont(Font.font(size));
+            //infoLabel.setFont(Font.font(group, FontWeight.BOLD, size));
+            VBox commentBox = new VBox(authorLabel,bodyLabel);
+            commentBox.setOnContextMenuRequested((contextMenuEvent) -> {
+                double screenX;
+                double screenY;
+
+                screenX = contextMenuEvent.getScreenX();
+
+                screenY = contextMenuEvent.getScreenY();
+
+
+                this.showRedditThreadContextMenu(commentBox, screenX, screenY, false, id);
+            });
+            nodes.add(commentBox);
+            nodes.add(new Separator());
+            //System.out.println(comment.getBody());
+        }
+        VBox fullPage = new VBox();
+        fullPage.getChildren().addAll(0,nodes);
+        ScrollPane scrollPane = new ScrollPane(fullPage);
+        Scene scene = new Scene(scrollPane, 500, 300);
+        Stage stage = new Stage();
+        stage.setScene(scene);
+        stage.setTitle(redditClient.submission(id).inspect().getTitle());
+        stage.setResizable(true);
+        stage.setHeight(300);
+        stage.setWidth(500);
+        stage.show();
+    }
+
+    public void showRedditThreadContextMenu(VBox post, double x, double y, boolean originalPost, String id) {
+        String upvoteDisplay = "Upvote Post";
+        String commentDisplay = "Reply to Post";
+        MenuItem replyItem;
+        MenuItem upvoteItem;
+        ContextMenu threadContextMenu;
+        if (!originalPost) {
+            upvoteDisplay = "Upvote Comment";
+            commentDisplay = "Reply to Comment";
+        }
+
+        /* Post postTemp = this.boxesToPosts.get(post);
+
+        if (postTemp == null) {
+            return;
+        } else if (!(postTemp instanceof RedditPost)) {
+            throw new IllegalStateException("a box is mapped to the wrong post type");
+        } //end if
+
+        RedditPost redditPost = (RedditPost) postTemp;
+
+        Submission submission = redditPost.getSubmission();
+
+        String id = submission.getId();
+
+         */
+
+        replyItem = new MenuItem(commentDisplay);
+        upvoteItem = new MenuItem(upvoteDisplay);
+
+
+        upvoteItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
+
+            this.model.getRedditModel().getClient().submission(id).upvote();
+
+        });
+
+        replyItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
+            TextInputDialog td = new TextInputDialog();
+            td.setTitle("Post Response");
+            td.setContentText("Please enter your comment here.");
+            td.getDialogPane().setGraphic(new ImageView("https://external-preview.redd.it/iDdntscPf-nfWKqzHRGFmhVxZm4hZgaKe5oyFws-yzA.png?auto=webp&s=38648ef0dc2c3fce76d5e1d8639234d8da0152b2"));
+            td.showAndWait();
+            String comment = td.getResult();
+            this.model.getRedditModel().getClient().submission(id).reply(comment);
+        });
+
+        threadContextMenu = new ContextMenu(upvoteItem, replyItem);
+
+        threadContextMenu.show(post, x, y);
+    }
 
     /**
      * Creates, and returns, a {@code createRedditPostController} object using the specified model, view, map from
