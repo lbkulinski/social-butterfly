@@ -1,7 +1,9 @@
 package com.butterfly.social.model.twitter;
 
 import java.io.Serializable;
-import twitter4j.Twitter;
+
+import twitter4j.*;
+
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -191,6 +193,15 @@ public final class TwitterUserRequests implements Serializable {
         }
         return usernames;
     }
+    
+    public List<String> getTrending() throws TwitterException {
+        List<String> trends = new ArrayList<>();
+        Trends trending = twitter.getPlaceTrends(23424977);
+        for (Trend trend : trending.getTrends()) {
+            trends.add(trend.getName());
+        }
+        return trends;
+    }
 
     public static void main(String[] args) throws TwitterException {
         /* Setup twitter model */
@@ -203,6 +214,9 @@ public final class TwitterUserRequests implements Serializable {
         user.getAuth().handlePIN(pin);
         user.initializeRequests();
 
+        user.getRequests().getTrending();
+        /*
+
         StatusUpdate statusUpdate = new StatusUpdate("test tweet");
         Status status = user.getRequests().postTweet(statusUpdate);  // Test posting a tweet
         user.getRequests().favoriteTweet(status.getId());            // Test liking a tweet
@@ -214,5 +228,7 @@ public final class TwitterUserRequests implements Serializable {
 
 
         user.getRequests().sendDirectMessage("JonFreier", "hello"); // Test sending a direct message
+
+         */
     }
 }

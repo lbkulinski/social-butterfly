@@ -55,6 +55,16 @@ public final class MenuView {
     private final MenuItem redditBlockUserMenuItem;
 
     /**
+     * The Reddit send direct messages menu item of this menu view.
+     */
+    private final MenuItem redditSendMessageMenuItem;
+
+    /**
+     * The Twitter send direct messages menu item of this menu view.
+     */
+    private final MenuItem twitterSendMessagesmenuItem;
+
+    /**
      * The Twitter log in menu item of this menu view.
      */
     private final MenuItem twitterLogInMenuItem;
@@ -78,7 +88,12 @@ public final class MenuView {
      * The Twitter block menu item of this menu view.
      */
     private final MenuItem twitterBlockUserMenuItem;
-  
+    
+    /**
+     * The Twitter trending menu item of this menu view.
+     */
+    private final MenuItem twitterTrendingMenuItem;
+
     /**
      * The Twitter messages menu item of this menu view.
      */
@@ -95,6 +110,21 @@ public final class MenuView {
      * The Instagram log in menu item of this menu view.
      */
     private final MenuItem instagramLogInMenuItem;
+
+    /**
+     * The Instagram post menu item of this menu view.
+     */
+    private final MenuItem instagramPostMenuItem;
+
+    /**
+     * The Twitter post menu item of this menu view.
+     */
+    private final MenuItem twitterPostMenuItem;
+
+    /**
+     * The Reddit post menu item of this menu view.
+     */
+    private final MenuItem redditPostMenuItem;
 
     /**
      * The Instagram log out menu item of this menu view.
@@ -125,6 +155,11 @@ public final class MenuView {
      * The Instagram saved posts menu item of this menu view.
      */
     private final MenuItem instagramSavedPostsMenuItem;
+
+    /**
+     * The Instagram story menu item of this menu view.
+     */
+    private final MenuItem instagramStoryMenuItem;
 
     /**
      * The Instagram messages menu item of this menu view.
@@ -172,6 +207,11 @@ public final class MenuView {
      * The all saved posts radio menu item of this menu view.
      */
     private final MenuItem allSavedPostsRadioMenuItem;
+
+    /**
+     * The multipost menu item of this menu view.
+     */
+    private final MenuItem multiPostMenuItem;
 
     /**
      * The time sort radio menu item of this menu view.
@@ -224,6 +264,7 @@ public final class MenuView {
         String followSubredditText = "Follow Subreddit";
         String unfollowSubredditText = "Unfollow Subreddit";
         String profilePictureText = "Set Profile Picture";
+        String storyText = "Make Story Post";
         String messagesText = "Direct Messages";
         String lightText = "Light";
         String darkText = "Dark";
@@ -239,6 +280,21 @@ public final class MenuView {
         String twitterText = "Twitter";
         String instagramText = "Instagram";
         String allText = "All";
+        String multiPostText = "Multi Post";
+        String twitterDirectMessageText = "Send Direct Message";
+        String redditDirectMessageText = "Send Direct Message";
+        String twitterTrendingText = "Show Trends";
+        String postText = "Make a Post";
+
+        this.twitterPostMenuItem = new MenuItem(postText);
+
+        this.redditPostMenuItem = new MenuItem(postText);
+
+        this.instagramPostMenuItem = new MenuItem(postText);
+
+        this.twitterTrendingMenuItem = new MenuItem(twitterTrendingText);
+
+        this.multiPostMenuItem = new MenuItem(multiPostText);
 
         this.redditLogInMenuItem = new MenuItem(logInText);
 
@@ -257,6 +313,10 @@ public final class MenuView {
         this.redditMessagesMenuItem = new MenuItem(messagesText);
 
         this.redditBlockUserMenuItem = new MenuItem(blockUserText);
+        
+        this.redditSendMessageMenuItem = new MenuItem(redditDirectMessageText);
+
+        this.twitterSendMessagesmenuItem = new MenuItem(twitterDirectMessageText);
 
         this.twitterLogInMenuItem = new MenuItem(logInText);
 
@@ -290,6 +350,8 @@ public final class MenuView {
 
         this.instagramProfilePictureItem = new MenuItem(profilePictureText);
 
+        this.instagramStoryMenuItem = new MenuItem(storyText);
+
         this.instagramMessagesMenuItem = new MenuItem(messagesText);
 
         this.instagramBlockUserMenuItem = new MenuItem(blockUserText);
@@ -322,6 +384,69 @@ public final class MenuView {
 
         this.menuBar = new MenuBar(this.redditMenu, this.twitterMenu, this.instagramMenu, this.allMenu);
     } //MenuView
+
+    /**
+     * Returns the Instagram post menu item of this menu view.
+     *
+     * @return the Instagram post menu item of this menu view
+     */
+    public MenuItem getInstagramPostMenuItem() {
+        return instagramPostMenuItem;
+    }
+
+    /**
+     * Returns the Twitter Post menu item of this menu view.
+     *
+     * @return the Twitter Post menu item of this menu view
+     */
+    public MenuItem getTwitterPostMenuItem() {
+        return twitterPostMenuItem;
+    }
+
+    /**
+     * Returns the Reddit Post menu item of this menu view.
+     *
+     * @return the Reddit Post menu item of this menu view
+     */
+    public MenuItem getRedditPostMenuItem() {
+        return redditPostMenuItem;
+    }
+
+    /**
+     * Returns the twitter trending menu item of this menu view.
+     *
+     * @return the twitter trending menu item of this menu view
+     */
+    public MenuItem getTwitterTrendingMenuItem() {
+        return twitterTrendingMenuItem;
+    }
+
+    /**
+     * Returns the reddit direct message menu item of this menu view.
+     *
+     * @return the reddit direct message menu item of this menu view
+     */
+    public MenuItem getRedditSendMessageMenuItem() {
+        return redditSendMessageMenuItem;
+    }
+
+    /**
+     * Returns the twitter direct message menu item of this menu view.
+     *
+     * @return the twitter direct message menu item of this menu view
+     */
+    public MenuItem getTwitterSendMessagesmenuItem() {
+        return twitterSendMessagesmenuItem;
+    }
+
+    /**
+     * Returns the Multi post menu item of this menu view.
+     *
+     * @return the Menu post menu item of this menu view
+     */
+    public MenuItem getMultiPostMenuItem() {
+        return multiPostMenuItem;
+    }
 
     /**
      * Returns the Reddit log in menu item of this menu view.
@@ -536,7 +661,16 @@ public final class MenuView {
      */
     public MenuItem getInstagramProfilePictureMenuItem() {
         return this.instagramProfilePictureItem;
-    } //getInstagramBioMenuItem
+    } //getInstagramProfilePictureMenuItem
+
+    /**
+     * Returns the Instagram story menu item of this menu view.
+     *
+     * @return the Instagram story menu item of this menu view
+     */
+    public MenuItem getInstagramStoryMenuItem() {
+        return this.instagramStoryMenuItem;
+    } //getInstagramStoryMenuItem
 
     /**
      * Returns the Instagram follow user menu item of this menu view.

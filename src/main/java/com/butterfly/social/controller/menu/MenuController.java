@@ -5,8 +5,11 @@ import com.butterfly.social.controller.instagram.InstagramPostController;
 import com.butterfly.social.controller.reddit.RedditPostController;
 import com.butterfly.social.controller.twitter.TwitterPostController;
 import com.butterfly.social.model.Model;
+import com.butterfly.social.model.MultiPost;
 import com.butterfly.social.model.instagram.InstagramModel;
+import com.butterfly.social.model.instagram.InstagramUserRequests;
 import com.butterfly.social.model.reddit.RedditModel;
+import com.butterfly.social.model.reddit.RedditUserRequests;
 import com.butterfly.social.model.twitter.TwitterModel;
 import com.butterfly.social.model.twitter.TwitterUserProfile;
 import com.butterfly.social.view.MenuView;
@@ -14,11 +17,13 @@ import com.butterfly.social.view.PostView;
 import com.butterfly.social.view.View;
 import com.github.instagram4j.instagram4j.responses.users.UsersSearchResponse;
 import javafx.event.ActionEvent;
+import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -35,13 +40,14 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.*;
 import java.util.concurrent.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+
 import twitter4j.DirectMessage;
+import twitter4j.StatusUpdate;
+import twitter4j.TwitterException;
 import twitter4j.User;
-import java.util.Date;
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
@@ -131,6 +137,9 @@ public final class MenuController {
         MenuItem redditBlockUserMenuItem;
         MenuItem redditLogOutMenuItem;
         MenuItem allSavedPostsRadioMenuItem;
+        MenuItem multiPostMenuItem;
+        MenuItem redditDirectMessageMenuItem;
+        MenuItem redditPostMenuItem;
         ScheduledExecutorService executorService;
         int delay = 0;
         int period = 1;
@@ -162,6 +171,8 @@ public final class MenuController {
 
         allMenu = menuView.getAllMenu();
 
+        redditPostMenuItem = menuView.getRedditPostMenuItem();
+
         redditProfileMenuItem = menuView.getRedditProfileMenuItem();
 
         redditSavedPostsMenuItem = menuView.getRedditSavedPostsMenuItem();
@@ -182,6 +193,10 @@ public final class MenuController {
 
         allSavedPostsRadioMenuItem = menuView.getAllSavedPostsRadioMenuItem();
 
+        multiPostMenuItem = menuView.getMultiPostMenuItem();
+
+        redditDirectMessageMenuItem = menuView.getRedditSendMessageMenuItem();
+
         redditMenu.getItems()
                   .clear();
 
@@ -191,13 +206,14 @@ public final class MenuController {
                           redditFollowUserMenuItem, new SeparatorMenuItem(), redditFollowSubredditMenuItem,
                           new SeparatorMenuItem(), redditUnfollowSubredditMenuItem, new SeparatorMenuItem(), 
                           redditBlockUserMenuItem, new SeparatorMenuItem(), redditBlockedUsersMenuItem, 
-                          new SeparatorMenuItem(), redditLogOutMenuItem);
+                          redditDirectMessageMenuItem, new SeparatorMenuItem(), redditPostMenuItem, new SeparatorMenuItem(), 
+                          redditLogOutMenuItem);
 
         allMenu.getItems()
                .clear();
 
         allMenu.getItems()
-               .add(allSavedPostsRadioMenuItem);
+               .addAll(allSavedPostsRadioMenuItem, multiPostMenuItem);
 
         executorService = this.redditPostController.getExecutorService();
 
@@ -529,14 +545,18 @@ public final class MenuController {
         MenuView menuView;
         Menu twitterMenu;
         Menu allMenu;
+        MenuItem twitterTrendingMenuItem;
         MenuItem twitterProfileMenuItem;
         MenuItem twitterMessagesMenuItem;
+        MenuItem twitterDirectMessageMenuItem;
         MenuItem twitterSavedPostsMenuItem;
         MenuItem twitterBlockedUsersMenuItem;
         MenuItem twitterFollowUserMenuItem;
         MenuItem twitterBlockUserMenuItem;
         MenuItem twitterLogOutMenuItem;
         MenuItem allSavedPostsRadioMenuItem;
+        MenuItem multiPostMenuItem;
+        MenuItem twitterPostMenuItem;
         ScheduledExecutorService executorService;
         int delay = 0;
         int period = 1;
@@ -568,9 +588,15 @@ public final class MenuController {
 
         allMenu = menuView.getAllMenu();
 
+        twitterPostMenuItem = menuView.getTwitterPostMenuItem();
+
+        twitterTrendingMenuItem = menuView.getTwitterTrendingMenuItem();
+
         twitterProfileMenuItem = menuView.getTwitterProfileMenuItem();
 
         twitterMessagesMenuItem = menuView.getTwitterMessagesMenuItem();
+
+        twitterDirectMessageMenuItem = menuView.getTwitterSendMessagesmenuItem();
 
         twitterSavedPostsMenuItem = menuView.getTwitterSavedPostsMenuItem();
 
@@ -584,6 +610,8 @@ public final class MenuController {
 
         allSavedPostsRadioMenuItem = menuView.getAllSavedPostsRadioMenuItem();
 
+        multiPostMenuItem = menuView.getMultiPostMenuItem();
+
         twitterMenu.getItems()
                    .clear();
 
@@ -591,14 +619,15 @@ public final class MenuController {
                    .addAll(twitterProfileMenuItem, new SeparatorMenuItem(), twitterMessagesMenuItem,
                            new SeparatorMenuItem(), twitterSavedPostsMenuItem, new SeparatorMenuItem(),
                            twitterFollowUserMenuItem, new SeparatorMenuItem(), twitterBlockUserMenuItem, 
-                           new SeparatorMenuItem(), twitterBlockedUsersMenuItem, new SeparatorMenuItem(), 
-                           twitterLogOutMenuItem);
+                           new SeparatorMenuItem(), twitterBlockedUsersMenuItem, new SeparatorMenuItem(), twitterDirectMessageMenuItem, 
+                           new SeparatorMenuItem(), twitterTrendingMenuItem, 
+                           new SeparatorMenuItem(), twitterPostMenuItem, twitterLogOutMenuItem);
 
         allMenu.getItems()
                .clear();
 
         allMenu.getItems()
-               .add(allSavedPostsRadioMenuItem);
+               .addAll(allSavedPostsRadioMenuItem, multiPostMenuItem);
 
         executorService = this.twitterPostController.getExecutorService();
 
@@ -942,11 +971,14 @@ public final class MenuController {
         MenuItem instagramSearchMenuItem;
         MenuItem instagramProfilePictureItem;
         MenuItem instagramSavedPostsMenuItem;
+        MenuItem instagramStoryItem;
         MenuItem instagramMessagesMenuItem;
         MenuItem instagramFollowUserMenuItem;
         MenuItem instagramLogOutMenuItem;
         MenuItem instagramBlockUserMenuItem;
         MenuItem allSavedPostsRadioMenuItem;
+        MenuItem multiPostMenuItem;
+        MenuItem instagramPostMenuItem;
         ScheduledExecutorService executorService;
         int delay = 0;
         int period = 1;
@@ -978,6 +1010,8 @@ public final class MenuController {
 
         allMenu = menuView.getAllMenu();
 
+        instagramPostMenuItem = menuView.getInstagramPostMenuItem();
+
         instagramProfileMenuItem = menuView.getInstagramProfileMenuItem();
 
         instagramBioMenuItem = menuView.getInstagramBioMenuItem();
@@ -985,6 +1019,8 @@ public final class MenuController {
         instagramSearchMenuItem = menuView.getInstagramSearchMenuItem();
 
         instagramProfilePictureItem = menuView.getInstagramProfilePictureMenuItem();
+
+        instagramStoryItem = menuView.getInstagramStoryMenuItem();
 
         instagramSavedPostsMenuItem = menuView.getInstagramSavedPostsMenuItem();
 
@@ -998,22 +1034,26 @@ public final class MenuController {
 
         allSavedPostsRadioMenuItem = menuView.getAllSavedPostsRadioMenuItem();
 
+        multiPostMenuItem = menuView.getMultiPostMenuItem();
+
         instagramMenu.getItems()
                      .clear();
 
         instagramMenu.getItems()
                      .addAll(instagramProfileMenuItem, new SeparatorMenuItem(), instagramBioMenuItem,
                              new SeparatorMenuItem(), instagramSearchMenuItem, new SeparatorMenuItem(),
-                             instagramProfilePictureItem, new SeparatorMenuItem(), instagramSavedPostsMenuItem,
+                             instagramProfilePictureItem, new SeparatorMenuItem(), instagramStoryItem,
+                             new SeparatorMenuItem(), instagramSavedPostsMenuItem,
                              new SeparatorMenuItem(), instagramMessagesMenuItem, new SeparatorMenuItem(),
                              instagramFollowUserMenuItem, new SeparatorMenuItem(), instagramBlockUserMenuItem,
+                             new SeparatorMenuItem(), instagramPostMenuItem,
                              new SeparatorMenuItem(), instagramLogOutMenuItem);
 
         allMenu.getItems()
                .clear();
 
         allMenu.getItems()
-               .add(allSavedPostsRadioMenuItem);
+               .addAll(allSavedPostsRadioMenuItem, multiPostMenuItem);
 
         executorService = this.instagramPostController.getExecutorService();
 
@@ -1244,7 +1284,7 @@ public final class MenuController {
     }
 
     /**
-     * Allows users
+     * Allows users to set their profile picture on instagram
      */
     private void setInstagramProfilePicture() {
         FileChooser fileChooser = new FileChooser();
@@ -1259,6 +1299,500 @@ public final class MenuController {
         if (selectedFile != null) {
             instagramModel.setProfilePicture(selectedFile);
         }
+    }
+
+    /**
+     * Allows users to make a post to their instagram story
+     */
+    private void makeInstagramStoryPost() {
+        FileChooser fileChooser = new FileChooser();
+        InstagramModel instagramModel;
+
+        instagramModel = this.model.getInstagramModel();
+
+        fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("Image Files", "*.jpg", "*.png"));
+
+        File selectedFile = fileChooser.showOpenDialog(null);
+
+        if (selectedFile != null) {
+            instagramModel.makeStoryPost(selectedFile);
+        }
+    }
+
+    public void showTwitterTrending() {
+        List<String> list;
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+
+        alert.setTitle("Trends");
+        alert.setHeaderText("Top Trends on Twitter");
+        StringBuilder sb = new StringBuilder("");
+
+        TwitterModel twitterModel = this.model.getTwitterModel();
+        try {
+            list = twitterModel.getRequests().getTrending();
+        } catch (TwitterException e) {
+            return;
+        }
+        list.forEach(item -> sb.append(item).append("\n"));
+
+        alert.setContentText(sb.toString());
+        alert.show();
+    }
+
+    public void sendTwitterDirectMessage() {
+        Optional<String> text;
+        String username;
+        String message;
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Send Direct Message");
+        dialog.setHeaderText("Username");
+        dialog.setContentText("Enter the username of the user you want to message.");
+        text = dialog.showAndWait();
+        if (text.isPresent()) {
+            username = text.get();
+        } else {
+            return;
+        }
+
+        dialog.getEditor().clear();
+        dialog.setHeaderText("Message");
+        dialog.setContentText("Enter the message.");
+        text = dialog.showAndWait();
+        if (text.isPresent()) {
+            message = text.get();
+        } else {
+            return;
+        }
+        TwitterModel twitterModel = this.model.getTwitterModel();
+        try {
+            twitterModel.getRequests().sendDirectMessage(username, message);
+        } catch (TwitterException e) {
+
+        }
+    }
+
+    public void sendRedditDirectMessage() {
+        Optional<String> text;
+        String username;
+        String message;
+        String subject;
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Send Direct Message");
+        dialog.setHeaderText("Username");
+        dialog.setContentText("Enter the username of the user you want to message.");
+        text = dialog.showAndWait();
+        if (text.isPresent()) {
+            username = text.get();
+        } else {
+            return;
+        }
+
+        dialog.getEditor().clear();
+        dialog.setHeaderText("Subject");
+        dialog.setContentText("Enter a title for the message.");
+        text = dialog.showAndWait();
+        if (text.isPresent()) {
+            subject = text.get();
+        } else {
+            return;
+        }
+
+        dialog.getEditor().clear();
+        dialog.setHeaderText("Message");
+        dialog.setContentText("Enter the message.");
+        text = dialog.showAndWait();
+        if (text.isPresent()) {
+            message = text.get();
+        } else {
+            return;
+        }
+        RedditModel redditModel = this.model.getRedditModel();
+        RedditUserRequests userRequests = new RedditUserRequests();
+        userRequests.setRedditClient(redditModel.getClient());
+        userRequests.sendPrivateMessage(username, subject, message);
+    }
+
+    public void makeInstagramPost() {
+        File file;
+        Optional<ButtonType> selection;
+
+        ButtonType buttonOk = new ButtonType("Ok");
+        ButtonType buttonCancel = new ButtonType("Cancel");
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+
+        alert.setTitle("Media Selection");
+        alert.setHeaderText(null);
+        alert.getButtonTypes().setAll(buttonOk, buttonCancel);
+        alert.setContentText("You will be prompted to select an image file for your post.");
+        selection = alert.showAndWait();
+        if (selection.get() != buttonOk) {
+            return;
+        }
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("Image Files", "*.jpg", "*.png"));
+        file = fileChooser.showOpenDialog(null);
+        if (file == null) {
+            return;
+        }
+
+        alert.setAlertType(Alert.AlertType.ERROR);
+
+        Stage stage = new Stage();
+        stage.setTitle("Instagram Post");
+        stage.setResizable(true);
+
+        GridPane gridPane = new GridPane();
+        gridPane.setHgap(10);
+        gridPane.setVgap(10);
+        gridPane.setPadding(new Insets(20));
+
+        Label lblContent = new Label("Please enter the caption for your post.");
+
+        TextArea textArea = new TextArea();
+        Button postButton = new Button("Post");
+        Button cancelButton = new Button("Cancel");
+        ButtonBar buttonbar = new ButtonBar();
+        buttonbar.setPadding(new Insets(10));
+        buttonbar.getButtons().addAll(postButton, cancelButton);
+
+        postButton.setOnAction(actionEvent -> {
+            if (textArea.getText().length() > 2200) {
+                stage.close();
+                alert.setTitle("Error");
+                alert.setHeaderText("Post Error");
+                alert.setContentText("Your post exceeded the character limit for Instagram.");
+                alert.showAndWait();
+                return;
+            }
+            if (this.model.getInstagramModel() != null) {
+                InstagramUserRequests instagramUserRequests = new InstagramUserRequests();
+                instagramUserRequests.setIgClient(this.model.getInstagramModel().getClient());
+                instagramUserRequests.post(file, textArea.getText());
+                stage.close();
+            }
+        });
+
+        cancelButton.setOnAction(actionEvent -> {
+            stage.close();
+        });
+
+        gridPane.add(lblContent, 0, 0);
+        gridPane.add(textArea, 0, 1);
+
+        VBox vbox = new VBox();
+        vbox.getChildren().addAll(gridPane, buttonbar);
+
+        Scene scene = new Scene(vbox, 300, 300);
+        stage.setScene(scene);
+        stage.show();
+    }
+
+    public void makeRedditPost() {
+        Optional<String> text;
+        String subreddit;
+        String title;
+
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Subreddit");
+        dialog.setContentText("Please specify a subreddit for your post.");
+        text = dialog.showAndWait();
+        if (text.isPresent()) {
+            subreddit = text.get();
+        } else {
+            return;
+        }
+
+        dialog.getEditor().clear();
+        dialog.setTitle("Title");
+        dialog.setContentText("Please specify a title for your post.");
+        text = dialog.showAndWait();
+        if (text.isPresent()) {
+            title = text.get();
+        } else {
+            return;
+        }
+
+        Stage stage = new Stage();
+        stage.setTitle("Reddit Post");
+        stage.setResizable(true);
+
+        GridPane gridPane = new GridPane();
+        gridPane.setHgap(10);
+        gridPane.setVgap(10);
+        gridPane.setPadding(new Insets(20));
+
+        Label lblContent = new Label("Please enter the content of your post.");
+
+        TextArea textArea = new TextArea();
+        Button postButton = new Button("Post");
+        Button cancelButton = new Button("Cancel");
+        ButtonBar buttonbar = new ButtonBar();
+        buttonbar.setPadding(new Insets(10));
+        buttonbar.getButtons().addAll(postButton, cancelButton);
+
+        postButton.setOnAction(actionEvent -> {
+            if (this.model.getRedditModel() != null) {
+                RedditUserRequests redditUserRequests = new RedditUserRequests();
+                redditUserRequests.setRedditClient(this.model.getRedditModel().getClient());
+                redditUserRequests.post(subreddit, title, textArea.getText());
+                stage.close();
+            }
+        });
+
+        cancelButton.setOnAction(actionEvent -> {
+            stage.close();
+        });
+
+        gridPane.add(lblContent, 0, 0);
+        gridPane.add(textArea, 0, 1);
+
+        VBox vbox = new VBox();
+        vbox.getChildren().addAll(gridPane, buttonbar);
+
+        Scene scene = new Scene(vbox, 300, 300);
+        stage.setScene(scene);
+        stage.show();
+    }
+
+    public void makeTwitterPost() {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+
+        Stage stage = new Stage();
+        stage.setTitle("Twitter Post");
+        stage.setResizable(true);
+
+        GridPane gridPane = new GridPane();
+        gridPane.setHgap(10);
+        gridPane.setVgap(10);
+        gridPane.setPadding(new Insets(20));
+
+        Label lblContent = new Label("Please enter the content of your post.");
+
+        TextArea textArea = new TextArea();
+        Button postButton = new Button("Post");
+        Button cancelButton = new Button("Cancel");
+        ButtonBar buttonbar = new ButtonBar();
+        buttonbar.setPadding(new Insets(10));
+        buttonbar.getButtons().addAll(postButton, cancelButton);
+
+        postButton.setOnAction(actionEvent -> {
+            if (textArea.getText().length() > 280) {
+                stage.close();
+                alert.setTitle("Error");
+                alert.setHeaderText("Twitter Post Error");
+                alert.setContentText("Your post exceeded the character limit for Twitter.");
+                alert.showAndWait();
+                return;
+            }
+            try {
+                if (this.model.getTwitterModel() != null) {
+                    this.model.getTwitterModel().getRequests().postTweet(new StatusUpdate(textArea.getText()));
+                    stage.close();
+                }
+            } catch (TwitterException e) {
+                stage.close();
+                alert.setTitle("Error");
+                alert.setHeaderText("Multi-Post Error");
+                alert.setContentText("There was an error with your Twitter Post. Please try again.");
+                alert.showAndWait();
+            }
+        });
+
+        cancelButton.setOnAction(actionEvent -> {
+            stage.close();
+        });
+
+        gridPane.add(lblContent, 0, 0);
+        gridPane.add(textArea, 0, 1);
+
+        VBox vbox = new VBox();
+        vbox.getChildren().addAll(gridPane, buttonbar);
+
+        Scene scene = new Scene(vbox, 300, 300);
+        stage.setScene(scene);
+        stage.show();
+    }
+
+    public void makeMultiPost() {
+        Optional<ButtonType> selection;
+        Optional<String> text;
+        String subreddit = null;
+        File file = null;
+        String title =null;
+        boolean postInstagram = false;
+        boolean postTwitter = false;
+        boolean postReddit = false;
+        InstagramModel instagramModel = this.model.getInstagramModel();
+        TwitterModel twitterModel = this.model.getTwitterModel();
+        RedditModel redditModel= this.model.getRedditModel();
+
+        ButtonType buttonYes = new ButtonType("Yes");
+        ButtonType buttonNo = new ButtonType("No");
+        ButtonType buttonOk = new ButtonType("Ok");
+        ButtonType buttonCancel = new ButtonType("Cancel");
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+
+        if (instagramModel != null) {
+            alert.setTitle("Instagram");
+            alert.setHeaderText("Would you like add this post to your Instagram?");
+            alert.getButtonTypes().setAll(buttonYes, buttonNo);
+            selection = alert.showAndWait();
+            if (selection.get() == buttonYes) {
+                postInstagram = true;
+            } else if (selection.get() == buttonNo) {
+                postInstagram = false;
+            } else {
+                return;
+            }
+        }
+
+        if (redditModel != null) {
+            alert.setTitle("Reddit");
+            alert.setHeaderText("Would you like add this post to your Reddit?");
+            alert.getButtonTypes().setAll(buttonYes, buttonNo);
+            selection = alert.showAndWait();
+            if (selection.get() == buttonYes) {
+                postReddit = true;
+            } else if (selection.get() == buttonNo) {
+                postReddit = false;
+            } else {
+                return;
+            }
+        }
+
+        if (twitterModel != null) {
+            alert.setTitle("Twitter");
+            alert.setHeaderText("Would you like add this post to your Twitter?");
+            alert.getButtonTypes().setAll(buttonYes, buttonNo);
+            selection = alert.showAndWait();
+            if (selection.get() == buttonYes) {
+                postTwitter = true;
+            } else if (selection.get() == buttonNo) {
+                postTwitter = false;
+            } else {
+                return;
+            }
+        }
+
+        TextInputDialog dialog = new TextInputDialog();
+        if (postReddit) {
+            dialog.setTitle("Subreddit");
+            dialog.setContentText("Please specify a subreddit for your post.");
+            text = dialog.showAndWait();
+            if (text.isPresent()) {
+                subreddit = text.get();
+            } else {
+                return;
+            }
+        }
+
+        if (postReddit) {
+            dialog.getEditor().clear();
+            dialog.setTitle("Title");
+            dialog.setContentText("Please specify a title for your post.");
+            text = dialog.showAndWait();
+            if (text.isPresent()) {
+                title = text.get();
+            } else {
+                return;
+            }
+        }
+
+        if (postInstagram) {
+            alert.setTitle("Media Selection");
+            alert.setHeaderText(null);
+            alert.getButtonTypes().setAll(buttonOk, buttonCancel);
+            alert.setContentText("You will be prompted to select an image file for your post.");
+            selection = alert.showAndWait();
+            if (selection.get() != buttonOk) {
+                return;
+            }
+
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("Image Files", "*.jpg", "*.png"));
+            file = fileChooser.showOpenDialog(null);
+            if (file == null) {
+                return;
+            }
+        }
+
+        Stage stage = new Stage();
+        stage.setTitle("Multi Post");
+        stage.setResizable(true);
+
+        GridPane gridPane = new GridPane();
+        gridPane.setHgap(10);
+        gridPane.setVgap(10);
+        gridPane.setPadding(new Insets(20));
+
+        Label lblContent = new Label("Please enter the content of your post.");
+
+        TextArea textArea = new TextArea();
+        Button postButton = new Button("Post");
+        Button cancelButton = new Button("Cancel");
+        ButtonBar buttonbar = new ButtonBar();
+        buttonbar.setPadding(new Insets(10));
+        buttonbar.getButtons().addAll(postButton, cancelButton);
+
+        File finalFile = file;
+        boolean finalPostTwitter = postTwitter;
+        boolean finalPostInstagram = postInstagram;
+        boolean finalPostReddit = postReddit;
+        String finalTitle = title;
+        String finalSubreddit = subreddit;
+
+        alert.getButtonTypes().setAll(buttonOk);
+        alert.setAlertType(Alert.AlertType.ERROR);
+        postButton.setOnAction(actionEvent -> {
+            if (this.model.getTwitterModel() != null && textArea.getText().length() > 280) {
+                stage.close();
+                alert.setTitle("Error");
+                alert.setHeaderText("Multi-Post Error");
+                alert.setContentText("Your post exceeded the character limit for Twitter.");
+                alert.showAndWait();
+                return;
+            }
+            if (this.model.getInstagramModel() != null && textArea.getText().length() >2200) {
+                stage.close();
+                alert.setTitle("Error");
+                alert.setHeaderText("Multi-Post Error");
+                alert.setContentText("Your post exceeded the character limit for Instagram.");
+                alert.showAndWait();
+                return;
+            }
+            MultiPost multiPost= new MultiPost(this.model);
+            try {
+                multiPost.createPost(finalPostTwitter,
+                        finalPostInstagram,
+                        finalPostReddit,
+                        textArea.getText(),
+                        finalTitle,
+                        finalFile,
+                        finalSubreddit);
+            } catch (TwitterException e) {
+                stage.close();
+                alert.setTitle("Error");
+                alert.setHeaderText("Multi-Post Error");
+                alert.setContentText("There was an error with your Multi-Post. Please try again.");
+                alert.showAndWait();
+            }
+        });
+
+        cancelButton.setOnAction(actionEvent -> {
+            stage.close();
+            return;
+        });
+
+        gridPane.add(lblContent, 0, 0);
+        gridPane.add(textArea, 0, 1);
+
+        VBox vbox = new VBox();
+        vbox.getChildren().addAll(gridPane, buttonbar);
+
+        Scene scene = new Scene(vbox, 300, 300);
+        stage.setScene(scene);
+        stage.show();
     }
 
     private void followInstagramUser() {
@@ -1679,10 +2213,13 @@ public final class MenuController {
         MenuItem redditUnfollowSubredditMenuItem;
         MenuItem redditSavedPostsMenuItem;
         MenuItem redditMessagesMenuItem;
+        MenuItem twitterTrendingMenuItem;
         MenuItem twitterLogInMenuItem;
         MenuItem twitterLogOutMenuItem;
         MenuItem twitterProfileMenuItem;
         MenuItem twitterMessagesMenuItem;
+        MenuItem twitterDirectMessageMenuItem;
+        MenuItem redditDirectMessageMenuItem;
         MenuItem twitterSavedPostsMenuItem;
         MenuItem twitterBlockedUsersMenuItem;
         MenuItem redditBlockedUsersMenuItem;
@@ -1692,9 +2229,14 @@ public final class MenuController {
         MenuItem instagramBioMenuItem;
         MenuItem instagramSearchMenuItem;
         MenuItem instagramProfilePictureItem;
+        MenuItem instagramPostMenuItem;
+        MenuItem twitterPostMenuItem;
+        MenuItem redditPostMenuItem;
+        MenuItem instagramStoryItem;
         MenuItem instagramFollowUserMenuItem;
         MenuItem instagramSavedPostsMenuItem;
         MenuItem instagramBlockUserMenuItem;
+        MenuItem multiPostMenuItem;
         RadioMenuItem timeSortRadioMenuItem;
         RadioMenuItem popularitySortRadioMenuItem;
         RadioMenuItem lightRadioMenuItem;
@@ -1711,6 +2253,20 @@ public final class MenuController {
                                         instagramPostController);
 
         menuView = controller.view.getMenuView();
+
+        twitterPostMenuItem = menuView.getTwitterPostMenuItem();
+
+        instagramPostMenuItem = menuView.getInstagramPostMenuItem();
+
+        redditPostMenuItem = menuView.getRedditPostMenuItem();
+
+        twitterDirectMessageMenuItem = menuView.getTwitterSendMessagesmenuItem();
+
+        twitterTrendingMenuItem = menuView.getTwitterTrendingMenuItem();
+
+        redditDirectMessageMenuItem = menuView.getRedditSendMessageMenuItem();
+
+        multiPostMenuItem = menuView.getMultiPostMenuItem();
 
         redditLogInMenuItem = menuView.getRedditLogInMenuItem();
 
@@ -1762,6 +2318,8 @@ public final class MenuController {
 
         instagramProfilePictureItem = menuView.getInstagramProfilePictureMenuItem();
 
+        instagramStoryItem = menuView.getInstagramStoryMenuItem();
+
         instagramFollowUserMenuItem = menuView.getInstagramFollowUserMenuItem();
 
         instagramSavedPostsMenuItem = menuView.getInstagramSavedPostsMenuItem();
@@ -1781,6 +2339,12 @@ public final class MenuController {
         fontSizeSpinner = menuView.getFontSizeSpinner();
 
         allSavedPostsRadioMenuItem = menuView.getAllSavedPostsRadioMenuItem();
+
+        twitterPostMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent)  -> controller.makeTwitterPost());
+
+        redditPostMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent)  -> controller.makeRedditPost());
+
+        instagramPostMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent)  -> controller.makeInstagramPost());
 
         redditLogInMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.logInToReddit());
 
@@ -1845,6 +2409,12 @@ public final class MenuController {
 
             alert.show();
         });
+
+        redditDirectMessageMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.sendRedditDirectMessage());
+
+        twitterDirectMessageMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent)-> controller.sendTwitterDirectMessage());
+
+        twitterTrendingMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.showTwitterTrending());
 
         twitterLogInMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.logInToTwitter());
 
@@ -2026,6 +2596,7 @@ public final class MenuController {
 
         instagramProfilePictureItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.setInstagramProfilePicture());
 
+        instagramStoryItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.makeInstagramStoryPost());
 
         instagramFollowUserMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.followInstagramUser());
 
@@ -2037,6 +2608,8 @@ public final class MenuController {
             stage.setResizable(true);
             stage.show();
         });
+
+        multiPostMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.makeMultiPost());
 
         lightRadioMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.switchToLightMode());
 
@@ -2102,7 +2675,7 @@ public final class MenuController {
                    .clear();
 
             allMenu.getItems()
-                   .add(allSavedPostsRadioMenuItem);
+                   .addAll(allSavedPostsRadioMenuItem, multiPostMenuItem);
         } //end if
 
         return controller;
