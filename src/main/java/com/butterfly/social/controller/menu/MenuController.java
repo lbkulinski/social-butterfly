@@ -1490,6 +1490,7 @@ public final class MenuController {
                         finalTitle,
                         finalFile,
                         finalSubreddit);
+                stage.close();
             } catch (TwitterException e) {
                 stage.close();
                 alert.setTitle("Error");
