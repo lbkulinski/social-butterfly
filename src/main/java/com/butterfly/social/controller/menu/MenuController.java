@@ -203,19 +203,20 @@ public final class MenuController {
                   .clear();
 
         redditMenu.getItems()
-                  .addAll(redditProfileMenuItem, new SeparatorMenuItem(), redditSavedPostsMenuItem,
-                          new SeparatorMenuItem(), redditMessagesMenuItem, new SeparatorMenuItem(),
-                          redditFollowUserMenuItem, new SeparatorMenuItem(), redditFollowSubredditMenuItem,
-                          new SeparatorMenuItem(), redditUnfollowSubredditMenuItem, new SeparatorMenuItem(), 
-                          redditBlockUserMenuItem, new SeparatorMenuItem(), redditBlockedUsersMenuItem, 
-                          redditDirectMessageMenuItem, new SeparatorMenuItem(), redditPostMenuItem, new SeparatorMenuItem(), 
-                          redditLogOutMenuItem);
+                  .addAll(redditProfileMenuItem,
+                          new SeparatorMenuItem(), redditSavedPostsMenuItem, new SeparatorMenuItem(),
+                          redditMessagesMenuItem, new SeparatorMenuItem(), redditFollowUserMenuItem,
+                          new SeparatorMenuItem(), redditFollowSubredditMenuItem, new SeparatorMenuItem(),
+                          redditUnfollowSubredditMenuItem, new SeparatorMenuItem(), redditBlockUserMenuItem,
+                          new SeparatorMenuItem(), redditBlockedUsersMenuItem, new SeparatorMenuItem(),
+                          redditDirectMessageMenuItem, new SeparatorMenuItem(), redditPostMenuItem,
+                          new SeparatorMenuItem(), redditLogOutMenuItem);
 
         allMenu.getItems()
                .clear();
 
         allMenu.getItems()
-               .addAll(allSavedPostsRadioMenuItem, multiPostMenuItem);
+               .addAll(allSavedPostsRadioMenuItem, new SeparatorMenuItem(), multiPostMenuItem);
 
         executorService = this.redditPostController.getExecutorService();
 
@@ -537,8 +538,6 @@ public final class MenuController {
         alert.show();
     }
 
-
-
     /**
      * Attempts to log the user into their Twitter account.
      */
@@ -623,17 +622,17 @@ public final class MenuController {
         twitterMenu.getItems()
                    .addAll(twitterProfileMenuItem, new SeparatorMenuItem(), twitterMessagesMenuItem,
                            new SeparatorMenuItem(), twitterLikedPostsMenuItem, new SeparatorMenuItem(),
-                           twitterSavedPostsMenuItem, new SeparatorMenuItem(),
-                           twitterDirectMessageMenuItem, new SeparatorMenuItem(), twitterFollowUserMenuItem,
-                           new SeparatorMenuItem(), twitterTrendingMenuItem, new SeparatorMenuItem(),twitterBlockUserMenuItem, 
+                           twitterSavedPostsMenuItem, new SeparatorMenuItem(), twitterDirectMessageMenuItem,
+                           new SeparatorMenuItem(), twitterFollowUserMenuItem, new SeparatorMenuItem(),
+                           twitterTrendingMenuItem, new SeparatorMenuItem(),twitterBlockUserMenuItem,
                            new SeparatorMenuItem(), twitterBlockedUsersMenuItem, new SeparatorMenuItem(),
-                           twitterLogOutMenuItem, new SeparatorMenuItem(), twitterPostMenuItem);
+                           twitterPostMenuItem, new SeparatorMenuItem(), twitterLogOutMenuItem);
 
         allMenu.getItems()
                .clear();
 
         allMenu.getItems()
-               .addAll(allSavedPostsRadioMenuItem, multiPostMenuItem);
+               .addAll(allSavedPostsRadioMenuItem, new SeparatorMenuItem(), multiPostMenuItem);
 
         executorService = this.twitterPostController.getExecutorService();
 
@@ -912,7 +911,6 @@ public final class MenuController {
         alert.show();
     }
 
-
     private void blockInstagramUser() {
         InstagramModel instagramModel;
         Alert alert;
@@ -961,8 +959,6 @@ public final class MenuController {
         }
         alert.show();
     }
-
-
 
     /**
      * Attempts to log the user into their Instagram account.
@@ -1052,18 +1048,18 @@ public final class MenuController {
                      .addAll(instagramProfileMenuItem, new SeparatorMenuItem(), instagramBioMenuItem,
                              new SeparatorMenuItem(), instagramSearchMenuItem, new SeparatorMenuItem(),
                              instagramProfilePictureItem, new SeparatorMenuItem(), instagramStoryItem,
-                             new SeparatorMenuItem(),instagramLikedPostsMenuItem, new SeparatorMenuItem(),
+                             new SeparatorMenuItem(), instagramLikedPostsMenuItem, new SeparatorMenuItem(),
                              instagramSavedPostsMenuItem, new SeparatorMenuItem(), instagramBlockUserMenuItem,
-                             new SeparatorMenuItem(), instagramMessagesMenuItem,
-                             new SeparatorMenuItem(), instagramFollowUserMenuItem, new SeparatorMenuItem(),
-                             instagramLogOutMenuItem, new SeparatorMenuItem(), instagramPostMenuItem);
+                             new SeparatorMenuItem(), instagramMessagesMenuItem, new SeparatorMenuItem(),
+                             instagramFollowUserMenuItem, new SeparatorMenuItem(), instagramPostMenuItem,
+                             new SeparatorMenuItem(), instagramLogOutMenuItem);
 
 
         allMenu.getItems()
                .clear();
 
         allMenu.getItems()
-               .addAll(allSavedPostsRadioMenuItem, multiPostMenuItem);
+               .addAll(allSavedPostsRadioMenuItem, new SeparatorMenuItem(), multiPostMenuItem);
 
         executorService = this.instagramPostController.getExecutorService();
 
@@ -2706,7 +2702,7 @@ public final class MenuController {
                    .clear();
 
             allMenu.getItems()
-                   .addAll(allSavedPostsRadioMenuItem, multiPostMenuItem);
+                   .addAll(allSavedPostsRadioMenuItem, new SeparatorMenuItem(), multiPostMenuItem);
         } //end if
 
         return controller;
