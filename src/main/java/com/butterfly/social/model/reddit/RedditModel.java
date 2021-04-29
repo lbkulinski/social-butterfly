@@ -20,17 +20,24 @@ import net.dean.jraw.oauth.Credentials;
 import net.dean.jraw.oauth.OAuthHelper;
 import net.dean.jraw.pagination.BarebonesPaginator;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Scanner;
 
 public final class RedditModel {
     private RedditClient client;
     private String username;
+    private List<String> blockedUsers;
 
     private RedditModel() {
         this.client = null;
+        this.blockedUsers = new ArrayList<>();
+        updateBlockedUsers();
     } //RedditModel
 
     public RedditClient getClient() {
@@ -65,8 +72,35 @@ public final class RedditModel {
         return output;
     }
 
+    public List<String> getBlockedUsers() {
+        return this.blockedUsers;
+    }
+
     public void savePost(String id) {
         this.client.submission(id).save();
+    }
+
+    public void downvotePost(String id) {
+        this.client.submission(id).downvote();
+    }
+
+    public void updateBlockedUsers() {
+        File file = new File("reddit-blocked-users.txt");
+
+        blockedUsers = new ArrayList<String>();
+
+        try {
+            //file.createNewFile();
+            Scanner scanner = new Scanner(file);
+            while (scanner.hasNextLine()) {
+                String line = scanner.nextLine();
+                line = line.replace("\n", "");
+                blockedUsers.add(line);
+            }
+            scanner.close();
+        } catch (Exception f) {
+            f.printStackTrace();
+        }
     }
 
     public static RedditModel createRedditModel(String username, String password, String clientId,
@@ -109,6 +143,62 @@ public final class RedditModel {
         boolean success = true;
         try {
             this.client.subreddit("u_" + username).subscribe();
+            success = true;
+        }catch (RedditException e) {
+            e.printStackTrace();
+            success = false;
+        }
+        return success;
+    }
+
+    public boolean blockRedditUser(String username) {
+        File f = new File("reddit-blocked-users.txt");
+        boolean hasDuplicate = false;
+        try {
+            //f.createNewFile();
+            Scanner scanner = new Scanner(f);
+            FileWriter writer = new FileWriter(f, true);
+            BufferedWriter out = new BufferedWriter(writer);
+            while(scanner.hasNextLine()) {
+                String tempLine = scanner.nextLine();
+                if(username == tempLine) { // if duplicate
+                    hasDuplicate = true;
+                    break;
+                }
+            }
+            if(!hasDuplicate) {
+                out.write("" + username + "\n");
+            }
+            scanner.close();
+            out.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        updateBlockedUsers();
+        try {
+            this.client.subreddit("u_" + username).subscribe();
+        }catch (RedditException e) {
+            e.printStackTrace();
+        }
+        return !hasDuplicate;
+    }
+
+    public boolean followSubreddit(String subreddit) {
+        boolean success = true;
+        try {
+            this.client.subreddit(subreddit).subscribe();
+            success = true;
+        }catch (RedditException e) {
+            e.printStackTrace();
+            success = false;
+        }
+        return success;
+    }
+
+    public boolean unfollowSubreddit(String subreddit) {
+        boolean success = true;
+        try {
+            this.client.subreddit(subreddit).unsubscribe();
             success = true;
         }catch (RedditException e) {
             e.printStackTrace();

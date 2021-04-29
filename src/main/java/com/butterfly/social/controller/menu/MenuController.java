@@ -123,8 +123,12 @@ public final class MenuController {
         Menu allMenu;
         MenuItem redditProfileMenuItem;
         MenuItem redditSavedPostsMenuItem;
+        MenuItem redditBlockedUsersMenuItem;
         MenuItem redditMessagesMenuItem;
         MenuItem redditFollowUserMenuItem;
+        MenuItem redditFollowSubredditMenuItem;
+        MenuItem redditUnfollowSubredditMenuItem;
+        MenuItem redditBlockUserMenuItem;
         MenuItem redditLogOutMenuItem;
         MenuItem allSavedPostsRadioMenuItem;
         ScheduledExecutorService executorService;
@@ -162,9 +166,17 @@ public final class MenuController {
 
         redditSavedPostsMenuItem = menuView.getRedditSavedPostsMenuItem();
 
+        redditBlockedUsersMenuItem = menuView.getRedditBlockedUsersMenuItem();
+
         redditMessagesMenuItem = menuView.getRedditMessagesMenuItem();
 
         redditFollowUserMenuItem = menuView.getRedditFollowUserMenuItem();
+
+        redditFollowSubredditMenuItem = menuView.getRedditFollowSubredditMenuItem();
+
+        redditUnfollowSubredditMenuItem = menuView.getRedditUnfollowSubredditMenuItem();
+
+        redditBlockUserMenuItem = menuView.getRedditBlockUserMenuItem();
 
         redditLogOutMenuItem = menuView.getRedditLogOutMenuItem();
 
@@ -176,7 +188,10 @@ public final class MenuController {
         redditMenu.getItems()
                   .addAll(redditProfileMenuItem, new SeparatorMenuItem(), redditSavedPostsMenuItem,
                           new SeparatorMenuItem(), redditMessagesMenuItem, new SeparatorMenuItem(),
-                          redditFollowUserMenuItem, new SeparatorMenuItem(), redditLogOutMenuItem);
+                          redditFollowUserMenuItem, new SeparatorMenuItem(), redditFollowSubredditMenuItem,
+                          new SeparatorMenuItem(), redditUnfollowSubredditMenuItem, new SeparatorMenuItem(), 
+                          redditBlockUserMenuItem, new SeparatorMenuItem(), redditBlockedUsersMenuItem, 
+                          new SeparatorMenuItem(), redditLogOutMenuItem);
 
         allMenu.getItems()
                .clear();
@@ -401,6 +416,112 @@ public final class MenuController {
     }
 
     /**
+     * Attempts to follow a reddit subreddit specified by the user logged in
+     */
+    private void followSubreddit() {
+        RedditModel redditModel;
+        Alert alert;
+        String title = "Social Butterfly";
+        String headerText = "Enter the name of the subreddit you wish to follow ";
+        String searchUser;
+        TextInputDialog userInputDialog;
+
+        redditModel = this.model.getRedditModel();
+
+        if (redditModel == null) {
+            String message = "You are not signed into Reddit!";
+
+            alert = new Alert(Alert.AlertType.ERROR, message);
+
+            alert.show();
+
+            return;
+        } //end if
+
+        userInputDialog = new TextInputDialog();
+
+        userInputDialog.setTitle(title);
+
+        userInputDialog.setHeaderText(headerText);
+
+        userInputDialog.showAndWait();
+
+        searchUser = userInputDialog.getResult();
+
+        if (searchUser.isBlank() || searchUser.isEmpty()) {
+            return;
+        }
+
+        boolean followed = redditModel.followSubreddit(searchUser);
+
+        alert = new Alert(Alert.AlertType.INFORMATION);
+
+        alert.setTitle(title);
+
+        if (followed == false) {
+            alert.setHeaderText("There was a problem following that subreddit");
+        }
+        else {
+            alert.setHeaderText("Successfully followed!");
+        }
+        alert.show();
+    }
+
+        /**
+     * Attempts to unfollow a reddit subreddit specified by the user logged in
+     */
+    private void unfollowSubreddit() {
+        RedditModel redditModel;
+        Alert alert;
+        String title = "Social Butterfly";
+        String headerText = "Enter the name of the subreddit you wish to unfollow ";
+        String searchUser;
+        TextInputDialog userInputDialog;
+
+        redditModel = this.model.getRedditModel();
+
+        if (redditModel == null) {
+            String message = "You are not signed into Reddit!";
+
+            alert = new Alert(Alert.AlertType.ERROR, message);
+
+            alert.show();
+
+            return;
+        } //end if
+
+        userInputDialog = new TextInputDialog();
+
+        userInputDialog.setTitle(title);
+
+        userInputDialog.setHeaderText(headerText);
+
+        userInputDialog.showAndWait();
+
+        searchUser = userInputDialog.getResult();
+
+        if (searchUser.isBlank() || searchUser.isEmpty()) {
+            return;
+        }
+
+        boolean followed = redditModel.unfollowSubreddit(searchUser);
+
+        alert = new Alert(Alert.AlertType.INFORMATION);
+
+        alert.setTitle(title);
+
+        if (followed == false) {
+            alert.setHeaderText("There was a problem unfollowing that subreddit");
+        }
+        else {
+            alert.setHeaderText("Successfully unfollowed!");
+        }
+        alert.show();
+    }
+
+
+
+    /**
      * Attempts to log the user into their Twitter account.
      */
     private void logInToTwitter() {
@@ -411,7 +532,9 @@ public final class MenuController {
         MenuItem twitterProfileMenuItem;
         MenuItem twitterMessagesMenuItem;
         MenuItem twitterSavedPostsMenuItem;
+        MenuItem twitterBlockedUsersMenuItem;
         MenuItem twitterFollowUserMenuItem;
+        MenuItem twitterBlockUserMenuItem;
         MenuItem twitterLogOutMenuItem;
         MenuItem allSavedPostsRadioMenuItem;
         ScheduledExecutorService executorService;
@@ -451,7 +574,11 @@ public final class MenuController {
 
         twitterSavedPostsMenuItem = menuView.getTwitterSavedPostsMenuItem();
 
+        twitterBlockedUsersMenuItem = menuView.getTwitterBlockedUsersMenuItem();
+
         twitterFollowUserMenuItem = menuView.getTwitterFollowUserMenuItem();
+
+        twitterBlockUserMenuItem = menuView.getTwitterBlockUserMenuItem();
 
         twitterLogOutMenuItem = menuView.getTwitterLogOutMenuItem();
 
@@ -463,7 +590,9 @@ public final class MenuController {
         twitterMenu.getItems()
                    .addAll(twitterProfileMenuItem, new SeparatorMenuItem(), twitterMessagesMenuItem,
                            new SeparatorMenuItem(), twitterSavedPostsMenuItem, new SeparatorMenuItem(),
-                           twitterFollowUserMenuItem, new SeparatorMenuItem(), twitterLogOutMenuItem);
+                           twitterFollowUserMenuItem, new SeparatorMenuItem(), twitterBlockUserMenuItem, 
+                           new SeparatorMenuItem(), twitterBlockedUsersMenuItem, new SeparatorMenuItem(), 
+                           twitterLogOutMenuItem);
 
         allMenu.getItems()
                .clear();
@@ -651,6 +780,155 @@ public final class MenuController {
         alert.show();
     }
 
+    private void blockTwitterUser() {
+        TwitterModel twitterModel;
+        Alert alert;
+        String title = "Social Butterfly";
+        String headerText = "Enter the username of the account you wish to block ";
+        String searchUser;
+        TextInputDialog userInputDialog;
+
+        twitterModel = this.model.getTwitterModel();
+
+        if (twitterModel == null) {
+            String message = "You are not signed into Twitter!";
+
+            alert = new Alert(Alert.AlertType.ERROR, message);
+
+            alert.show();
+
+            return;
+        } //end if
+
+        userInputDialog = new TextInputDialog();
+
+        userInputDialog.setTitle(title);
+
+        userInputDialog.setHeaderText(headerText);
+
+        userInputDialog.showAndWait();
+
+        searchUser = userInputDialog.getResult();
+
+        if (searchUser.isBlank() || searchUser.isEmpty()) {
+            return;
+        }
+        boolean success = twitterModel.getRequests().blockTwitterUser(searchUser);
+
+        alert = new Alert(Alert.AlertType.INFORMATION);
+
+        alert.setTitle(title);
+
+        if(success == false) {
+            alert.setHeaderText("Could not block user");
+        }
+        else {
+            alert.setHeaderText("User successfully blocked!");
+        }
+        alert.show();
+    }
+
+    private void blockRedditUser() {
+        RedditModel redditModel;
+        Alert alert;
+        String title = "Social Butterfly";
+        String headerText = "Enter the username of the account you wish to block ";
+        String searchUser;
+        TextInputDialog userInputDialog;
+
+        redditModel = this.model.getRedditModel();
+
+        if (redditModel == null) {
+            String message = "You are not signed into Reddit!";
+
+            alert = new Alert(Alert.AlertType.ERROR, message);
+
+            alert.show();
+
+            return;
+        } //end if
+
+        userInputDialog = new TextInputDialog();
+
+        userInputDialog.setTitle(title);
+
+        userInputDialog.setHeaderText(headerText);
+
+        userInputDialog.showAndWait();
+
+        searchUser = userInputDialog.getResult();
+
+        if (searchUser.isBlank() || searchUser.isEmpty()) {
+            return;
+        }
+
+        boolean followed = redditModel.blockRedditUser(searchUser);
+
+        alert = new Alert(Alert.AlertType.INFORMATION);
+
+        alert.setTitle(title);
+
+        if (followed == false) {
+            alert.setHeaderText("There was a problem blocking that user");
+        }
+        else {
+            alert.setHeaderText("Successfully blocked!");
+        }
+        alert.show();
+    }
+
+
+    private void blockInstagramUser() {
+        InstagramModel instagramModel;
+        Alert alert;
+        String title = "Social Butterfly";
+        String headerText = "Enter the username of the account you wish to block ";
+        String searchUser;
+        TextInputDialog userInputDialog;
+
+        instagramModel = this.model.getInstagramModel();
+
+        if (instagramModel == null) {
+            String message = "You are not signed into Instagram!";
+
+            alert = new Alert(Alert.AlertType.ERROR, message);
+
+            alert.show();
+
+            return;
+        } //end if
+
+        userInputDialog = new TextInputDialog();
+
+        userInputDialog.setTitle(title);
+
+        userInputDialog.setHeaderText(headerText);
+
+        userInputDialog.showAndWait();
+
+        searchUser = userInputDialog.getResult();
+
+        if (searchUser.isBlank() || searchUser.isEmpty()) {
+            return;
+        }
+
+        boolean followed = instagramModel.blockInstagramUser(searchUser);
+
+        alert = new Alert(Alert.AlertType.INFORMATION);
+
+        alert.setTitle(title);
+
+        if (followed == false) {
+            alert.setHeaderText("There was a problem blocking that user");
+        }
+        else {
+            alert.setHeaderText("Successfully blocked!");
+        }
+        alert.show();
+    }
+
+
+
     /**
      * Attempts to log the user into their Instagram account.
      */
@@ -667,6 +945,7 @@ public final class MenuController {
         MenuItem instagramMessagesMenuItem;
         MenuItem instagramFollowUserMenuItem;
         MenuItem instagramLogOutMenuItem;
+        MenuItem instagramBlockUserMenuItem;
         MenuItem allSavedPostsRadioMenuItem;
         ScheduledExecutorService executorService;
         int delay = 0;
@@ -715,6 +994,8 @@ public final class MenuController {
 
         instagramLogOutMenuItem = menuView.getInstagramLogOutMenuItem();
 
+        instagramBlockUserMenuItem = menuView.getInstagramBlockUserMenuItem();
+
         allSavedPostsRadioMenuItem = menuView.getAllSavedPostsRadioMenuItem();
 
         instagramMenu.getItems()
@@ -725,7 +1006,8 @@ public final class MenuController {
                              new SeparatorMenuItem(), instagramSearchMenuItem, new SeparatorMenuItem(),
                              instagramProfilePictureItem, new SeparatorMenuItem(), instagramSavedPostsMenuItem,
                              new SeparatorMenuItem(), instagramMessagesMenuItem, new SeparatorMenuItem(),
-                             instagramFollowUserMenuItem, new SeparatorMenuItem(), instagramLogOutMenuItem);
+                             instagramFollowUserMenuItem, new SeparatorMenuItem(), instagramBlockUserMenuItem,
+                             new SeparatorMenuItem(), instagramLogOutMenuItem);
 
         allMenu.getItems()
                .clear();
@@ -1390,7 +1672,11 @@ public final class MenuController {
         MenuItem redditProfileMenuItem;
         MenuItem redditFollowUserMenuItem;
         MenuItem redditLogOutMenuItem;
+        MenuItem redditBlockUserMenuItem;
         MenuItem twitterFollowUserMenuItem;
+        MenuItem twitterBlockUserMenuItem;
+        MenuItem redditFollowSubredditMenuItem;
+        MenuItem redditUnfollowSubredditMenuItem;
         MenuItem redditSavedPostsMenuItem;
         MenuItem redditMessagesMenuItem;
         MenuItem twitterLogInMenuItem;
@@ -1398,6 +1684,8 @@ public final class MenuController {
         MenuItem twitterProfileMenuItem;
         MenuItem twitterMessagesMenuItem;
         MenuItem twitterSavedPostsMenuItem;
+        MenuItem twitterBlockedUsersMenuItem;
+        MenuItem redditBlockedUsersMenuItem;
         MenuItem instagramLogInMenuItem;
         MenuItem instagramLogOutMenuItem;
         MenuItem instagramProfileMenuItem;
@@ -1406,6 +1694,7 @@ public final class MenuController {
         MenuItem instagramProfilePictureItem;
         MenuItem instagramFollowUserMenuItem;
         MenuItem instagramSavedPostsMenuItem;
+        MenuItem instagramBlockUserMenuItem;
         RadioMenuItem timeSortRadioMenuItem;
         RadioMenuItem popularitySortRadioMenuItem;
         RadioMenuItem lightRadioMenuItem;
@@ -1431,6 +1720,10 @@ public final class MenuController {
 
         redditFollowUserMenuItem = menuView.getRedditFollowUserMenuItem();
 
+        redditFollowSubredditMenuItem = menuView.getRedditFollowSubredditMenuItem();
+
+        redditUnfollowSubredditMenuItem = menuView.getRedditUnfollowSubredditMenuItem();
+
         redditSavedPostsMenuItem = menuView.getRedditSavedPostsMenuItem();
 
         redditMessagesMenuItem = menuView.getRedditMessagesMenuItem();
@@ -1443,9 +1736,19 @@ public final class MenuController {
 
         twitterFollowUserMenuItem = menuView.getTwitterFollowUserMenuItem();
 
+        twitterBlockUserMenuItem = menuView.getTwitterBlockUserMenuItem();
+
+        redditBlockUserMenuItem = menuView.getRedditBlockUserMenuItem();
+
+        instagramBlockUserMenuItem = menuView.getInstagramBlockUserMenuItem();
+
         twitterMessagesMenuItem = menuView.getTwitterMessagesMenuItem();
 
         twitterSavedPostsMenuItem = menuView.getTwitterSavedPostsMenuItem();
+
+        twitterBlockedUsersMenuItem = menuView.getTwitterBlockedUsersMenuItem();
+
+        redditBlockedUsersMenuItem = menuView.getRedditBlockedUsersMenuItem();
 
         instagramLogInMenuItem = menuView.getInstagramLogInMenuItem();
 
@@ -1486,6 +1789,10 @@ public final class MenuController {
         redditProfileMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.viewRedditProfile());
 
         redditFollowUserMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.followRedditUser());
+
+        redditFollowSubredditMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.followSubreddit());
+
+        redditUnfollowSubredditMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.unfollowSubreddit());
 
         redditSavedPostsMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
             Scene scene = redditPostController.updateSavedPosts();
@@ -1546,6 +1853,12 @@ public final class MenuController {
         twitterProfileMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.viewTwitterProfile());
 
         twitterFollowUserMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.followTwitterUser());
+
+        twitterBlockUserMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.blockTwitterUser());
+
+        redditBlockUserMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.blockRedditUser());
+
+        instagramBlockUserMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.blockInstagramUser());
 
         twitterMessagesMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
             TwitterModel twitterModel;
@@ -1617,6 +1930,87 @@ public final class MenuController {
             stage.setHeight(300);
             stage.setWidth(500);
             stage.show();
+        });
+
+        twitterBlockedUsersMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
+            TwitterModel twitterModel;
+            Alert alert;
+            String title = "Social Butterfly";
+            String headerText = "Blocked Users";
+            twitterModel = controller.model.getTwitterModel();
+            try{
+                List<String> blocked = twitterModel.getRequests().getBlockedUsers();
+                String blockedText = "";
+                for (String user : blocked) {
+                    blockedText += user + "\n";
+                }
+                alert = new Alert(Alert.AlertType.INFORMATION);
+
+                alert.setTitle(title);
+
+                alert.setHeaderText(headerText);
+
+                TextArea area = new TextArea(blockedText);
+                area.setWrapText(true);
+                area.setEditable(false);
+
+                alert.getDialogPane().setContent(area);
+                alert.setResizable(true);
+
+                alert.show();
+            } catch (Exception te) {
+                //handle exception
+                alert = new Alert(Alert.AlertType.ERROR);
+
+                alert.setTitle(title);
+
+                alert.setHeaderText(headerText);
+
+                alert.setContentText("Error: Couldn't load blocked user data!\n" + te.getStackTrace());
+
+                alert.show();
+            }
+
+        });
+
+        redditBlockedUsersMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
+            RedditModel redditModel = controller.model.getRedditModel();
+            List<String> blockedUsers = redditModel.getBlockedUsers();
+            String message = "";
+            for (String user : blockedUsers) {
+                message += user + "\n";
+            }
+            Alert alert;
+            String title = "Social Butterfly";
+            String headerText = "Blocked Users";
+            try{
+                alert = new Alert(Alert.AlertType.INFORMATION);
+
+                alert.setTitle(title);
+
+                alert.setHeaderText(headerText);
+
+                TextArea area = new TextArea(message);
+                area.setWrapText(true);
+                area.setEditable(false);
+
+                alert.getDialogPane().setContent(area);
+                alert.setResizable(true);
+
+                alert.show();
+            } catch (Exception te) {
+                //handle exception
+                alert = new Alert(Alert.AlertType.ERROR);
+
+                alert.setTitle(title);
+
+                alert.setHeaderText(headerText);
+
+                alert.setContentText("Error: Couldn't load blocked user data!\n" + te.getStackTrace());
+
+                alert.show();
+            }
+
         });
 
         instagramLogInMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.logInToInstagram());
@@ -1700,7 +2094,9 @@ public final class MenuController {
             twitterMenu.getItems()
                        .addAll(twitterProfileMenuItem, new SeparatorMenuItem(), twitterMessagesMenuItem,
                                new SeparatorMenuItem(), twitterSavedPostsMenuItem, new SeparatorMenuItem(),
-                               twitterFollowUserMenuItem, new SeparatorMenuItem(), twitterLogOutMenuItem);
+                               twitterFollowUserMenuItem, new SeparatorMenuItem(), twitterBlockUserMenuItem,
+                               new SeparatorMenuItem(), twitterBlockedUsersMenuItem, new SeparatorMenuItem(), 
+                               twitterLogOutMenuItem);
 
             allMenu.getItems()
                    .clear();

@@ -254,6 +254,7 @@ public final class RedditPostController {
         RedditClient client;
         //FavoritesResources favoritesResources;
         MenuItem save;
+        MenuItem downvote;
         ContextMenu contextMenu;
 
         Objects.requireNonNull(box, "the specified box is null");
@@ -285,7 +286,14 @@ public final class RedditPostController {
             redditModel.savePost(id);
         });
 
-        contextMenu = new ContextMenu(save);
+        downvote = new MenuItem("Downvote");
+
+        downvote.addEventHandler(ActionEvent.ACTION, (actionEvent) -> {
+            //save tweet
+            redditModel.downvotePost(id);
+        });
+
+        contextMenu = new ContextMenu(save, downvote);
 
         contextMenu.show(box, x, y);
     } //displayContextMenu

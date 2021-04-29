@@ -16,6 +16,8 @@ import twitter4j.TwitterException;
 import twitter4j.User;
 import twitter4j.DirectMessage;
 import twitter4j.DirectMessageList;
+import twitter4j.IDs;
+import twitter4j.PagableResponseList;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -164,6 +166,30 @@ public final class TwitterUserRequests implements Serializable {
             val = false;
         }
         return val;
+    }
+
+    public boolean blockTwitterUser(String username) {
+        boolean val = true;
+        try {
+            twitter.createBlock(username);
+        } catch (TwitterException e) {
+            e.printStackTrace();
+            val = false;
+        }
+        return val;
+    }
+
+    public List<String> getBlockedUsers() {
+        List<String> usernames = new ArrayList<String>();
+        try {
+            PagableResponseList<User> blocked = twitter.getBlocksList();
+            for(User blockedUser : blocked) {
+                usernames.add(blockedUser.getScreenName());
+            }
+        } catch (TwitterException te) {
+            System.out.println("Didn't work.");
+        }
+        return usernames;
     }
 
     public static void main(String[] args) throws TwitterException {
