@@ -30,6 +30,16 @@ public final class MenuView {
     private final MenuItem redditFollowUserMenuItem;
 
     /**
+     * The Reddit follow subreddit menu item of this menu view.
+     */
+    private final MenuItem redditFollowSubredditMenuItem;
+
+    /**
+     * The Reddit unfollow subreddit menu item of this menu view.
+     */
+    private final MenuItem redditUnfollowSubredditMenuItem;
+
+    /**
      * The Reddit saved posts menu item of this menu view.
      */
     private final MenuItem redditSavedPostsMenuItem;
@@ -38,6 +48,11 @@ public final class MenuView {
      * The Reddit messages menu item of this menu view.
      */
     private final MenuItem redditMessagesMenuItem;
+
+    /**
+     * The Reddit block menu item of this menu view.
+     */
+    private final MenuItem redditBlockUserMenuItem;
 
     /**
      * The Reddit send direct messages menu item of this menu view.
@@ -75,6 +90,11 @@ public final class MenuView {
     private final MenuItem twitterFollowUserMenuItem;
 
     /**
+     * The Twitter block menu item of this menu view.
+     */
+    private final MenuItem twitterBlockUserMenuItem;
+    
+    /**
      * The Twitter trending menu item of this menu view.
      */
     private final MenuItem twitterTrendingMenuItem;
@@ -88,6 +108,8 @@ public final class MenuView {
      * The Twitter saved posts menu item of this menu view.
      */
     private final MenuItem twitterSavedPostsMenuItem;
+
+    private final MenuItem twitterBlockedUsersMenuItem;
 
     /**
      * The Twitter liked posts menu item of this menu view.
@@ -163,6 +185,13 @@ public final class MenuView {
      * The Instagram liked posts menu item of this menu view.
      */
     private final MenuItem instagramLikedPostsMenuItem;
+
+    /**
+     * The Instagram block menu item of this menu view.
+     */
+    private final MenuItem instagramBlockUserMenuItem;
+
+    private final MenuItem redditBlockedUsersMenuItem;
 
     /**
      * The light radio menu item of this menu view.
@@ -249,7 +278,11 @@ public final class MenuView {
         String savedPostsText = "Saved Posts";
         String editBioText = "Edit Bio";
         String searchUsersText = "Search For Users";
-        String followUserText = "Follow user";
+        String followUserText = "Follow User";
+        String blockUserText = "Block User";
+        String blockedUsersText = "View Blocked Users";
+        String followSubredditText = "Follow Subreddit";
+        String unfollowSubredditText = "Unfollow Subreddit";
         String profilePictureText = "Set Profile Picture";
         String storyText = "Make Story Post";
         String messagesText = "Direct Messages";
@@ -292,10 +325,16 @@ public final class MenuView {
 
         this.redditFollowUserMenuItem = new MenuItem(followUserText);
 
+        this.redditFollowSubredditMenuItem = new MenuItem(followSubredditText);
+
+        this.redditUnfollowSubredditMenuItem = new MenuItem(unfollowSubredditText);
+
         this.redditSavedPostsMenuItem = new MenuItem(savedPostsText);
       
         this.redditMessagesMenuItem = new MenuItem(messagesText);
 
+        this.redditBlockUserMenuItem = new MenuItem(blockUserText);
+        
         this.redditSendMessageMenuItem = new MenuItem(redditDirectMessageText);
 
         this.redditUpvotedPostsMenuItem = new MenuItem(likedText);
@@ -309,10 +348,16 @@ public final class MenuView {
         this.twitterProfileMenuItem = new MenuItem(profileText);
 
         this.twitterFollowUserMenuItem = new MenuItem(followUserText);
+
+        this.twitterBlockUserMenuItem = new MenuItem(blockUserText);
       
         this.twitterMessagesMenuItem = new MenuItem(messagesText);
 
         this.twitterSavedPostsMenuItem = new MenuItem(savedPostsText);
+        
+        this.redditBlockedUsersMenuItem = new MenuItem(blockedUsersText);
+
+        this.twitterBlockedUsersMenuItem = new MenuItem(blockedUsersText);
 
         this.twitterLikedPostsMenuItem = new MenuItem(likedText);
 
@@ -335,6 +380,8 @@ public final class MenuView {
         this.instagramMessagesMenuItem = new MenuItem(messagesText);
 
         this.instagramLikedPostsMenuItem = new MenuItem(likedText);
+
+        this.instagramBlockUserMenuItem = new MenuItem(blockUserText);
 
         this.timeSortRadioMenuItem = new RadioMenuItem(timeText);
 
@@ -467,6 +514,24 @@ public final class MenuView {
     } //getRedditFollowUserMenuItem
 
     /**
+     * Returns the Reddit follow subreddit menu item of this menu view.
+     *
+     * @return the Reddit follow subreddit menu item of this menu view
+     */
+    public MenuItem getRedditFollowSubredditMenuItem() {
+        return this.redditFollowSubredditMenuItem;
+    } //getRedditFollowSubredditMenuItem
+
+    /**
+     * Returns the Reddit unfollow subreddit menu item of this menu view.
+     *
+     * @return the Reddit unfollow subreddit menu item of this menu view
+     */
+    public MenuItem getRedditUnfollowSubredditMenuItem() {
+        return this.redditUnfollowSubredditMenuItem;
+    } //getRedditUnfollowSubredditMenuItem
+
+    /**
      * Returns the Reddit saved posts menu item of this menu view.
      *
      * @return the Reddit saved posts menu item of this menu view
@@ -527,6 +592,33 @@ public final class MenuView {
     public MenuItem getTwitterFollowUserMenuItem() {
         return this.twitterFollowUserMenuItem;
     } //getTwitterFollowUserMenuItem
+
+    /**
+     * Returns the Twitter block user menu item of this menu view.
+     *
+     * @return the Twitter block user menu item of this menu view
+     */
+    public MenuItem getTwitterBlockUserMenuItem() {
+        return this.twitterBlockUserMenuItem;
+    } //getTwitterBlockUserMenuItem
+
+    /**
+     * Returns the Reddit block user menu item of this menu view.
+     *
+     * @return the Reddit block user menu item of this menu view
+     */
+    public MenuItem getRedditBlockUserMenuItem() {
+        return this.redditBlockUserMenuItem;
+    } //getRedditBlockUserMenuItem
+
+    /**
+     * Returns the Instagram block user menu item of this menu view.
+     *
+     * @return the Instagram block user menu item of this menu view
+     */
+    public MenuItem getInstagramBlockUserMenuItem() {
+        return this.instagramBlockUserMenuItem;
+    } //getinstagramBlockUserMenuItem
   
     /**
      * Returns the Twitter messages menu item of this menu view.
@@ -546,12 +638,23 @@ public final class MenuView {
         return this.twitterSavedPostsMenuItem;
     }
 
+
     /** Returns the Twitter liked posts menu item of this menu view.
      *
      * @return the Twitter liked posts menu item of this menu view
      */
     public MenuItem getTwitterLikedPostsMenuItem() {
         return this.twitterLikedPostsMenuItem;
+    }
+  
+
+    public MenuItem getTwitterBlockedUsersMenuItem() {
+        return this.twitterBlockedUsersMenuItem;
+    }
+
+    public MenuItem getRedditBlockedUsersMenuItem() {
+        return this.redditBlockedUsersMenuItem;
+
     }
 
     /**
