@@ -829,6 +829,36 @@ public final class TwitterPostController {
         return scene;
     } //updatePosts
 
+    /**
+     * Gets liked posts from the Twitter account
+     */
+
+    public Scene getLikedPosts() {
+        TwitterModel twitterModel = this.model.getTwitterModel();
+        Twitter twitter = twitterModel.getTwitter();
+        List<Status> likedPosts = new ArrayList<>();
+        VBox vBox;
+        VBox vBoxCopy;
+        TwitterPost post;
+        List<Node> nodes = new ArrayList<>();
+        try {
+            likedPosts = twitter.getFavorites();
+        } catch (TwitterException e) {
+            e.printStackTrace();
+        }
+        if (likedPosts.size() != 0) {
+            for(Status status : likedPosts) {
+                //post = new TwitterPost(status);
+                vBox = this.createBox(status, false);
+                nodes.add(vBox);
+                nodes.add(new Separator());
+            }
+        }
+        VBox allTwitterLikedPosts = new VBox();
+        allTwitterLikedPosts.getChildren().addAll(0,nodes);
+        Scene scene = new Scene(allTwitterLikedPosts,500,300);
+        return scene;
+    }
 
     /**
      * Updates the posts of this Twitter post controller.

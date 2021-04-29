@@ -788,6 +788,15 @@ public final class InstagramPostController {
 
         return scene;
     }
+    public Scene getLikedPosts() {
+        InstagramModel instagramModel;
+        List<TimelineMedia> feedItems;
+        List<Node> nodes;
+        VBox vBox;
+        InstagramPost post;
+        instagramModel = this.model.getInstagramModel();
+        return null;
+    }
 
     /**
      * Updates the posts of this Instagram post controller.
