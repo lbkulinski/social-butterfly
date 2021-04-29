@@ -45,6 +45,11 @@ public final class MenuView {
     private final MenuItem redditSendMessageMenuItem;
 
     /**
+     * The Reddit upvoted posts menu item of this menu view.
+     */
+    private final MenuItem redditUpvotedPostsMenuItem;
+
+    /**
      * The Twitter send direct messages menu item of this menu view.
      */
     private final MenuItem twitterSendMessagesmenuItem;
@@ -83,6 +88,11 @@ public final class MenuView {
      * The Twitter saved posts menu item of this menu view.
      */
     private final MenuItem twitterSavedPostsMenuItem;
+
+    /**
+     * The Twitter liked posts menu item of this menu view.
+     */
+    private final MenuItem twitterLikedPostsMenuItem;
 
     /**
      * The Instagram log in menu item of this menu view.
@@ -150,6 +160,11 @@ public final class MenuView {
     private final MenuItem instagramFollowUserMenuItem;
 
     /**
+     * The Instagram liked posts menu item of this menu view.
+     */
+    private final MenuItem instagramLikedPostsMenuItem;
+
+    /**
      * The light radio menu item of this menu view.
      */
     private final RadioMenuItem lightRadioMenuItem;
@@ -178,6 +193,11 @@ public final class MenuView {
      * The all saved posts radio menu item of this menu view.
      */
     private final MenuItem allSavedPostsRadioMenuItem;
+
+    /**
+     * The all liked posts menu item of this menu view
+     */
+    private final MenuItem allLikedPostsMenuItem;
 
     /**
      * The multipost menu item of this menu view.
@@ -237,6 +257,7 @@ public final class MenuView {
         String darkText = "Dark";
         String tabText = "Tab";
         String splitText = "Split";
+        String likedText = "Liked Posts";
         int min = 1;
         int max = 100;
         int initialValue = 12;
@@ -277,6 +298,8 @@ public final class MenuView {
 
         this.redditSendMessageMenuItem = new MenuItem(redditDirectMessageText);
 
+        this.redditUpvotedPostsMenuItem = new MenuItem(likedText);
+
         this.twitterSendMessagesmenuItem = new MenuItem(twitterDirectMessageText);
 
         this.twitterLogInMenuItem = new MenuItem(logInText);
@@ -290,6 +313,8 @@ public final class MenuView {
         this.twitterMessagesMenuItem = new MenuItem(messagesText);
 
         this.twitterSavedPostsMenuItem = new MenuItem(savedPostsText);
+
+        this.twitterLikedPostsMenuItem = new MenuItem(likedText);
 
         this.instagramLogInMenuItem = new MenuItem(logInText);
 
@@ -309,6 +334,8 @@ public final class MenuView {
 
         this.instagramMessagesMenuItem = new MenuItem(messagesText);
 
+        this.instagramLikedPostsMenuItem = new MenuItem(likedText);
+
         this.timeSortRadioMenuItem = new RadioMenuItem(timeText);
 
         this.popularitySortRadioMenuItem = new RadioMenuItem(popularityText);
@@ -326,6 +353,8 @@ public final class MenuView {
         this.fontSizeSpinner = new Spinner<>(min, max, initialValue, stepCount);
         
         this.allSavedPostsRadioMenuItem = new MenuItem(savedPostsText);
+
+        this.allLikedPostsMenuItem = new MenuItem(likedText);
 
         this.redditMenu = new Menu(redditText, null, this.redditLogInMenuItem);
 
@@ -455,6 +484,14 @@ public final class MenuView {
         return this.redditMessagesMenuItem;
     } //getRedditMessagesMenuItem
 
+    /** Returns the Reddit liked posts menu item of this menu view.
+     *
+     * @return the Reddit liked posts menu item of this menu view
+     */
+    public MenuItem getRedditUpvotedPostsMenuItem() {
+        return this.redditUpvotedPostsMenuItem;
+    }
+
     /**
      * Returns the Twitter log in menu item of this menu view.
      *
@@ -507,6 +544,14 @@ public final class MenuView {
      */
     public MenuItem getTwitterSavedPostsMenuItem() {
         return this.twitterSavedPostsMenuItem;
+    }
+
+    /** Returns the Twitter liked posts menu item of this menu view.
+     *
+     * @return the Twitter liked posts menu item of this menu view
+     */
+    public MenuItem getTwitterLikedPostsMenuItem() {
+        return this.twitterLikedPostsMenuItem;
     }
 
     /**
@@ -599,6 +644,14 @@ public final class MenuView {
         return this.instagramMessagesMenuItem;
     } //getInstagramMessagesMenuItem
 
+    /** Returns the Instagram liked posts menu item of this menu view.
+     *
+     * @return the Instagram liked posts menu item of this menu view
+     */
+    public MenuItem getInstagramLikedPostsMenuItem() {
+        return this.instagramLikedPostsMenuItem;
+    }
+
     /**
      * Returns the time sort radio menu item of this menu view.
      *
@@ -669,6 +722,15 @@ public final class MenuView {
      */
     public MenuItem getAllSavedPostsRadioMenuItem() {
         return this.allSavedPostsRadioMenuItem;
+    }
+
+    /**
+     * Returns the all liked posts radio menu item of this menu view.
+     *
+     * @return the all liked posts radio menu item of this menu view
+     */
+    public MenuItem getAllLikedPostsMenuItem() {
+        return this.allLikedPostsMenuItem;
     }
 
     /**

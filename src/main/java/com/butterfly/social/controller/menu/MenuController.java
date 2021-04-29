@@ -129,9 +129,11 @@ public final class MenuController {
         Menu allMenu;
         MenuItem redditProfileMenuItem;
         MenuItem redditSavedPostsMenuItem;
+        MenuItem redditUpvotedPostsMenuItem;
         MenuItem redditMessagesMenuItem;
         MenuItem redditFollowUserMenuItem;
         MenuItem redditLogOutMenuItem;
+        MenuItem allLikedPostsMenuItem;
         MenuItem allSavedPostsRadioMenuItem;
         MenuItem multiPostMenuItem;
         MenuItem redditDirectMessageMenuItem;
@@ -430,6 +432,7 @@ public final class MenuController {
         MenuItem twitterMessagesMenuItem;
         MenuItem twitterDirectMessageMenuItem;
         MenuItem twitterSavedPostsMenuItem;
+        MenuItem twitterLikedPostsMenuItem;
         MenuItem twitterFollowUserMenuItem;
         MenuItem twitterLogOutMenuItem;
         MenuItem allSavedPostsRadioMenuItem;
@@ -478,6 +481,8 @@ public final class MenuController {
 
         twitterSavedPostsMenuItem = menuView.getTwitterSavedPostsMenuItem();
 
+        twitterLikedPostsMenuItem = menuView.getTwitterLikedPostsMenuItem();
+
         twitterFollowUserMenuItem = menuView.getTwitterFollowUserMenuItem();
 
         twitterLogOutMenuItem = menuView.getTwitterLogOutMenuItem();
@@ -491,7 +496,8 @@ public final class MenuController {
 
         twitterMenu.getItems()
                    .addAll(twitterProfileMenuItem, new SeparatorMenuItem(), twitterMessagesMenuItem,
-                           new SeparatorMenuItem(), twitterSavedPostsMenuItem, new SeparatorMenuItem(),
+                           new SeparatorMenuItem(), twitterLikedPostsMenuItem, new SeparatorMenuItem(),
+                           twitterSavedPostsMenuItem, new SeparatorMenuItem(),
                            twitterDirectMessageMenuItem, new SeparatorMenuItem(), twitterFollowUserMenuItem,
                            new SeparatorMenuItem(), twitterTrendingMenuItem, new SeparatorMenuItem(),
                            twitterLogOutMenuItem, new SeparatorMenuItem(), twitterPostMenuItem);
@@ -695,6 +701,7 @@ public final class MenuController {
         MenuItem instagramSearchMenuItem;
         MenuItem instagramProfilePictureItem;
         MenuItem instagramSavedPostsMenuItem;
+        MenuItem instagramLikedPostsMenuItem;
         MenuItem instagramStoryItem;
         MenuItem instagramMessagesMenuItem;
         MenuItem instagramFollowUserMenuItem;
@@ -747,6 +754,8 @@ public final class MenuController {
 
         instagramSavedPostsMenuItem = menuView.getInstagramSavedPostsMenuItem();
 
+        instagramLikedPostsMenuItem = menuView.getInstagramLikedPostsMenuItem();
+
         instagramMessagesMenuItem = menuView.getInstagramMessagesMenuItem();
 
         instagramFollowUserMenuItem = menuView.getInstagramFollowUserMenuItem();
@@ -764,10 +773,10 @@ public final class MenuController {
                      .addAll(instagramProfileMenuItem, new SeparatorMenuItem(), instagramBioMenuItem,
                              new SeparatorMenuItem(), instagramSearchMenuItem, new SeparatorMenuItem(),
                              instagramProfilePictureItem, new SeparatorMenuItem(), instagramStoryItem,
-                             new SeparatorMenuItem(), instagramSavedPostsMenuItem,
-                             new SeparatorMenuItem(), instagramMessagesMenuItem, new SeparatorMenuItem(),
-                             instagramFollowUserMenuItem, new SeparatorMenuItem(), instagramLogOutMenuItem,
-                             new SeparatorMenuItem(), instagramPostMenuItem);
+                             new SeparatorMenuItem(),instagramLikedPostsMenuItem, new SeparatorMenuItem(),
+                             instagramSavedPostsMenuItem, new SeparatorMenuItem(), instagramMessagesMenuItem,
+                             new SeparatorMenuItem(), instagramFollowUserMenuItem, new SeparatorMenuItem(),
+                             instagramLogOutMenuItem, new SeparatorMenuItem(), instagramPostMenuItem);
 
         allMenu.getItems()
                .clear();
@@ -1937,6 +1946,7 @@ public final class MenuController {
         MenuItem twitterDirectMessageMenuItem;
         MenuItem redditDirectMessageMenuItem;
         MenuItem twitterSavedPostsMenuItem;
+        MenuItem twitterLikedPostsMenuItem;
         MenuItem instagramLogInMenuItem;
         MenuItem instagramLogOutMenuItem;
         MenuItem instagramProfileMenuItem;
@@ -1958,6 +1968,7 @@ public final class MenuController {
         RadioMenuItem splitRadioMenuItem;
         Spinner<Integer> fontSizeSpinner;
         MenuItem allSavedPostsRadioMenuItem;
+        MenuItem allLikedPostsMenuItem;
         TwitterModel twitterModel0;
         Menu twitterMenu;
         Menu allMenu;
@@ -2003,6 +2014,8 @@ public final class MenuController {
 
         twitterMessagesMenuItem = menuView.getTwitterMessagesMenuItem();
 
+        twitterLikedPostsMenuItem = menuView.getTwitterLikedPostsMenuItem();
+
         twitterSavedPostsMenuItem = menuView.getTwitterSavedPostsMenuItem();
 
         instagramLogInMenuItem = menuView.getInstagramLogInMenuItem();
@@ -2038,6 +2051,8 @@ public final class MenuController {
         fontSizeSpinner = menuView.getFontSizeSpinner();
 
         allSavedPostsRadioMenuItem = menuView.getAllSavedPostsRadioMenuItem();
+
+        allLikedPostsMenuItem = menuView.getAllLikedPostsMenuItem();
 
         twitterPostMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent)  -> controller.makeTwitterPost());
 
@@ -2191,6 +2206,17 @@ public final class MenuController {
             stage.show();
         });
 
+        twitterLikedPostsMenuItem.addEventHandler((ActionEvent.ACTION), (actionEvent) -> {
+            Scene scene = twitterPostController.getLikedPosts();
+            Stage stage = new Stage();
+            stage.setScene(scene);
+            stage.setTitle("Liked Posts");
+            stage.setResizable(true);
+            stage.setHeight(300);
+            stage.setWidth(500);
+            stage.show();
+        });
+
         instagramLogInMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.logInToInstagram());
 
         instagramLogOutMenuItem.addEventHandler(ActionEvent.ACTION, (actionEvent) -> controller.logOutOfInstagram());
@@ -2274,7 +2300,8 @@ public final class MenuController {
 
             twitterMenu.getItems()
                        .addAll(twitterProfileMenuItem, new SeparatorMenuItem(), twitterMessagesMenuItem,
-                               new SeparatorMenuItem(), twitterSavedPostsMenuItem, new SeparatorMenuItem(),
+                               new SeparatorMenuItem(), twitterLikedPostsMenuItem, new SeparatorMenuItem(),
+                               twitterSavedPostsMenuItem, new SeparatorMenuItem(),
                                twitterFollowUserMenuItem, new SeparatorMenuItem(), twitterLogOutMenuItem);
 
             allMenu.getItems()
