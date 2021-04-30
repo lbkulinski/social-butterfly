@@ -536,6 +536,9 @@ public final class MenuController {
             alert.setHeaderText("Successfully unfollowed!");
         }
         alert.show();
+
+        redditPostController.updateAll = true;
+        redditPostController.updatePosts();
     }
 
     /**
@@ -860,6 +863,9 @@ public final class MenuController {
             alert.setHeaderText("User successfully blocked!");
         }
         alert.show();
+
+        twitterPostController.updateAll = true;
+        twitterPostController.updatePosts();
     }
 
     private void blockRedditUser() {
@@ -958,6 +964,9 @@ public final class MenuController {
             alert.setHeaderText("Successfully blocked!");
         }
         alert.show();
+
+        instagramPostController.updateAll = true;
+        instagramPostController.updatePosts();
     }
 
     /**
