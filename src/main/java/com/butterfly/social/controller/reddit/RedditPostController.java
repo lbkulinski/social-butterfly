@@ -835,7 +835,7 @@ public final class RedditPostController {
             TextInputDialog td = new TextInputDialog();
             td.setTitle("Post Response");
             td.setContentText("Please enter your comment here.");
-            td.getDialogPane().setGraphic(new ImageView("https://external-preview.redd.it/iDdntscPf-nfWKqzHRGFmhVxZm4hZgaKe5oyFws-yzA.png?auto=webp&s=38648ef0dc2c3fce76d5e1d8639234d8da0152b2"));
+            //td.getDialogPane().setGraphic(new ImageView("https://external-preview.redd.it/iDdntscPf-nfWKqzHRGFmhVxZm4hZgaKe5oyFws-yzA.png?auto=webp&s=38648ef0dc2c3fce76d5e1d8639234d8da0152b2"));
             td.showAndWait();
             String comment = td.getResult();
             this.model.getRedditModel().getClient().submission(id).reply(comment);
